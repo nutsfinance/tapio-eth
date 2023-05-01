@@ -264,11 +264,12 @@ contract StableSwap is Initializable, ReentrancyGuardUpgradeable {
    * @dev Mints new pool token.
    * @param _amounts Unconverted token balances used to mint pool token.
    * @param _minMintAmount Minimum amount of pool token to mint.
+   * @return Amount minted
    */
   function mint(
     uint256[] calldata _amounts,
     uint256 _minMintAmount
-  ) external nonReentrant {
+  ) external nonReentrant returns (uint256) {
     // If swap is paused, only admins can mint.
     require(!paused || admins[msg.sender], "paused");
     require(balances.length == _amounts.length, "invalid amounts");
@@ -312,9 +313,9 @@ contract StableSwap is Initializable, ReentrancyGuardUpgradeable {
     totalSupply = newD;
     IERC20MintableBurnable(poolToken).mint(feeRecipient, feeAmount);
     IERC20MintableBurnable(poolToken).mint(msg.sender, mintAmount);
-
     emit Minted(msg.sender, mintAmount, _amounts, feeAmount);
     collectFeeOrYield(true);
+    return mintAmount;
   }
 
   /**
@@ -359,13 +360,14 @@ contract StableSwap is Initializable, ReentrancyGuardUpgradeable {
    * @param _j Token index to swap out.
    * @param _dx Unconverted amount of token _i to swap in.
    * @param _minDy Minimum token _j to swap out in converted balance.
+   * @return Amount of swap out
    */
   function swap(
     uint256 _i,
     uint256 _j,
     uint256 _dx,
     uint256 _minDy
-  ) external nonReentrant {
+  ) external nonReentrant returns (uint256) {
     // If swap is paused, only admins can swap.
     require(!paused || admins[msg.sender], "paused");
     require(_i != _j, "same token");
@@ -410,6 +412,7 @@ contract StableSwap is Initializable, ReentrancyGuardUpgradeable {
 
     emit TokenSwapped(msg.sender, tokens[_i], tokens[_j], _dx, dy);
     collectFeeOrYield(true);
+    return dy;
   }
 
   /**
@@ -447,11 +450,12 @@ contract StableSwap is Initializable, ReentrancyGuardUpgradeable {
    * @dev Redeems pool token to underlying tokens proportionally.
    * @param _amount Amount of pool token to redeem.
    * @param _minRedeemAmounts Minimum amount of underlying tokens to get.
+   * @return Amounts received
    */
   function redeemProportion(
     uint256 _amount,
     uint256[] calldata _minRedeemAmounts
-  ) external nonReentrant {
+  ) external nonReentrant returns (uint256[] memory) {
     // If swap is paused, only admins can redeem.
     require(!paused || admins[msg.sender], "paused");
     require(_amount > 0, "zero amount");
@@ -497,6 +501,7 @@ contract StableSwap is Initializable, ReentrancyGuardUpgradeable {
 
     emit Redeemed(msg.sender, _amount.add(feeAmount), amounts, feeAmount);
     collectFeeOrYield(true);
+    return amounts;
   }
 
   /**
@@ -538,12 +543,13 @@ contract StableSwap is Initializable, ReentrancyGuardUpgradeable {
    * @param _amount Amount of pool token to redeem.
    * @param _i Index of the token to redeem to.
    * @param _minRedeemAmount Minimum amount of the underlying token to redeem to.
+   * @return Amount received
    */
   function redeemSingle(
     uint256 _amount,
     uint256 _i,
     uint256 _minRedeemAmount
-  ) external nonReentrant {
+  ) external nonReentrant returns (uint256) {
     // If swap is paused, only admins can redeem.
     require(!paused || admins[msg.sender], "paused");
     require(_amount > 0, "zero amount");
@@ -568,16 +574,17 @@ contract StableSwap is Initializable, ReentrancyGuardUpgradeable {
     }
 
     // y is converted(18 decimals)
-    uint256 y = _getY(_balances, _i, D.sub(_amount), A);
+    uint256 i = _i;
+    uint256 y = _getY(_balances, i, D.sub(_amount), A);
     // dy is not converted
     // dy = (balance[i] - y - 1) / precisions[i] in case there was rounding errors
-    uint256 dy = _balances[_i].sub(y).sub(1).div(precisions[_i]);
+    uint256 dy = _balances[i].sub(y).sub(1).div(precisions[i]);
     require(dy >= _minRedeemAmount, "fewer than expected");
     // Updates token balance in storage
-    balances[_i] = y;
+    balances[i] = y;
     uint256[] memory amounts = new uint256[](_balances.length);
-    amounts[_i] = dy;
-    IERC20Upgradeable(tokens[_i]).safeTransferFrom(
+    amounts[i] = dy;
+    IERC20Upgradeable(tokens[i]).safeTransferFrom(
       address(this),
       msg.sender,
       dy
@@ -585,9 +592,10 @@ contract StableSwap is Initializable, ReentrancyGuardUpgradeable {
 
     totalSupply = D.sub(_amount);
     IERC20MintableBurnable(poolToken).burnFrom(msg.sender, _amount);
-
-    emit Redeemed(msg.sender, _amount.add(feeAmount), amounts, feeAmount);
+    uint256 amount = _amount;
+    emit Redeemed(msg.sender, amount.add(feeAmount), amounts, feeAmount);
     collectFeeOrYield(true);
+    return dy;
   }
 
   /**
@@ -629,11 +637,12 @@ contract StableSwap is Initializable, ReentrancyGuardUpgradeable {
    * @dev Redeems underlying tokens.
    * @param _amounts Amounts of underlying tokens to redeem to.
    * @param _maxRedeemAmount Maximum of pool token to redeem.
+   * @return Amounts received
    */
   function redeemMulti(
     uint256[] calldata _amounts,
     uint256 _maxRedeemAmount
-  ) external nonReentrant {
+  ) external nonReentrant returns (uint256[] memory) {
     require(_amounts.length == balances.length, "length not match");
     // If swap is paused, only admins can redeem.
     require(!paused || admins[msg.sender], "paused");
@@ -684,6 +693,7 @@ contract StableSwap is Initializable, ReentrancyGuardUpgradeable {
 
     emit Redeemed(msg.sender, redeemAmount, _amounts, feeAmount);
     collectFeeOrYield(true);
+    return _amounts;
   }
 
   /**
@@ -846,5 +856,13 @@ contract StableSwap is Initializable, ReentrancyGuardUpgradeable {
     require(msg.sender == governance, "not governance");
 
     IERC20Upgradeable(_token).safeApprove(_spender, 2 ** 256 - 1);
+  }
+
+  function getTokens() public view returns (address[] memory) {
+    return tokens;
+  }
+
+  function getPoolToken() public view returns (address) {
+    return poolToken;
   }
 }

@@ -30,7 +30,7 @@ contract StableSwapToken is ERC20BurnableUpgradeable {
   }
 
   /**
-   * @dev Sets minter for acBTC. Only minter can mint acBTC.
+   * @dev Sets minter for stable swap token. Only minter can mint stable swap token.
    * @param _user Address of the minter.
    * @param _allowed Whether the user is accepted as a minter or not.
    */
@@ -42,9 +42,9 @@ contract StableSwapToken is ERC20BurnableUpgradeable {
   }
 
   /**
-   * @dev Mints new acBTC. Only minters can mint acBTC.
-   * @param _user Recipient of the minted acBTC.
-   * @param _amount Amount of acBTC to mint.
+   * @dev Mints new stable swap token. Only minters can mint stable swap token.
+   * @param _user Recipient of the minted stable swap token.
+   * @param _amount Amount of stable swap token to mint.
    */
   function mint(address _user, uint256 _amount) public {
     require(minters[msg.sender], "not minter");
