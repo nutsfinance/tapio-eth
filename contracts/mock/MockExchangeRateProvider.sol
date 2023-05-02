@@ -1,12 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-
 import "../interfaces/ITokensWithExchangeRate.sol";
 
 /**
- * @notice Mock ERC20 token.
+ * @notice Mock exchange rate.
  */
 contract MockExchangeRateProvider is ITokensWithExchangeRate {
   uint256 private rate;
@@ -15,7 +13,7 @@ contract MockExchangeRateProvider is ITokensWithExchangeRate {
     rate = _rate;
   }
 
-  function exchangeRate() external view returns (uint256 _exchangeRate) {
+  function exchangeRate() external view returns (uint256) {
     return rate;
   }
 

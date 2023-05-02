@@ -12,6 +12,7 @@
     "@openzeppelin/contracts": "^4.8.3",
     "@openzeppelin/contracts-upgradeable": "^4.8.3",
     "@openzeppelin/test-helpers": "^0.5.16",
+    "@primitivefi/hardhat-dodoc": "^0.2.3",
     "dotenv": "^16.0.3"
   }
 }

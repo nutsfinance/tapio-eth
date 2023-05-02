@@ -10,17 +10,33 @@ import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "./interfaces/IWETH.sol";
 import "./StableSwap.sol";
 
+/**
+ * @title StableSwap Application
+ * @author Nuts Finance Developer
+ * @notice The StableSwap Application provides an interface for users to interact with StableSwap pool contracts
+ * @dev The StableSwap Application contract allows users to mint pool tokens, swap between different tokens, and redeem pool tokens to underlying tokens
+ */
 contract StableSwapApplication is Initializable, ReentrancyGuardUpgradeable {
   using SafeMathUpgradeable for uint256;
   using SafeERC20Upgradeable for IERC20Upgradeable;
 
+  /**
+   * @dev Wrapped ETH address.
+   */
   IWETH public wETH;
 
+  /**
+   * @dev Initializes the StableSwap Application contract.
+   * @param _wETH Wrapped ETH address.
+   */
   function initialize(IWETH _wETH) public initializer {
     require(address(_wETH) != address(0x0), "wETH not set");
     wETH = _wETH;
   }
 
+  /**
+   * @dev Fallback function to receive ETH from WETH contract.
+   */
   receive() external payable {
     assert(msg.sender == address(wETH)); // only accept ETH via fallback from the WETH contract
   }
@@ -37,7 +53,7 @@ contract StableSwapApplication is Initializable, ReentrancyGuardUpgradeable {
     uint256 _minMintAmount
   ) external payable nonReentrant {
     address[] memory tokens = _swap.getTokens();
-    address poolToken = _swap.getPoolToken();
+    address poolToken = _swap.poolToken();
     uint256 wETHIndex = findWETHIndex(tokens);
     require(_amounts[wETHIndex] == msg.value, "msg.value equals amounts");
 
@@ -107,7 +123,7 @@ contract StableSwapApplication is Initializable, ReentrancyGuardUpgradeable {
     uint256[] calldata _minRedeemAmounts
   ) external nonReentrant {
     address[] memory tokens = _swap.getTokens();
-    address poolToken = _swap.getPoolToken();
+    address poolToken = _swap.poolToken();
     uint256 wETHIndex = findWETHIndex(tokens);
 
     IERC20Upgradeable(poolToken).safeApprove(address(_swap), _amount);
@@ -132,6 +148,12 @@ contract StableSwapApplication is Initializable, ReentrancyGuardUpgradeable {
     }
   }
 
+  /**
+   * @notice Finds the index of the WETH token in a given array of tokens.
+   * @dev Iterates through the array of tokens and checks if each token's address matches the address of the WETH token.
+   * @param tokens An array of ERC20 token addresses.
+   * @return The index of the WETH token in the array of tokens.
+   */
   function findWETHIndex(
     address[] memory tokens
   ) internal view returns (uint256) {
