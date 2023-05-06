@@ -3,6 +3,8 @@ import "@openzeppelin/hardhat-upgrades";
 import "@nomiclabs/hardhat-web3";
 import "@nomicfoundation/hardhat-toolbox";
 import "@primitivefi/hardhat-dodoc";
+import "solidity-coverage";
+
 import * as dotenv from "dotenv";
 
 dotenv.config();
@@ -32,6 +34,8 @@ const config: HardhatUserConfig = {
   dodoc: {
     outputDir: "./docs",
     include: [
+      "contracts/interfaces",
+      "contracts/tokens",
       "contracts/StableSwap.sol",
       "contracts/StableSwapApplication.sol",
       "contracts/StableSwapToken.sol",

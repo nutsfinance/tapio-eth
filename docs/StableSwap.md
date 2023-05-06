@@ -10,6 +10,40 @@ The StableSwap pool provides a way to swap between different tokens
 
 ## Methods
 
+### FEE_DENOMINATOR
+
+```solidity
+function FEE_DENOMINATOR() external view returns (uint256)
+```
+
+
+
+*This is the denominator used for calculating transaction fees in the StableSwap contract.*
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined |
+
+### MAX_A
+
+```solidity
+function MAX_A() external view returns (uint256)
+```
+
+
+
+*This is the maximum value of the amplification coefficient A.*
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined |
+
 ### admins
 
 ```solidity
@@ -64,23 +98,6 @@ function balances(uint256) external view returns (uint256)
 | Name | Type | Description |
 |---|---|---|
 | _0 | uint256 | undefined |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined |
-
-### feeDenominator
-
-```solidity
-function feeDenominator() external view returns (uint256)
-```
-
-
-
-*This is the denominator used for calculating transaction fees in the StableSwap contract.*
-
 
 #### Returns
 
@@ -483,7 +500,7 @@ function redeemFee() external view returns (uint256)
 
 
 
-*This is the fee charged for removing liquidity from the StableSwap contract. redeemFee = redeemFee * feeDenominator*
+*This is the fee charged for removing liquidity from the StableSwap contract. redeemFee = redeemFee * FEE_DENOMINATOR*
 
 
 #### Returns
@@ -708,7 +725,7 @@ function swapFee() external view returns (uint256)
 
 
 
-*This is the fee charged for trading assets in the StableSwap contract. swapFee = swapFee * feeDenominator*
+*This is the fee charged for trading assets in the StableSwap contract. swapFee = swapFee * FEE_DENOMINATOR*
 
 
 #### Returns
@@ -813,14 +830,14 @@ event AModified(uint256 futureA, uint256 futureABlock)
 
 
 
-
+*This event is emitted when the A parameter is modified.*
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| futureA  | uint256 | undefined |
-| futureABlock  | uint256 | undefined |
+| futureA  | uint256 | is the new value of the A parameter. |
+| futureABlock  | uint256 | is the block number at which the new value of the A parameter will take effect. |
 
 ### FeeCollected
 
@@ -921,14 +938,14 @@ event YieldCollected(address indexed recipient, uint256 feeAmount)
 
 
 
-
+*This event is emitted when yield is collected by the StableSwap contract.*
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| recipient `indexed` | address | undefined |
-| feeAmount  | uint256 | undefined |
+| recipient `indexed` | address | is the address of the yield recipient. |
+| feeAmount  | uint256 | is the amount of yield collected. |
 
 
 

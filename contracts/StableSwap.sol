@@ -66,13 +66,28 @@ contract StableSwap is Initializable, ReentrancyGuardUpgradeable {
    * @param feeAmount is the amount of fee collected.
    */
   event FeeCollected(address indexed recipient, uint256 feeAmount);
+  /**
+   * @dev This event is emitted when yield is collected by the StableSwap contract.
+   * @param recipient is the address of the yield recipient.
+   * @param feeAmount is the amount of yield collected.
+   */
   event YieldCollected(address indexed recipient, uint256 feeAmount);
+  /**
+   * @dev This event is emitted when the A parameter is modified.
+   * @param futureA is the new value of the A parameter.
+   * @param futureABlock is the block number at which the new value of the A parameter will take effect.
+   */
   event AModified(uint256 futureA, uint256 futureABlock);
 
   /**
    * @dev This is the denominator used for calculating transaction fees in the StableSwap contract.
    */
-  uint256 public constant feeDenominator = 10 ** 10;
+  uint256 public constant FEE_DENOMINATOR = 10 ** 10;
+  /**
+   * @dev This is the maximum value of the amplification coefficient A.
+   */
+  uint256 public constant MAX_A = 10 ** 6;
+
   /**
    * @dev This is an array of addresses representing the tokens currently supported by the StableSwap contract.
    */
@@ -93,12 +108,12 @@ contract StableSwap is Initializable, ReentrancyGuardUpgradeable {
   uint256 public mintFee;
   /**
    * @dev This is the fee charged for trading assets in the StableSwap contract.
-   * swapFee = swapFee * feeDenominator
+   * swapFee = swapFee * FEE_DENOMINATOR
    */
   uint256 public swapFee;
   /**
    * @dev This is the fee charged for removing liquidity from the StableSwap contract.
-   * redeemFee = redeemFee * feeDenominator
+   * redeemFee = redeemFee * FEE_DENOMINATOR
    */
   uint256 public redeemFee;
   /**
@@ -167,15 +182,31 @@ contract StableSwap is Initializable, ReentrancyGuardUpgradeable {
     address _poolToken,
     uint256 _A
   ) public initializer {
-    require(_tokens.length == _precisions.length, "input mismatch");
+    require(
+      _tokens.length >= 2 && _tokens.length == _precisions.length,
+      "input mismatch"
+    );
     require(_fees.length == 3, "no fees");
     for (uint256 i = 0; i < _tokens.length; i++) {
       require(_tokens[i] != address(0x0), "token not set");
+      /* TODO: fix test cases
+      // query tokens decimals
+      (, bytes memory queriedDecimals) = _tokens[i].staticcall(
+        abi.encodeWithSignature("decimals()")
+      );
+      uint8 decimals = abi.decode(queriedDecimals, (uint8));
+
+      require(
+        _precisions[i] != 0 && _precisions[i] == 10 ** (18 - decimals),
+        "precision not set"
+      ); */
       require(_precisions[i] != 0, "precision not set");
       balances.push(0);
     }
-    require(_poolToken != address(0x0), "pool token not set");
     require(_feeRecipient != address(0x0), "fee recipient not set");
+    require(_yieldRecipient != address(0x0), "yield recipient not set");
+    require(_poolToken != address(0x0), "pool token not set");
+    require(_A > 0 && _A < MAX_A, "A not set");
 
     __ReentrancyGuard_init();
 
@@ -217,7 +248,7 @@ contract StableSwap is Initializable, ReentrancyGuardUpgradeable {
         return initialA.sub(amount);
       }
     } else {
-      return initialA;
+      return futureA;
     }
   }
 
@@ -339,7 +370,7 @@ contract StableSwap is Initializable, ReentrancyGuardUpgradeable {
     uint256 feeAmount = 0;
 
     if (mintFee > 0) {
-      feeAmount = mintAmount.mul(mintFee).div(feeDenominator);
+      feeAmount = mintAmount.mul(mintFee).div(FEE_DENOMINATOR);
       mintAmount = mintAmount.sub(feeAmount);
     }
 
@@ -380,7 +411,7 @@ contract StableSwap is Initializable, ReentrancyGuardUpgradeable {
     uint256 fee = mintFee;
     uint256 feeAmount;
     if (fee > 0) {
-      feeAmount = mintAmount.mul(fee).div(feeDenominator);
+      feeAmount = mintAmount.mul(fee).div(FEE_DENOMINATOR);
       mintAmount = mintAmount.sub(feeAmount);
     }
     require(mintAmount >= _minMintAmount, "fewer than expected");
@@ -435,7 +466,7 @@ contract StableSwap is Initializable, ReentrancyGuardUpgradeable {
     uint256 dy = _balances[j].sub(y).sub(1).div(precisions[j]);
 
     if (swapFee > 0) {
-      dy = dy.sub(dy.mul(swapFee).div(feeDenominator));
+      dy = dy.sub(dy.mul(swapFee).div(FEE_DENOMINATOR));
     }
 
     return (dy, _totalSupply);
@@ -477,7 +508,7 @@ contract StableSwap is Initializable, ReentrancyGuardUpgradeable {
 
     uint256 fee = swapFee;
     if (fee > 0) {
-      dy = dy.sub(dy.mul(fee).div(feeDenominator));
+      dy = dy.sub(dy.mul(fee).div(FEE_DENOMINATOR));
     }
     require(dy >= _minDy, "fewer than expected");
 
@@ -521,7 +552,7 @@ contract StableSwap is Initializable, ReentrancyGuardUpgradeable {
     uint256[] memory amounts = new uint256[](_balances.length);
     uint256 feeAmount = 0;
     if (redeemFee > 0) {
-      feeAmount = _amount.mul(redeemFee).div(feeDenominator);
+      feeAmount = _amount.mul(redeemFee).div(FEE_DENOMINATOR);
       // Redemption fee is charged with pool token before redemption.
       _amount = _amount.sub(feeAmount);
     }
@@ -557,7 +588,7 @@ contract StableSwap is Initializable, ReentrancyGuardUpgradeable {
     uint256 fee = redeemFee;
     uint256 feeAmount;
     if (fee > 0) {
-      feeAmount = _amount.mul(fee).div(feeDenominator);
+      feeAmount = _amount.mul(fee).div(FEE_DENOMINATOR);
       // Redemption fee is paid with pool token
       // No conversion is needed as the pool token has 18 decimals
       IERC20Upgradeable(poolToken).safeTransferFrom(
@@ -616,7 +647,7 @@ contract StableSwap is Initializable, ReentrancyGuardUpgradeable {
     uint256 D = _totalSupply;
     uint256 feeAmount = 0;
     if (redeemFee > 0) {
-      feeAmount = _amount.mul(redeemFee).div(feeDenominator);
+      feeAmount = _amount.mul(redeemFee).div(FEE_DENOMINATOR);
       // Redemption fee is charged with pool token before redemption.
       _amount = _amount.sub(feeAmount);
     }
@@ -654,7 +685,7 @@ contract StableSwap is Initializable, ReentrancyGuardUpgradeable {
     uint256 feeAmount = 0;
     if (fee > 0) {
       // Redemption fee is charged with pool token before redemption.
-      feeAmount = _amount.mul(fee).div(feeDenominator);
+      feeAmount = _amount.mul(fee).div(FEE_DENOMINATOR);
       // No conversion is needed as the pool token has 18 decimals
       IERC20Upgradeable(poolToken).safeTransferFrom(
         msg.sender,
@@ -717,8 +748,8 @@ contract StableSwap is Initializable, ReentrancyGuardUpgradeable {
     uint256 redeemAmount = oldD.sub(newD);
     uint256 feeAmount = 0;
     if (redeemFee > 0) {
-      redeemAmount = redeemAmount.mul(feeDenominator).div(
-        feeDenominator.sub(redeemFee)
+      redeemAmount = redeemAmount.mul(FEE_DENOMINATOR).div(
+        FEE_DENOMINATOR.sub(redeemFee)
       );
       feeAmount = redeemAmount.sub(oldD.sub(newD));
     }
@@ -757,8 +788,8 @@ contract StableSwap is Initializable, ReentrancyGuardUpgradeable {
     uint256 fee = redeemFee;
     uint256 feeAmount = 0;
     if (fee > 0) {
-      redeemAmount = redeemAmount.mul(feeDenominator).div(
-        feeDenominator.sub(fee)
+      redeemAmount = redeemAmount.mul(FEE_DENOMINATOR).div(
+        FEE_DENOMINATOR.sub(fee)
       );
       feeAmount = redeemAmount.sub(oldD.sub(newD));
       // No conversion is needed as the pool token has 18 decimals
@@ -948,11 +979,15 @@ contract StableSwap is Initializable, ReentrancyGuardUpgradeable {
    */
   function updateA(uint256 _futureA, uint256 _futureABlock) external {
     require(msg.sender == governance, "not governance");
-    require(futureABlock > block.number, "block in the past");
+    require(_futureA > 0 && _futureA < MAX_A, "A not set");
+    require(_futureABlock > block.number, "block in the past");
+
     initialA = getA();
     initialABlock = block.number;
     futureA = _futureA;
     futureABlock = _futureABlock;
+
+    emit AModified(_futureA, _futureABlock);
   }
 
   /**
