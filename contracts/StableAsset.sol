@@ -52,6 +52,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
   event AModified(uint256 futureA, uint256 futureABlock);
 
   uint256 public constant feeDenominator = 10 ** 10;
+  uint256 public constant feeErrorMargin = 1000;
   address[] public tokens;
   uint256[] public precisions; // 10 ** (18 - token decimals)
   uint256[] public balances; // Converted to 10 ** 18
@@ -732,8 +733,12 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
       );
     }
     uint256 newD = _getD(_balances, A);
-    if (isFee && newD < oldD) {
-      return 0;
+    if (isFee) {
+      if (oldD > newD && oldD.sub(newD) < newD.div(feeErrorMargin)) {
+        return 0;
+      } else if (oldD > newD) {
+        revert("pool imbalanced");
+      }
     }
     uint256 feeAmount = newD.sub(oldD);
     if (feeAmount == 0) {
