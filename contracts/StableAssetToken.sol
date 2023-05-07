@@ -4,7 +4,7 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20BurnableUpgradeable.sol";
 
-contract StableSwapToken is ERC20BurnableUpgradeable {
+contract StableAssetToken is ERC20BurnableUpgradeable {
   event MinterUpdated(address indexed account, bool allowed);
 
   address public governance;

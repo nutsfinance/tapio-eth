@@ -29,14 +29,14 @@ const assetInvariant = async (balance0: string, balance1: string, A: number, D: 
   assertAlmostTheSame(left, right);
 };
 
-describe("StableSwap", function () {
+describe("StableAsset", function () {
   async function deploySwapAndTokens() {
     // Contracts are deployed using the first signer/account by default
     const [owner, feeRecipient, user, user2, yieldRecipient] = await ethers.getSigners();
 
-    const ACoconutSwap = await ethers.getContractFactory("StableSwap");
+    const ACoconutSwap = await ethers.getContractFactory("StableAsset");
     const MockToken = await ethers.getContractFactory("MockToken");
-    const ACoconutBTC = await ethers.getContractFactory("StableSwapToken");
+    const ACoconutBTC = await ethers.getContractFactory("StableAssetToken");
 
     const token1 = await MockToken.deploy("test 1", "T1", 18);
     const token2 = await MockToken.deploy("test 2", "T2", 18);
@@ -54,9 +54,9 @@ describe("StableSwap", function () {
     // Contracts are deployed using the first signer/account by default
     const [owner, feeRecipient, user, user2, yieldRecipient] = await ethers.getSigners();
 
-    const ACoconutSwap = await ethers.getContractFactory("StableSwap");
+    const ACoconutSwap = await ethers.getContractFactory("StableAsset");
     const MockToken = await ethers.getContractFactory("MockToken");
-    const ACoconutBTC = await ethers.getContractFactory("StableSwapToken");
+    const ACoconutBTC = await ethers.getContractFactory("StableAssetToken");
     const MockTokenWithExchangeRate = await ethers.getContractFactory("MockExchangeRateProvider");
     const TokensWithExchangeRate = await ethers.getContractFactory("TokensWithExchangeRate");
 

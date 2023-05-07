@@ -10,9 +10,9 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 import "./misc/IERC20MintableBurnable.sol";
 
 /**
- * @notice StableSwap swap.
+ * @notice StableAsset swap.
  */
-contract StableSwap is Initializable, ReentrancyGuardUpgradeable {
+contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
   using SafeMathUpgradeable for uint256;
   using SafeERC20Upgradeable for IERC20Upgradeable;
 
