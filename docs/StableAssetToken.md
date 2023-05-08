@@ -1,12 +1,12 @@
-# StableSwapToken
+# StableAssetToken
 
 *Nuts Finance Developer*
 
-> StableSwapToken
+> StableAssetToken
 
 ERC20 token used by the StableSwap pool
 
-*The StableSwapToken contract represents the ERC20 token used by the StableSwap pool This token can be minted by designated minters and burned by its owner. The governance address can be updated to change who has the ability to manage minters and other aspects of the token*
+*The StableAssetToken contract represents the ERC20 token used by the StableSwap pool This token can be minted by designated minters and burned by its owner. The governance address can be updated to change who has the ability to manage minters and other aspects of the token*
 
 ## Methods
 

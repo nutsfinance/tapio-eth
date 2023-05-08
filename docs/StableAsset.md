@@ -1,12 +1,12 @@
-# StableSwap
+# StableAsset
 
 *Nuts Finance Developer*
 
-> StableSwap pool
+> StableAsset swap
 
-The StableSwap pool provides a way to swap between different tokens
+The StableAsset pool provides a way to swap between different tokens
 
-*The StableSwap contract allows users to trade between different tokens, with prices determined algorithmically based on the current supply and demand*
+*The StableAsset contract allows users to trade between different tokens, with prices determined algorithmically based on the current supply and demand of each token*
 
 ## Methods
 
@@ -18,7 +18,24 @@ function FEE_DENOMINATOR() external view returns (uint256)
 
 
 
-*This is the denominator used for calculating transaction fees in the StableSwap contract.*
+*This is the denominator used for calculating transaction fees in the StableAsset contract.*
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined |
+
+### FEE_ERROR_MARGIN
+
+```solidity
+function FEE_ERROR_MARGIN() external view returns (uint256)
+```
+
+
+
+*This is the maximum error margin for calculating transaction fees in the StableAsset contract.*
 
 
 #### Returns
@@ -52,7 +69,7 @@ function admins(address) external view returns (bool)
 
 
 
-*This is a mapping of accounts that have administrative privileges over the StableSwap contract.*
+*This is a mapping of accounts that have administrative privileges over the StableAsset contract.*
 
 #### Parameters
 
@@ -91,7 +108,7 @@ function balances(uint256) external view returns (uint256)
 
 
 
-*This is an array of uint256 values representing the current balances of each token in the StableSwap contract. The balances are converted to the standard token unit (10 ** 18).*
+*This is an array of uint256 values representing the current balances of each token in the StableAsset contract. The balances are converted to the standard token unit (10 ** 18).*
 
 #### Parameters
 
@@ -113,7 +130,7 @@ function feeRecipient() external view returns (address)
 
 
 
-*This is the account which receives transaction fees collected by the StableSwap contract.*
+*This is the account which receives transaction fees collected by the StableAsset contract.*
 
 
 #### Returns
@@ -320,7 +337,7 @@ function governance() external view returns (address)
 
 
 
-*This is the account that has governance control over the StableSwap contract.*
+*This is the account that has governance control over the StableAsset contract.*
 
 
 #### Returns
@@ -371,7 +388,7 @@ function initialize(address[] _tokens, uint256[] _precisions, uint256[] _fees, a
 
 
 
-*Initializes the StableSwap contract with the given parameters.*
+*Initializes the StableAsset contract with the given parameters.*
 
 #### Parameters
 
@@ -416,7 +433,7 @@ function mintFee() external view returns (uint256)
 
 
 
-*This is the fee charged for adding liquidity to the StableSwap contract.*
+*This is the fee charged for adding liquidity to the StableAsset contract.*
 
 
 #### Returns
@@ -444,7 +461,7 @@ function paused() external view returns (bool)
 
 
 
-*This is a state variable that represents whether or not the StableSwap contract is currently paused.*
+*This is a state variable that represents whether or not the StableAsset contract is currently paused.*
 
 
 #### Returns
@@ -461,7 +478,7 @@ function poolToken() external view returns (address)
 
 
 
-*This is the address of the ERC20 token contract that represents the StableSwap pool token.*
+*This is the address of the ERC20 token contract that represents the StableAsset pool token.*
 
 
 #### Returns
@@ -478,7 +495,7 @@ function precisions(uint256) external view returns (uint256)
 
 
 
-*This is an array of uint256 values representing the precisions of each token in the StableSwap contract. The precision of each token is calculated as 10 ** (18 - token decimals).*
+*This is an array of uint256 values representing the precisions of each token in the StableAsset contract. The precision of each token is calculated as 10 ** (18 - token decimals).*
 
 #### Parameters
 
@@ -500,7 +517,7 @@ function redeemFee() external view returns (uint256)
 
 
 
-*This is the fee charged for removing liquidity from the StableSwap contract. redeemFee = redeemFee * FEE_DENOMINATOR*
+*This is the fee charged for removing liquidity from the StableAsset contract. redeemFee = redeemFee * FEE_DENOMINATOR*
 
 
 #### Returns
@@ -725,7 +742,7 @@ function swapFee() external view returns (uint256)
 
 
 
-*This is the fee charged for trading assets in the StableSwap contract. swapFee = swapFee * FEE_DENOMINATOR*
+*This is the fee charged for trading assets in the StableAsset contract. swapFee = swapFee * FEE_DENOMINATOR*
 
 
 #### Returns
@@ -742,7 +759,7 @@ function tokens(uint256) external view returns (address)
 
 
 
-*This is an array of addresses representing the tokens currently supported by the StableSwap contract.*
+*This is an array of addresses representing the tokens currently supported by the StableAsset contract.*
 
 #### Parameters
 
@@ -809,7 +826,7 @@ function yieldRecipient() external view returns (address)
 
 
 
-*This is the account which receives yield generated by the StableSwap contract.*
+*This is the account which receives yield generated by the StableAsset contract.*
 
 
 #### Returns
@@ -847,7 +864,7 @@ event FeeCollected(address indexed recipient, uint256 feeAmount)
 
 
 
-*This event is emitted when transaction fees are collected by the StableSwap contract.*
+*This event is emitted when transaction fees are collected by the StableAsset contract.*
 
 #### Parameters
 
@@ -878,7 +895,7 @@ event Initialized(uint8 version)
 event Minted(address indexed provider, uint256 mintAmount, uint256[] amounts, uint256 feeAmount)
 ```
 
-This event is emitted when liquidity is added to the StableSwap contract.
+This event is emitted when liquidity is added to the StableAsset contract.
 
 
 
@@ -899,7 +916,7 @@ event Redeemed(address indexed provider, uint256 redeemAmount, uint256[] amounts
 
 
 
-*This event is emitted when liquidity is removed from the StableSwap contract.*
+*This event is emitted when liquidity is removed from the StableAsset contract.*
 
 #### Parameters
 
@@ -938,7 +955,7 @@ event YieldCollected(address indexed recipient, uint256 feeAmount)
 
 
 
-*This event is emitted when yield is collected by the StableSwap contract.*
+*This event is emitted when yield is collected by the StableAsset contract.*
 
 #### Parameters
 

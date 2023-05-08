@@ -36,9 +36,9 @@ const config: HardhatUserConfig = {
     include: [
       "contracts/interfaces",
       "contracts/tokens",
-      "contracts/StableSwap.sol",
-      "contracts/StableSwapApplication.sol",
-      "contracts/StableSwapToken.sol",
+      "contracts/StableAsset.sol",
+      "contracts/StableAssetApplication.sol",
+      "contracts/StableAssetToken.sol",
     ],
   },
 };

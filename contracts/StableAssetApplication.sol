@@ -162,7 +162,7 @@ contract StableAssetApplication is Initializable, ReentrancyGuardUpgradeable {
     uint256 _minRedeemAmount
   ) external nonReentrant {
     address[] memory tokens = _swap.getTokens();
-    address poolToken = _swap.getPoolToken();
+    address poolToken = _swap.poolToken();
     uint256 wETHIndex = findTokenIndex(tokens, address(wETH));
     IERC20Upgradeable(poolToken).safeApprove(address(_swap), _amount);
     IERC20Upgradeable(poolToken).safeTransferFrom(
@@ -242,7 +242,7 @@ contract StableAssetApplication is Initializable, ReentrancyGuardUpgradeable {
     uint256[] memory _mintAmounts = new uint256[](sourceTokens.length);
     _mintAmounts[sourceIndex] = _amount;
     uint256 mintAmount = _sourceSwap.mint(_mintAmounts, 0);
-    IERC20Upgradeable(_destSwap.getPoolToken()).safeApprove(
+    IERC20Upgradeable(_destSwap.poolToken()).safeApprove(
       address(_destSwap),
       mintAmount
     );
