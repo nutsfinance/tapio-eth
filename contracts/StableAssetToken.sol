@@ -5,14 +5,14 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20BurnableUpgradeable.sol";
 
 /**
- * @title StableSwapToken
+ * @title StableAssetToken
  * @author Nuts Finance Developer
  * @notice ERC20 token used by the StableSwap pool
- * @dev The StableSwapToken contract represents the ERC20 token used by the StableSwap pool
+ * @dev The StableAssetToken contract represents the ERC20 token used by the StableSwap pool
  * This token can be minted by designated minters and burned by its owner. The governance address can
  * be updated to change who has the ability to manage minters and other aspects of the token
  */
-contract StableSwapToken is ERC20BurnableUpgradeable {
+contract StableAssetToken is ERC20BurnableUpgradeable {
   /**
    * @dev Emitted when the governance address is updated.
    * @param account Address of the new governance.

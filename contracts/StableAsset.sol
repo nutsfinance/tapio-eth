@@ -10,12 +10,12 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 import "./misc/IERC20MintableBurnable.sol";
 
 /**
- * @title StableSwap pool
+ * @title StableAsset swap
  * @author Nuts Finance Developer
- * @notice The StableSwap pool provides a way to swap between different tokens
- * @dev The StableSwap contract allows users to trade between different tokens, with prices determined algorithmically based on the current supply and demand
+ * @notice The StableAsset pool provides a way to swap between different tokens
+ * @dev The StableAsset contract allows users to trade between different tokens, with prices determined algorithmically based on the current supply and demand of each token
  */
-contract StableSwap is Initializable, ReentrancyGuardUpgradeable {
+contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
   using SafeMathUpgradeable for uint256;
   using SafeERC20Upgradeable for IERC20Upgradeable;
 
@@ -35,7 +35,7 @@ contract StableSwap is Initializable, ReentrancyGuardUpgradeable {
     uint256 amountBought
   );
   /**
-   * @notice This event is emitted when liquidity is added to the StableSwap contract.
+   * @notice This event is emitted when liquidity is added to the StableAsset contract.
    * @param provider is the address of the liquidity provider.
    * @param mintAmount is the amount of liquidity tokens minted to the provider in exchange for their contribution.
    * @param amounts is an array containing the amounts of each token contributed by the provider.
@@ -48,7 +48,7 @@ contract StableSwap is Initializable, ReentrancyGuardUpgradeable {
     uint256 feeAmount
   );
   /**
-   * @dev This event is emitted when liquidity is removed from the StableSwap contract.
+   * @dev This event is emitted when liquidity is removed from the StableAsset contract.
    * @param provider is the address of the liquidity provider.
    * @param redeemAmount is the amount of liquidity tokens redeemed by the provider.
    * @param amounts is an array containing the amounts of each token received by the provider.
@@ -61,13 +61,13 @@ contract StableSwap is Initializable, ReentrancyGuardUpgradeable {
     uint256 feeAmount
   );
   /**
-   * @dev This event is emitted when transaction fees are collected by the StableSwap contract.
+   * @dev This event is emitted when transaction fees are collected by the StableAsset contract.
    * @param recipient is the address of the fee recipient.
    * @param feeAmount is the amount of fee collected.
    */
   event FeeCollected(address indexed recipient, uint256 feeAmount);
   /**
-   * @dev This event is emitted when yield is collected by the StableSwap contract.
+   * @dev This event is emitted when yield is collected by the StableAsset contract.
    * @param recipient is the address of the yield recipient.
    * @param feeAmount is the amount of yield collected.
    */
@@ -80,52 +80,56 @@ contract StableSwap is Initializable, ReentrancyGuardUpgradeable {
   event AModified(uint256 futureA, uint256 futureABlock);
 
   /**
-   * @dev This is the denominator used for calculating transaction fees in the StableSwap contract.
+   * @dev This is the denominator used for calculating transaction fees in the StableAsset contract.
    */
   uint256 public constant FEE_DENOMINATOR = 10 ** 10;
+  /**
+   *  @dev This is the maximum error margin for calculating transaction fees in the StableAsset contract.
+   */
+  uint256 public constant FEE_ERROR_MARGIN = 1000;
   /**
    * @dev This is the maximum value of the amplification coefficient A.
    */
   uint256 public constant MAX_A = 10 ** 6;
 
   /**
-   * @dev This is an array of addresses representing the tokens currently supported by the StableSwap contract.
+   * @dev This is an array of addresses representing the tokens currently supported by the StableAsset contract.
    */
   address[] public tokens;
   /**
-   * @dev This is an array of uint256 values representing the precisions of each token in the StableSwap contract.
+   * @dev This is an array of uint256 values representing the precisions of each token in the StableAsset contract.
    * The precision of each token is calculated as 10 ** (18 - token decimals).
    */
   uint256[] public precisions;
   /**
-   * @dev This is an array of uint256 values representing the current balances of each token in the StableSwap contract.
+   * @dev This is an array of uint256 values representing the current balances of each token in the StableAsset contract.
    * The balances are converted to the standard token unit (10 ** 18).
    */
   uint256[] public balances;
   /**
-   * @dev This is the fee charged for adding liquidity to the StableSwap contract.
+   * @dev This is the fee charged for adding liquidity to the StableAsset contract.
    */
   uint256 public mintFee;
   /**
-   * @dev This is the fee charged for trading assets in the StableSwap contract.
+   * @dev This is the fee charged for trading assets in the StableAsset contract.
    * swapFee = swapFee * FEE_DENOMINATOR
    */
   uint256 public swapFee;
   /**
-   * @dev This is the fee charged for removing liquidity from the StableSwap contract.
+   * @dev This is the fee charged for removing liquidity from the StableAsset contract.
    * redeemFee = redeemFee * FEE_DENOMINATOR
    */
   uint256 public redeemFee;
   /**
-   * @dev This is the account which receives transaction fees collected by the StableSwap contract.
+   * @dev This is the account which receives transaction fees collected by the StableAsset contract.
    */
   address public feeRecipient;
   /**
-   * @dev This is the account which receives yield generated by the StableSwap contract.
+   * @dev This is the account which receives yield generated by the StableAsset contract.
    */
   address public yieldRecipient;
   /**
-   * @dev This is the address of the ERC20 token contract that represents the StableSwap pool token.
+   * @dev This is the address of the ERC20 token contract that represents the StableAsset pool token.
    */
   address public poolToken;
   /**
@@ -134,15 +138,15 @@ contract StableSwap is Initializable, ReentrancyGuardUpgradeable {
    */
   uint256 public totalSupply;
   /**
-   * @dev This is the account that has governance control over the StableSwap contract.
+   * @dev This is the account that has governance control over the StableAsset contract.
    */
   address public governance;
   /**
-   * @dev This is a mapping of accounts that have administrative privileges over the StableSwap contract.
+   * @dev This is a mapping of accounts that have administrative privileges over the StableAsset contract.
    */
   mapping(address => bool) public admins;
   /**
-   * @dev This is a state variable that represents whether or not the StableSwap contract is currently paused.
+   * @dev This is a state variable that represents whether or not the StableAsset contract is currently paused.
    */
   bool public paused;
 
@@ -164,7 +168,7 @@ contract StableSwap is Initializable, ReentrancyGuardUpgradeable {
   uint256 public futureABlock;
 
   /**
-   * @dev Initializes the StableSwap contract with the given parameters.
+   * @dev Initializes the StableAsset contract with the given parameters.
    * @param _tokens The tokens in the pool.
    * @param _precisions The precisions of each token (10 ** (18 - token decimals)).
    * @param _fees The fees for minting, swapping, and redeeming.
@@ -256,7 +260,7 @@ contract StableSwap is Initializable, ReentrancyGuardUpgradeable {
    * @dev Computes D given token balances.
    * @param _balances Normalized balance of each token.
    * @param _A Amplification coefficient from getA().
-   * @return D The stableswap invariant.
+   * @return D The StableAsset invariant.
    */
   function _getD(
     uint256[] memory _balances,
@@ -861,8 +865,12 @@ contract StableSwap is Initializable, ReentrancyGuardUpgradeable {
       );
     }
     uint256 newD = _getD(_balances, A);
-    if (isFee && newD < oldD) {
-      return 0;
+    if (isFee) {
+      if (oldD > newD && oldD.sub(newD) < newD.div(FEE_ERROR_MARGIN)) {
+        return 0;
+      } else if (oldD > newD) {
+        revert("pool imbalanced");
+      }
     }
     uint256 feeAmount = newD.sub(oldD);
     if (feeAmount == 0) {
