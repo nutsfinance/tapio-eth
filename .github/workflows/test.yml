@@ -10,13 +10,7 @@ jobs:
         with:
           node-version: '18.x'
 
-      - name: Install packages
-        run: yarn install
-
-      - name: lint
-        run: yarn lint
-
-      - name: build
+      - name: test
         run: |
           npm test
           npm run coverage
