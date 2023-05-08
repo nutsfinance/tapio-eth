@@ -12,5 +12,6 @@ jobs:
 
       - name: test
         run: |
+          npm install
           npm test
           npm run coverage
