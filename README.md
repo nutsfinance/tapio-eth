@@ -1,4 +1,4 @@
-# Stable Swap Project
+# Stable Asset Project
 
 [![codecov](https://codecov.io/gh/nutsfinance/tapio-eth/branch/main/graph/badge.svg?token=ERf7EDgafw)](https://codecov.io/gh/nutsfinance/tapio-eth)
 
@@ -30,30 +30,30 @@ feeAddress: '0x3a4ABb0eE1dE2aCcDFE14b80B4DEe78F983b3dcF'
 yieldAddress: '0xDeEc86988C66618e574ed1eFF2C5CA5745d2916d'
 ```
 
-Public Api for StableSwapApplication: 
+Public Api for StableAssetApplication: 
 ```
   /**
    * @dev Mints new pool token and wrap ETH.
-   * @param _swap Underlying stable swap address.
+   * @param _swap Underlying stable asset address.
    * @param _amounts Unconverted token balances used to mint pool token.
    * @param _minMintAmount Minimum amount of pool token to mint.
    */
   function mint(
-      StableSwap _swap,
+      StableAsset _swap,
       uint256[] calldata _amounts,
       uint256 _minMintAmount
     ) external payable nonReentrant
 
   /**
    * @dev Exchange between two underlying tokens with wrap/unwrap ETH.
-   * @param _swap Underlying stable swap address.
+   * @param _swap Underlying stable asset address.
    * @param _i Token index to swap in.
    * @param _j Token index to swap out.
    * @param _dx Unconverted amount of token _i to swap in.
    * @param _minDy Minimum token _j to swap out in converted balance.
    */
   function swap(
-      StableSwap _swap,
+      StableAsset _swap,
       uint256 _i,
       uint256 _j,
       uint256 _dx,
@@ -62,18 +62,18 @@ Public Api for StableSwapApplication:
 
   /**
    * @dev Redeems pool token to underlying tokens proportionally with unwrap ETH.
-   * @param _swap Underlying stable swap address. 
+   * @param _swap Underlying stable asset address. 
    * @param _amount Amount of pool token to redeem.
    * @param _minRedeemAmounts Minimum amount of underlying tokens to get.
    */
   function redeemProportion(
-      StableSwap _swap,
+      StableAsset _swap,
       uint256 _amount,
       uint256[] calldata _minRedeemAmounts
     ) external nonReentrant
 ```
 
-Public Api for StableSwap:
+Public Api for StableAsset:
 ```
   /**
    * @dev Mints new pool token.
