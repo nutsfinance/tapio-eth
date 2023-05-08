@@ -12,6 +12,7 @@ jobs:
 
       - name: test
         run: |
+          cp .env-example .env
           npm install
           npm test
           npm run coverage
