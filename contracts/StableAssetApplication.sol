@@ -10,17 +10,33 @@ import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "./interfaces/IWETH.sol";
 import "./StableAsset.sol";
 
+/**
+ * @title StableAsset Application
+ * @author Nuts Finance Developer
+ * @notice The StableSwap Application provides an interface for users to interact with StableSwap pool contracts
+ * @dev The StableSwap Application contract allows users to mint pool tokens, swap between different tokens, and redeem pool tokens to underlying tokens
+ */
 contract StableAssetApplication is Initializable, ReentrancyGuardUpgradeable {
   using SafeMathUpgradeable for uint256;
   using SafeERC20Upgradeable for IERC20Upgradeable;
 
+  /**
+   * @dev Wrapped ETH address.
+   */
   IWETH public wETH;
 
+  /**
+   * @dev Initializes the StableSwap Application contract.
+   * @param _wETH Wrapped ETH address.
+   */
   function initialize(IWETH _wETH) public initializer {
     require(address(_wETH) != address(0x0), "wETH not set");
     wETH = _wETH;
   }
 
+  /**
+   * @dev Fallback function to receive ETH from WETH contract.
+   */
   receive() external payable {
     assert(msg.sender == address(wETH)); // only accept ETH via fallback from the WETH contract
   }
@@ -37,7 +53,7 @@ contract StableAssetApplication is Initializable, ReentrancyGuardUpgradeable {
     uint256 _minMintAmount
   ) external payable nonReentrant {
     address[] memory tokens = _swap.getTokens();
-    address poolToken = _swap.getPoolToken();
+    address poolToken = _swap.poolToken();
     uint256 wETHIndex = findTokenIndex(tokens, address(wETH));
     require(_amounts[wETHIndex] == msg.value, "msg.value equals amounts");
 
@@ -107,7 +123,7 @@ contract StableAssetApplication is Initializable, ReentrancyGuardUpgradeable {
     uint256[] calldata _minRedeemAmounts
   ) external nonReentrant {
     address[] memory tokens = _swap.getTokens();
-    address poolToken = _swap.getPoolToken();
+    address poolToken = _swap.poolToken();
     uint256 wETHIndex = findTokenIndex(tokens, address(wETH));
 
     IERC20Upgradeable(poolToken).safeApprove(address(_swap), _amount);
@@ -146,7 +162,7 @@ contract StableAssetApplication is Initializable, ReentrancyGuardUpgradeable {
     uint256 _minRedeemAmount
   ) external nonReentrant {
     address[] memory tokens = _swap.getTokens();
-    address poolToken = _swap.getPoolToken();
+    address poolToken = _swap.poolToken();
     uint256 wETHIndex = findTokenIndex(tokens, address(wETH));
     IERC20Upgradeable(poolToken).safeApprove(address(_swap), _amount);
     IERC20Upgradeable(poolToken).safeTransferFrom(
@@ -226,7 +242,7 @@ contract StableAssetApplication is Initializable, ReentrancyGuardUpgradeable {
     uint256[] memory _mintAmounts = new uint256[](sourceTokens.length);
     _mintAmounts[sourceIndex] = _amount;
     uint256 mintAmount = _sourceSwap.mint(_mintAmounts, 0);
-    IERC20Upgradeable(_destSwap.getPoolToken()).safeApprove(
+    IERC20Upgradeable(_destSwap.poolToken()).safeApprove(
       address(_destSwap),
       mintAmount
     );
@@ -239,6 +255,12 @@ contract StableAssetApplication is Initializable, ReentrancyGuardUpgradeable {
     IERC20Upgradeable(_destToken).safeTransfer(msg.sender, redeemAmount);
   }
 
+  /**
+   * @dev Find token index in the array.
+   * @param tokens Array of tokens.
+   * @param token Token to find.
+   * @return Index of the token.
+   */
   function findTokenIndex(
     address[] memory tokens,
     address token

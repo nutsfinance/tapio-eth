@@ -95,6 +95,58 @@ describe("StableAsset", function () {
     expect((await swap.initialA()).toNumber()).to.equal(100);
   });
 
+  it("should not initialize paramters", async () => {
+    // Contracts are deployed using the first signer/account by default
+    const [owner, feeRecipient, user, user2, yieldRecipient] = await ethers.getSigners();
+
+    const ACoconutSwap = await ethers.getContractFactory("StableAsset");
+    const MockToken = await ethers.getContractFactory("MockToken");
+    const ACoconutBTC = await ethers.getContractFactory("StableAssetToken");
+
+    const token1 = await MockToken.deploy("test 1", "T1", 18);
+    const token2 = await MockToken.deploy("test 2", "T2", 18);
+    const token17 = await MockToken.deploy("test 17", "T17", 17);
+    const token19 = await MockToken.deploy("test 19", "T19", 19);
+    const poolToken = await upgrades.deployProxy(ACoconutBTC, ["Pool Token", "PT"]);
+
+    await expect(upgrades.deployProxy(ACoconutSwap, [[], [], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient.address, yieldRecipient.address, poolToken.address, 100]))
+    .to.be.revertedWith("input mismatch");
+
+    await expect(upgrades.deployProxy(ACoconutSwap, [[], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient.address, yieldRecipient.address, poolToken.address, 100]))
+        .to.be.revertedWith("input mismatch");
+
+    await expect(upgrades.deployProxy(ACoconutSwap, [[token1.address, token2.address], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE], feeRecipient.address, yieldRecipient.address, poolToken.address, 0]))
+        .to.be.revertedWith("no fees");
+
+    await expect(upgrades.deployProxy(ACoconutSwap, [[token1.address, ethers.constants.AddressZero], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient.address, yieldRecipient.address, poolToken.address, 0]))
+        .to.be.revertedWith("token not set");
+
+    // TODO: uncomment after fix the TODO in initialize
+    // await expect(upgrades.deployProxy(ACoconutSwap, [[token1.address, token2.address], [PRECISION, 10], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient.address, yieldRecipient.address, poolToken.address, 0]))
+    //     .to.be.revertedWith("precision not set");
+
+    // await expect(upgrades.deployProxy(ACoconutSwap, [[token1.address, token17.address], [PRECISION, "10000000000000000"], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient.address, yieldRecipient.address, poolToken.address, 0]))
+    //     .to.be.revertedWith("precision not set");
+
+    // await expect(upgrades.deployProxy(ACoconutSwap, [[token1.address, token19.address], [1, "1000000000000000000"], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient.address, yieldRecipient.address, poolToken.address, 0]))
+    //     .to.be.revertedWithPanic(0x11);
+
+    await expect(upgrades.deployProxy(ACoconutSwap, [[token1.address, token2.address], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE, REDEEM_FEE], ethers.constants.AddressZero, yieldRecipient.address, poolToken.address, 0]))
+        .to.be.revertedWith("fee recipient not set");
+
+    await expect(upgrades.deployProxy(ACoconutSwap, [[token1.address, token2.address], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient.address, ethers.constants.AddressZero, poolToken.address, 0]))
+    .to.be.revertedWith("yield recipient not set");
+
+    await expect(upgrades.deployProxy(ACoconutSwap, [[token1.address, token2.address], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient.address, yieldRecipient.address, ethers.constants.AddressZero, 0]))
+    .to.be.revertedWith("pool token not set");
+
+    await expect(upgrades.deployProxy(ACoconutSwap, [[token1.address, token2.address], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient.address, yieldRecipient.address, poolToken.address, 0]))
+        .to.be.revertedWith("A not set");
+
+    await expect(upgrades.deployProxy(ACoconutSwap, [[token1.address, token2.address], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient.address, yieldRecipient.address, poolToken.address, 1000000]))
+        .to.be.revertedWith("A not set");
+  });
+
   it('should return the correct mint amount when two tokens are equal', async () => {
     const { swap, token1, token2, poolToken } = await loadFixture(deploySwapAndTokens);
     const [owner, feeRecipient] = await ethers.getSigners();
@@ -836,5 +888,145 @@ describe("StableAsset", function () {
     await expect(swap.unpause()).to.be.revertedWith("not paused");
     await swap.pause();
     expect(await swap.paused()).to.equals(true);
+  });
+
+  it("setFeeRecipient should work", async () => {
+    const { swap, token1, token2, poolToken } = await loadFixture(deploySwapAndTokens);
+    const [owner, feeRecipient, user, admin] = await ethers.getSigners();
+
+    expect(await swap.feeRecipient()).to.be.equals(feeRecipient.address);
+
+    await expect(swap.connect(admin).setFeeRecipient(ethers.constants.AddressZero)).to.be.revertedWith("not governance");
+    await expect(swap.setFeeRecipient(ethers.constants.AddressZero)).to.be.revertedWith("fee recipient not set");
+
+    await swap.setFeeRecipient(user.address);
+    expect(await swap.feeRecipient()).to.be.equals(user.address);
+  });
+
+  it("setPoolToken should work", async () => {
+    const { swap, token1, token2, poolToken } = await loadFixture(deploySwapAndTokens);
+    const [owner, feeRecipient, user, admin] = await ethers.getSigners();
+
+    expect(await swap.poolToken()).to.equals(poolToken.address);
+
+    await expect(swap.connect(admin).setPoolToken(ethers.constants.AddressZero)).to.be.revertedWith("not governance");
+    await expect(swap.setPoolToken(ethers.constants.AddressZero)).to.be.revertedWith("pool token not set");
+
+    await swap.setPoolToken(token2.address);
+    expect(await swap.poolToken()).to.be.equals(token2.address);
+  });
+
+  it("setAdmin should work", async () => {
+    const { swap, token1, token2, poolToken } = await loadFixture(deploySwapAndTokens);
+    const [owner, feeRecipient, user, admin] = await ethers.getSigners();
+
+    expect(await swap.admins(admin.address)).to.equals(false);
+
+    await expect(swap.connect(user).setAdmin(ethers.constants.AddressZero, true)).to.be.revertedWith("not governance");
+    await expect(swap.setAdmin(ethers.constants.AddressZero, true)).to.be.revertedWith("account not set");
+
+    await swap.setAdmin(admin.address, true);
+    expect(await swap.admins(admin.address)).to.equals(true);
+
+    await swap.setAdmin(admin.address, false);
+    expect(await swap.admins(admin.address)).to.equals(false);
+  });
+
+  it("updateA should work", async () => {
+    const { swap, token1, token2, poolToken } = await loadFixture(deploySwapAndTokens);
+    const [owner, feeRecipient, user, admin] = await ethers.getSigners();
+    expect(await swap.initialA()).to.equals(100);
+    expect(await swap.initialABlock()).to.equals(7);
+    expect(await swap.futureA()).to.equals(100);
+    expect(await swap.futureABlock()).to.equals(7);
+
+    await expect(swap.connect(admin).updateA(1000, 20)).to.be.revertedWith("not governance");
+
+    await expect(swap.updateA(1000, 7)).to.be.revertedWith("block in the past");
+
+    expect(await ethers.provider.getBlockNumber()).to.be.equals(12);
+    await expect(swap.updateA(0, 12)).to.be.revertedWith("A not set");
+
+    expect(await ethers.provider.getBlockNumber()).to.be.equals(13);
+    await expect(swap.updateA(1000000, 13)).to.be.revertedWith("A not set");
+
+    expect(await ethers.provider.getBlockNumber()).to.be.equals(14);
+    await swap.updateA(1000, 16); // need extra block to update
+    expect(await swap.initialA()).to.equals(100);
+    expect(await swap.initialABlock()).to.equals(15);
+    expect(await swap.futureA()).to.equals(1000);
+    expect(await swap.futureABlock()).to.equals(16);
+  });
+
+  it("getA should work", async () => {
+    const { swap, token1, token2, poolToken } = await loadFixture(deploySwapAndTokens);
+    const [owner, feeRecipient, user, user2] = await ethers.getSigners();
+
+    expect(await swap.initialA()).to.equals(100);
+    expect(await swap.initialABlock()).to.equals(7);
+    expect(await swap.getA()).to.equals(100);
+
+    await swap.updateA(1000, 100);
+    expect(await swap.initialA()).to.equals(100);
+    expect(await swap.initialABlock()).to.equals(11);
+    expect(await swap.futureA()).to.equals(1000);
+    expect(await swap.futureABlock()).to.equals(100);
+    expect(await swap.getA()).to.equals(100);
+
+    const hre = await import("hardhat");
+
+    await hre.network.provider.request({
+      method: "hardhat_mine",
+      params: [ethers.utils.hexlify(50)]
+    });
+    expect(await ethers.provider.getBlockNumber()).to.be.equals(61);
+    expect(await swap.getA()).to.equals(605);
+
+    await hre.network.provider.request({
+      method: "hardhat_mine",
+      params: [ethers.utils.hexlify(38)]
+    });
+    expect(await ethers.provider.getBlockNumber()).to.be.equals(99);
+    expect(await swap.getA()).to.equals(989);
+
+    await hre.network.provider.request({
+      method: "hardhat_mine",
+      params: [ethers.utils.hexStripZeros(ethers.utils.hexlify(1))]
+    });
+    expect(await ethers.provider.getBlockNumber()).to.be.equals(100);
+    expect(await swap.getA()).to.equals(1000);
+    await hre.network.provider.request({
+      method: "hardhat_mine",
+      params: [ethers.utils.hexStripZeros(ethers.utils.hexlify(1))]
+    });
+    expect(await swap.getA()).to.equals(1000);
+
+    expect(await ethers.provider.getBlockNumber()).to.be.equals(101);
+    await swap.updateA(500, 200);
+    await hre.network.provider.request({
+      method: "hardhat_mine",
+      params: [ethers.utils.hexStripZeros(ethers.utils.hexlify(40))]
+    });
+    expect(await ethers.provider.getBlockNumber()).to.be.equals(142);
+    expect(await swap.getA()).to.equals(796);
+
+    await hre.network.provider.request({
+      method: "hardhat_mine",
+      params: [ethers.utils.hexlify(57)]
+    });
+    expect(await ethers.provider.getBlockNumber()).to.be.equals(199);
+    expect(await swap.getA()).to.equals(506);
+    await hre.network.provider.request({
+      method: "hardhat_mine",
+      params: [ethers.utils.hexStripZeros(ethers.utils.hexlify(1))]
+    });
+    expect(await ethers.provider.getBlockNumber()).to.be.equals(200);
+    expect(await swap.getA()).to.equals(500);
+    await hre.network.provider.request({
+      method: "hardhat_mine",
+      params: [ethers.utils.hexStripZeros(ethers.utils.hexlify(1))]
+    });
+    expect(await ethers.provider.getBlockNumber()).to.be.equals(201);
+    expect(await swap.getA()).to.equals(500);
   });
 });
