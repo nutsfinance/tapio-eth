@@ -11,6 +11,7 @@
     "@nomiclabs/hardhat-web3": "^2.0.0",
     "@openzeppelin/hardhat-upgrades": "^1.22.1",
     "@primitivefi/hardhat-dodoc": "^0.2.3",
+    "codecov": "^3.8.3",
     "hardhat": "^2.14.0",
     "solidity-coverage": "^0.8.2",
     "web3": "^1.9.0"
