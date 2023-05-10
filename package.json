@@ -3,6 +3,7 @@
   "scripts": {
     "clean": "hardhat clean",
     "test": "hardhat test",
+    "test-gas": "REPORT_GAS=true hardhat test",
     "coverage": "hardhat coverage"
   },
   "devDependencies": {

@@ -54,20 +54,35 @@ contract StableAssetApplication is Initializable, ReentrancyGuardUpgradeable {
   ) external payable nonReentrant {
     address[] memory tokens = _swap.getTokens();
     address poolToken = _swap.poolToken();
-    uint256 wETHIndex = findTokenIndex(tokens, address(wETH));
-    require(_amounts[wETHIndex] == msg.value, "msg.value equals amounts");
 
-    wETH.deposit{value: _amounts[wETHIndex]}();
-    for (uint256 i = 0; i < tokens.length; i++) {
-      if (i != wETHIndex) {
+    if (msg.value > 0) {
+      // mint ETH
+      uint256 wETHIndex = findTokenIndex(tokens, address(wETH));
+      require(_amounts[wETHIndex] == msg.value, "msg.value equals amounts");
+      wETH.deposit{value: _amounts[wETHIndex]}();
+
+      for (uint256 i = 0; i < tokens.length; i++) {
+        if (i != wETHIndex) {
+          IERC20Upgradeable(tokens[i]).safeTransferFrom(
+            msg.sender,
+            address(this),
+            _amounts[i]
+          );
+        }
+        IERC20Upgradeable(tokens[i]).safeApprove(address(_swap), _amounts[i]);
+      }
+    } else {
+      // mint WETH
+      for (uint256 i = 0; i < tokens.length; i++) {
         IERC20Upgradeable(tokens[i]).safeTransferFrom(
           msg.sender,
           address(this),
           _amounts[i]
         );
+        IERC20Upgradeable(tokens[i]).safeApprove(address(_swap), _amounts[i]);
       }
-      IERC20Upgradeable(tokens[i]).safeApprove(address(_swap), _amounts[i]);
     }
+
     uint256 mintAmount = _swap.mint(_amounts, _minMintAmount);
     IERC20Upgradeable(poolToken).safeTransfer(msg.sender, mintAmount);
   }
@@ -91,8 +106,18 @@ contract StableAssetApplication is Initializable, ReentrancyGuardUpgradeable {
     uint256 wETHIndex = findTokenIndex(tokens, address(wETH));
 
     if (_i == wETHIndex) {
-      require(_dx == msg.value, "msg.value equals amounts");
-      wETH.deposit{value: _dx}();
+      if (msg.value > 0) {
+        // swap ETH
+        require(_dx == msg.value, "msg.value equals amounts");
+        wETH.deposit{value: _dx}();
+      } else {
+        // swap WETH
+        IERC20Upgradeable(tokens[_i]).safeTransferFrom(
+          msg.sender,
+          address(this),
+          _dx
+        );
+      }
     } else {
       IERC20Upgradeable(tokens[_i]).safeTransferFrom(
         msg.sender,
