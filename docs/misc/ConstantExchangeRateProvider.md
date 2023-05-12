@@ -13,7 +13,7 @@ Mock exchange rate.
 ### exchangeRate
 
 ```solidity
-function exchangeRate() external view returns (uint256)
+function exchangeRate() external pure returns (uint256)
 ```
 
 
@@ -30,7 +30,7 @@ function exchangeRate() external view returns (uint256)
 ### exchangeRateDecimals
 
 ```solidity
-function exchangeRateDecimals() external view returns (uint256)
+function exchangeRateDecimals() external pure returns (uint256)
 ```
 
 

@@ -227,7 +227,10 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     require(_yieldRecipient != address(0x0), "yield recipient not set");
     require(_poolToken != address(0x0), "pool token not set");
     require(_A > 0 && _A < MAX_A, "A not set");
-    require(address(_exchangeRateProvider) != address(0x0), "exchangeRate not set");
+    require(
+      address(_exchangeRateProvider) != address(0x0),
+      "exchangeRate not set"
+    );
 
     __ReentrancyGuard_init();
 
@@ -376,7 +379,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
   ) external view returns (uint256, uint256, uint256) {
     uint256[] memory _balances;
     uint256 _totalSupply;
-    (, _balances, _totalSupply) = getPendingYieldAmount();
+    (_balances, _totalSupply) = getPendingYieldAmount();
     require(_amounts.length == _balances.length, "invalid amount");
 
     uint256 A = getA();
@@ -479,7 +482,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
   ) external view returns (uint256, uint256) {
     uint256[] memory _balances;
     uint256 _totalSupply;
-    (, _balances, _totalSupply) = getPendingYieldAmount();
+    (_balances, _totalSupply) = getPendingYieldAmount();
     require(_i != _j, "same token");
     require(_i < _balances.length, "invalid in");
     require(_j < _balances.length, "invalid out");
@@ -565,12 +568,15 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
         .mul(10 ** exchangeRateProvider.exchangeRateDecimals())
         .div(exchangeRateProvider.exchangeRate());
     }
-    IERC20Upgradeable(tokens[j]).safeTransfer(
+    IERC20Upgradeable(tokens[j]).safeTransfer(msg.sender, transferAmountJ);
+
+    emit TokenSwapped(
       msg.sender,
+      tokens[i],
+      tokens[j],
+      transferAmountI,
       transferAmountJ
     );
-
-    emit TokenSwapped(msg.sender, tokens[i], tokens[j], transferAmountI, transferAmountJ);
     collectFeeOrYield(true);
     return transferAmountJ;
   }
@@ -587,7 +593,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
   ) external view returns (uint256[] memory, uint256, uint256) {
     uint256[] memory _balances;
     uint256 _totalSupply;
-    (, _balances, _totalSupply) = getPendingYieldAmount();
+    (_balances, _totalSupply) = getPendingYieldAmount();
     require(_amount > 0, "zero amount");
 
     uint256 D = _totalSupply;
@@ -657,10 +663,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
           .div(exchangeRateProvider.exchangeRate());
       }
       amounts[i] = transferAmount;
-      IERC20Upgradeable(tokens[i]).safeTransfer(
-        msg.sender,
-        transferAmount
-      );
+      IERC20Upgradeable(tokens[i]).safeTransfer(msg.sender, transferAmount);
     }
 
     totalSupply = D.sub(_amount);
@@ -686,7 +689,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
   ) external view returns (uint256, uint256, uint256) {
     uint256[] memory _balances;
     uint256 _totalSupply;
-    (, _balances, _totalSupply) = getPendingYieldAmount();
+    (_balances, _totalSupply) = getPendingYieldAmount();
 
     require(_amount > 0, "zero amount");
     require(_i < _balances.length, "invalid token");
@@ -760,10 +763,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
         .mul(10 ** exchangeRateProvider.exchangeRateDecimals())
         .div(exchangeRateProvider.exchangeRate());
     }
-    IERC20Upgradeable(tokens[i]).safeTransfer(
-      msg.sender,
-      transferAmount
-    );
+    IERC20Upgradeable(tokens[i]).safeTransfer(msg.sender, transferAmount);
 
     uint256 amount = _amount;
     totalSupply = D.sub(amount);
@@ -785,7 +785,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
   ) external view returns (uint256, uint256, uint256) {
     uint256[] memory _balances;
     uint256 _totalSupply;
-    (, _balances, _totalSupply) = getPendingYieldAmount();
+    (_balances, _totalSupply) = getPendingYieldAmount();
     require(_amounts.length == balances.length, "length not match");
 
     uint256 A = getA();
@@ -869,10 +869,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
           .div(exchangeRateProvider.exchangeRate());
       }
       amounts[i] = transferAmount;
-      IERC20Upgradeable(tokens[i]).safeTransfer(
-        msg.sender,
-        transferAmount
-      );
+      IERC20Upgradeable(tokens[i]).safeTransfer(msg.sender, transferAmount);
     }
 
     emit Redeemed(msg.sender, redeemAmount, amounts, feeAmount);
@@ -882,18 +879,16 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
 
   /**
    * @dev Return the amount of fee that's not collected.
-   * @return The amount of fee that's not collected.
    * @return The balances of underlying tokens.
    * @return The total supply of pool tokens.
    */
   function getPendingYieldAmount()
     internal
     view
-    returns (uint256, uint256[] memory, uint256)
+    returns (uint256[] memory, uint256)
   {
     uint256[] memory _balances = balances;
     uint256 A = getA();
-    uint256 oldD = totalSupply;
 
     for (uint256 i = 0; i < _balances.length; i++) {
       uint256 balanceI = IERC20Upgradeable(tokens[i]).balanceOf(address(this));
@@ -906,7 +901,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     }
     uint256 newD = _getD(_balances, A);
 
-    return (newD.sub(oldD), _balances, newD);
+    return (_balances, newD);
   }
 
   /**

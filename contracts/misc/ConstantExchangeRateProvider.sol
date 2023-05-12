@@ -8,11 +8,11 @@ import "../interfaces/IExchangeRateProvider.sol";
  */
 contract ConstantExchangeRateProvider is IExchangeRateProvider {
 
-  function exchangeRate() external view returns (uint256) {
+  function exchangeRate() external pure returns (uint256) {
     return 10**18;
   }
 
-  function exchangeRateDecimals() external view returns (uint256) {
+  function exchangeRateDecimals() external pure returns (uint256) {
     return 18;
   }
 }

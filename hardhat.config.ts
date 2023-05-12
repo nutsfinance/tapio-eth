@@ -35,6 +35,7 @@ const config: HardhatUserConfig = {
     outputDir: "./docs",
     include: [
       "contracts/interfaces",
+      "contracts/misc/ConstantExchangeRateProvider.sol",
       "contracts/tokens",
       "contracts/StableAsset.sol",
       "contracts/StableAssetApplication.sol",
