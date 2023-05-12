@@ -94,6 +94,7 @@ contract StableAssetApplication is Initializable, ReentrancyGuardUpgradeable {
       require(_dx == msg.value, "msg.value equals amounts");
       wETH.deposit{value: _dx}();
     } else {
+      require(0 == msg.value, "msg.value equals 0");
       IERC20Upgradeable(tokens[_i]).safeTransferFrom(
         msg.sender,
         address(this),

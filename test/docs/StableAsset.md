@@ -3,23 +3,17 @@
 - Deploy token1 with name "test 1", symbol "T1", decimals 18
 - Deploy token2 with name "test 2", symbol "T2", decimals 18
 - Deploy pool token with name "Pool Token", symbol "PT", decimals 18
-- Deploy swap contract with [token1, token2], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient, yieldRecipient, poolToken, and A = 100
+- Deploy constant exchange rate provider with exchange rate 1
+- Deploy swap contract with [token1, token2], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient, yieldRecipient, poolToken, A = 100 and ConstantExchangeRate
 - Set swap as minter of pool token
-- Approve swap to transfer token1
-- Approve swap to transfer token2
 
 ## deploySwapAndTokensExchangeRate
 - Deploy token1 with name "test 1", symbol "T1", decimals 18
 - Deploy token2 with name "test 2", symbol "T2", decimals 18
-- Deploy exchange rate provider with exchange rate 1
-- Deploy token with exchange rate
+- Deploy MockTokenWithExchangeRate with exchange rate 1 and decimals 18
 - Deploy pool token with name "Pool Token", symbol "PT", decimals 18
-- Deploy swap contract with [token1, exchangeRateToken], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient, yieldRecipient, poolToken, and A = 100
+- Deploy swap contract with [token1, token2], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient, yieldRecipient, poolToken, and A = 100
 - Set swap as minter of pool token
-- Approve swap to transfer token1
-- Approve swap to transfer token2
-- Approve swap to transfer exchange rate token
-- Approve swap to transfer exchange rate token
 - Deploy swap and tokens
 - Check swap tokens[0] is token1
 - Check swap tokens[1] is token2
@@ -502,7 +496,7 @@
 - Mint 1000 token2 to user
 - Approve swap contract to spend 1000 token1
 - Approve swap contract to spend 1000 token2
-- Mint 1000 token1 and 1000 token2 to swap contract
+- Mint 100 token1 and 100 token2 to swap contract
 - Get yield amount before
 - Set exchange rate to 1.1
 - Swap 1 token1 to token2
@@ -543,7 +537,6 @@
 - Mint 1000 token2 to user
 - Approve swap contract to spend 1000 token1
 - Approve swap contract to spend 1000 token2
-- Approve swap contract to spend 1000 poolToken
 - Mint 100 token1 and 100 token2 to swap contract
 - Get yield amount before
 - Set exchange rate to 1.1
@@ -595,37 +588,37 @@
 - Check admin is false
 - Deploy swap and tokens
 - Check initial A is 100
-- Check initial A block is 7
+- Check initial A block is 8
 - Check future A is 100
-- Check future A block is 7
+- Check future A block is 8
 - Check updateA fails if not governance
 - Check updateA fails if block in the past
-- Check block is 12
+- Check updateA fails if block is 11
 - Check updateA fails if A not set
-- Check block is 13
+- Check block is 12
 - Check updateA fails if A exceeds max
-- Check block is 14
-- Update A to 1000 at block 16
+- Check block is 13
+- Update A to 1000 at block 17
 - Check initial A is 100
-- Check initial A block is 15
+- Check initial A block is 14
 - Check future A is 1000
-- Check future A block is 16
+- Check future A block is 17
 - Deploy swap and tokens
 - Check initial A is 100
-- Check initial A block is 7
+- Check initial A block is 8
 - Check future A is 100
 - Update A to 1000 when block is 100
 - Check future A is 1000
-- Check initial A block is 11
+- Check future A block is 100
 - Check future A is 1000
 - Check future A block is 100
 - Check getA is 100
 - Mine 50 blocks
-- Check block number is 61
-- Check getA is 605
+- Check block number is 60
+- Check getA is 600
 - Mine 38 blocks
 - Check block number is 99
-- Check getA is 989
+- Check getA is 990
 - Mine 1 block
 - Check block number is 100
 - Check getA is 1000

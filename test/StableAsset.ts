@@ -34,25 +34,24 @@ describe("StableAsset", function () {
     // Contracts are deployed using the first signer/account by default
     const [owner, feeRecipient, user, user2, yieldRecipient] = await ethers.getSigners();
 
-    const ACoconutSwap = await ethers.getContractFactory("StableAsset");
+    const StableAsset = await ethers.getContractFactory("StableAsset");
     const MockToken = await ethers.getContractFactory("MockToken");
-    const ACoconutBTC = await ethers.getContractFactory("StableAssetToken");
+    const StableAssetToken = await ethers.getContractFactory("StableAssetToken");
+    const ConstantExchangeRateProvider = await ethers.getContractFactory("ConstantExchangeRateProvider");
 
     /// Deploy token1 with name "test 1", symbol "T1", decimals 18
     const token1 = await MockToken.deploy("test 1", "T1", 18);
     /// Deploy token2 with name "test 2", symbol "T2", decimals 18
     const token2 = await MockToken.deploy("test 2", "T2", 18);
     /// Deploy pool token with name "Pool Token", symbol "PT", decimals 18
-    const poolToken = await upgrades.deployProxy(ACoconutBTC, ["Pool Token", "PT"]);
+    const poolToken = await upgrades.deployProxy(StableAssetToken, ["Pool Token", "PT"]);
+    /// Deploy constant exchange rate provider with exchange rate 1
+    const constant = await ConstantExchangeRateProvider.deploy();
 
-    /// Deploy swap contract with [token1, token2], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient, yieldRecipient, poolToken, and A = 100
-    const swap = await upgrades.deployProxy(ACoconutSwap, [[token1.address, token2.address], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient.address, yieldRecipient.address, poolToken.address, 100]);
+    /// Deploy swap contract with [token1, token2], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient, yieldRecipient, poolToken, A = 100 and ConstantExchangeRate
+    const swap = await upgrades.deployProxy(StableAsset, [[token1.address, token2.address], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient.address, yieldRecipient.address, poolToken.address, 100, constant.address, 1]);
     /// Set swap as minter of pool token
     await poolToken.setMinter(swap.address, true);
-    /// Approve swap to transfer token1
-    await swap.approve(token1.address, swap.address);
-    /// Approve swap to transfer token2
-    await swap.approve(token2.address, swap.address);
 
     return { swap, token1, token2, poolToken };
   }
@@ -61,38 +60,26 @@ describe("StableAsset", function () {
     // Contracts are deployed using the first signer/account by default
     const [owner, feeRecipient, user, user2, yieldRecipient] = await ethers.getSigners();
 
-    const ACoconutSwap = await ethers.getContractFactory("StableAsset");
+    const StableAsset = await ethers.getContractFactory("StableAsset");
     const MockToken = await ethers.getContractFactory("MockToken");
-    const ACoconutBTC = await ethers.getContractFactory("StableAssetToken");
+    const StableAssetToken = await ethers.getContractFactory("StableAssetToken");
     const MockTokenWithExchangeRate = await ethers.getContractFactory("MockExchangeRateProvider");
-    const TokensWithExchangeRate = await ethers.getContractFactory("TokensWithExchangeRate");
 
     /// Deploy token1 with name "test 1", symbol "T1", decimals 18
     const token1 = await MockToken.deploy("test 1", "T1", 18);
     /// Deploy token2 with name "test 2", symbol "T2", decimals 18
     const token2 = await MockToken.deploy("test 2", "T2", 18);
-    /// Deploy exchange rate provider with exchange rate 1
-    const exchangeRate = await MockTokenWithExchangeRate.deploy("1000000000000000000");
-    /// Deploy token with exchange rate
-    const exchangeRateToken = await upgrades.deployProxy(TokensWithExchangeRate, [token2.address, exchangeRate.address, '18']);
+    /// Deploy MockTokenWithExchangeRate with exchange rate 1 and decimals 18
+    const exchangeRate = await MockTokenWithExchangeRate.deploy("1000000000000000000", '18');
     /// Deploy pool token with name "Pool Token", symbol "PT", decimals 18
-    const poolToken = await upgrades.deployProxy(ACoconutBTC, ["Pool Token", "PT"]);
+    const poolToken = await upgrades.deployProxy(StableAssetToken, ["Pool Token", "PT"]);
 
-    /// Deploy swap contract with [token1, exchangeRateToken], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient, yieldRecipient, poolToken, and A = 100
-    const swap = await upgrades.deployProxy(ACoconutSwap, [[token1.address, exchangeRateToken.address], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient.address, yieldRecipient.address, poolToken.address, 100]);
+    /// Deploy swap contract with [token1, token2], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient, yieldRecipient, poolToken, and A = 100
+    const swap = await upgrades.deployProxy(StableAsset, [[token1.address, token2.address], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient.address, yieldRecipient.address, poolToken.address, 100, exchangeRate.address, 1]);
     /// Set swap as minter of pool token
     await poolToken.setMinter(swap.address, true);
-    /// Approve swap to transfer token1
-    await swap.approve(token1.address, swap.address);
-    /// Approve swap to transfer token2
-    await swap.approve(token2.address, swap.address);
-    /// Approve swap to transfer exchange rate token
-    await swap.approve(token1.address, exchangeRateToken.address);
-    /// Approve swap to transfer exchange rate token
-    await swap.approve(token2.address, exchangeRateToken.address);
 
-
-    return { swap, token1, token2, poolToken, exchangeRate, exchangeRateToken };
+    return { swap, token1, token2, poolToken, exchangeRate };
   }
 
   it("should initialize paramters", async () => {
@@ -130,9 +117,11 @@ describe("StableAsset", function () {
     // Contracts are deployed using the first signer/account by default
     const [owner, feeRecipient, user, user2, yieldRecipient] = await ethers.getSigners();
 
-    const ACoconutSwap = await ethers.getContractFactory("StableAsset");
+    const StableAsset = await ethers.getContractFactory("StableAsset");
     const MockToken = await ethers.getContractFactory("MockToken");
-    const ACoconutBTC = await ethers.getContractFactory("StableAssetToken");
+    const StableAssetToken = await ethers.getContractFactory("StableAssetToken");
+    const ConstantExchangeRateProvider = await ethers.getContractFactory("ConstantExchangeRateProvider");
+    const constant = await ConstantExchangeRateProvider.deploy();
 
     /// Deploy token1 with name "test 1", symbol "T1", decimals 18
     const token1 = await MockToken.deploy("test 1", "T1", 18);
@@ -143,55 +132,53 @@ describe("StableAsset", function () {
     /// Deploy pool token with name "test 19", symbol "T19", decimals 19
     const token19 = await MockToken.deploy("test 19", "T19", 19);
     /// Deploy pool token with name "Pool Token", symbol "PT", decimals 18
-    const poolToken = await upgrades.deployProxy(ACoconutBTC, ["Pool Token", "PT"]);
+    const poolToken = await upgrades.deployProxy(StableAssetToken, ["Pool Token", "PT"]);
 
     /// Check deploy swap with no tokens
-    await expect(upgrades.deployProxy(ACoconutSwap, [[], [], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient.address, yieldRecipient.address, poolToken.address, 100]))
-    .to.be.revertedWith("input mismatch");
+    await expect(upgrades.deployProxy(StableAsset, [[], [], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient.address, yieldRecipient.address, poolToken.address, 100, constant.address, 1]))
+      .to.be.revertedWith("input mismatch");
 
     /// Check deploy swap with token length not match
-    await expect(upgrades.deployProxy(ACoconutSwap, [[], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient.address, yieldRecipient.address, poolToken.address, 100]))
-        .to.be.revertedWith("input mismatch");
+    await expect(upgrades.deployProxy(StableAsset, [[], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient.address, yieldRecipient.address, poolToken.address, 100, constant.address, 1]))
+      .to.be.revertedWith("input mismatch");
 
     /// Check deploy swap with fee length not match
-    await expect(upgrades.deployProxy(ACoconutSwap, [[token1.address, token2.address], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE], feeRecipient.address, yieldRecipient.address, poolToken.address, 0]))
-        .to.be.revertedWith("no fees");
+    await expect(upgrades.deployProxy(StableAsset, [[token1.address, token2.address], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE], feeRecipient.address, yieldRecipient.address, poolToken.address, 0, constant.address, 1]))
+      .to.be.revertedWith("no fees");
 
     /// Check deploy swap with token not set
-    await expect(upgrades.deployProxy(ACoconutSwap, [[token1.address, ethers.constants.AddressZero], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient.address, yieldRecipient.address, poolToken.address, 0]))
-        .to.be.revertedWith("token not set");
+    await expect(upgrades.deployProxy(StableAsset, [[token1.address, ethers.constants.AddressZero], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient.address, yieldRecipient.address, poolToken.address, 0, constant.address, 1]))
+      .to.be.revertedWith("token not set");
 
     // TODO: uncomment after fix the TODO in initialize
-    /*
-    await expect(upgrades.deployProxy(ACoconutSwap, [[token1.address, token2.address], [PRECISION, 10], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient.address, yieldRecipient.address, poolToken.address, 0]))
-        .to.be.revertedWith("precision not set");
+    // await expect(upgrades.deployProxy(StableAsset, [[token1.address, token2.address], [PRECISION, 10], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient.address, yieldRecipient.address, poolToken.address, 0]))
+    //     .to.be.revertedWith("precision not set");
 
-    await expect(upgrades.deployProxy(ACoconutSwap, [[token1.address, token17.address], [PRECISION, "10000000000000000"], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient.address, yieldRecipient.address, poolToken.address, 0]))
-        .to.be.revertedWith("precision not set");
+    // await expect(upgrades.deployProxy(StableAsset, [[token1.address, token17.address], [PRECISION, "10000000000000000"], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient.address, yieldRecipient.address, poolToken.address, 0]))
+    //     .to.be.revertedWith("precision not set");
 
-    await expect(upgrades.deployProxy(ACoconutSwap, [[token1.address, token19.address], [1, "1000000000000000000"], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient.address, yieldRecipient.address, poolToken.address, 0]))
-        .to.be.revertedWithPanic(0x11);
-    */
+    // await expect(upgrades.deployProxy(StableAsset, [[token1.address, token19.address], [1, "1000000000000000000"], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient.address, yieldRecipient.address, poolToken.address, 0]))
+    //     .to.be.revertedWithPanic(0x11);
 
     /// Check deploy swap with fee recipient not set
-    await expect(upgrades.deployProxy(ACoconutSwap, [[token1.address, token2.address], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE, REDEEM_FEE], ethers.constants.AddressZero, yieldRecipient.address, poolToken.address, 0]))
-        .to.be.revertedWith("fee recipient not set");
+    await expect(upgrades.deployProxy(StableAsset, [[token1.address, token2.address], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE, REDEEM_FEE], ethers.constants.AddressZero, yieldRecipient.address, poolToken.address, 0, constant.address, 1]))
+      .to.be.revertedWith("fee recipient not set");
 
     /// Check deploy swap with yield recipient not set
-    await expect(upgrades.deployProxy(ACoconutSwap, [[token1.address, token2.address], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient.address, ethers.constants.AddressZero, poolToken.address, 0]))
-    .to.be.revertedWith("yield recipient not set");
+    await expect(upgrades.deployProxy(StableAsset, [[token1.address, token2.address], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient.address, ethers.constants.AddressZero, poolToken.address, 0, constant.address, 1]))
+      .to.be.revertedWith("yield recipient not set");
 
     /// Check deploy swap with pool token not set
-    await expect(upgrades.deployProxy(ACoconutSwap, [[token1.address, token2.address], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient.address, yieldRecipient.address, ethers.constants.AddressZero, 0]))
-    .to.be.revertedWith("pool token not set");
+    await expect(upgrades.deployProxy(StableAsset, [[token1.address, token2.address], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient.address, yieldRecipient.address, ethers.constants.AddressZero, 0, constant.address, 1]))
+      .to.be.revertedWith("pool token not set");
 
     /// Check deploy swap with A not set
-    await expect(upgrades.deployProxy(ACoconutSwap, [[token1.address, token2.address], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient.address, yieldRecipient.address, poolToken.address, 0]))
-        .to.be.revertedWith("A not set");
+    await expect(upgrades.deployProxy(StableAsset, [[token1.address, token2.address], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient.address, yieldRecipient.address, poolToken.address, 0, constant.address, 1]))
+      .to.be.revertedWith("A not set");
 
     /// Check deploy swap with A exceed max
-    await expect(upgrades.deployProxy(ACoconutSwap, [[token1.address, token2.address], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient.address, yieldRecipient.address, poolToken.address, 1000000]))
-        .to.be.revertedWith("A not set");
+    await expect(upgrades.deployProxy(StableAsset, [[token1.address, token2.address], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient.address, yieldRecipient.address, poolToken.address, 1000000, constant.address, 1]))
+      .to.be.revertedWith("A not set");
   });
 
   it('should return the correct mint amount when two tokens are equal', async () => {
@@ -1166,7 +1153,6 @@ describe("StableAsset", function () {
     await token1.mint(swap.address, web3.utils.toWei('10'));
     /// Mint 10 token2 to swap contract
     await token2.mint(swap.address, web3.utils.toWei('10'));
-    
     /// Get mint amount for 110 token1 and 90 token2
     const amounts = await swap.getMintAmount([web3.utils.toWei('110'), web3.utils.toWei('90')]);
     /// Get mint amount from amounts
@@ -1188,7 +1174,6 @@ describe("StableAsset", function () {
     await token1.mint(swap.address, web3.utils.toWei('10'));
     /// Mint 10 token2 to swap contract
     await token2.mint(swap.address, web3.utils.toWei('10'));
-    
     /// Get mint amount for 100 token1 and 100 token2
     const amounts = await swap.getMintAmount([web3.utils.toWei('100'), web3.utils.toWei('100')]);
     /// Get mint amount from amounts
@@ -1207,7 +1192,7 @@ describe("StableAsset", function () {
 
   it("should collect yield for exchange rate tokens during mint", async () => {
     /// Deploy swap and tokensExchangeRate
-    const { swap, token1, token2, poolToken, exchangeRate, exchangeRateToken } = await loadFixture(deploySwapAndTokensExchangeRate);
+    const { swap, token1, token2, poolToken, exchangeRate } = await loadFixture(deploySwapAndTokensExchangeRate);
     const [owner, feeRecipient, user, user2, yieldRecipient] = await ethers.getSigners();
     /// Unpause swap contract
     await swap.unpause();
@@ -1218,7 +1203,7 @@ describe("StableAsset", function () {
     /// Approve swap contract to spend 1000 token1
     await token1.connect(user).approve(swap.address, web3.utils.toWei('1000'));
     /// Approve swap contract to spend 1000 token2
-    await token2.connect(user).approve(exchangeRateToken.address, web3.utils.toWei('1000'));
+    await token2.connect(user).approve(swap.address, web3.utils.toWei('1000'));
 
     /// Mint 1000 token1 and 1000 token2 to swap contract
     await swap.connect(user).mint([web3.utils.toWei('100'), web3.utils.toWei('100')], 0);
@@ -1240,7 +1225,7 @@ describe("StableAsset", function () {
 
   it("should collect yield for exchange rate tokens during swap", async () => {
     /// Deploy swap and tokensExchangeRate
-    const { swap, token1, token2, poolToken, exchangeRate, exchangeRateToken } = await loadFixture(deploySwapAndTokensExchangeRate);
+    const { swap, token1, token2, poolToken, exchangeRate } = await loadFixture(deploySwapAndTokensExchangeRate);
     const [owner, feeRecipient, user, user2, yieldRecipient] = await ethers.getSigners();
     /// Unpause swap contract
     await swap.unpause();
@@ -1251,8 +1236,8 @@ describe("StableAsset", function () {
     /// Approve swap contract to spend 1000 token1
     await token1.connect(user).approve(swap.address, web3.utils.toWei('1000'));
     /// Approve swap contract to spend 1000 token2
-    await token2.connect(user).approve(exchangeRateToken.address, web3.utils.toWei('1000'));
-    /// Mint 1000 token1 and 1000 token2 to swap contract
+    await token2.connect(user).approve(swap.address, web3.utils.toWei('1000'));
+    /// Mint 100 token1 and 100 token2 to swap contract
     await swap.connect(user).mint([web3.utils.toWei('100'), web3.utils.toWei('100')], 0);
     /// Get yield amount before
     const yieldAmountBefore = new BN((await poolToken.balanceOf(yieldRecipient.address)).toString());
@@ -1272,7 +1257,7 @@ describe("StableAsset", function () {
 
   it("should collect yield for exchange rate tokens during redeem proportion", async () => {
     /// Deploy swap and tokensExchangeRate
-    const { swap, token1, token2, poolToken, exchangeRate, exchangeRateToken } = await loadFixture(deploySwapAndTokensExchangeRate);
+    const { swap, token1, token2, poolToken, exchangeRate } = await loadFixture(deploySwapAndTokensExchangeRate);
     const [owner, feeRecipient, user, user2, yieldRecipient] = await ethers.getSigners();
     /// Unpause swap contract
     await swap.unpause();
@@ -1283,7 +1268,7 @@ describe("StableAsset", function () {
     /// Approve swap contract to spend 1000 token1
     await token1.connect(user).approve(swap.address, web3.utils.toWei('1000'));
     /// Approve swap contract to spend 1000 token2
-    await token2.connect(user).approve(exchangeRateToken.address, web3.utils.toWei('1000'));
+    await token2.connect(user).approve(swap.address, web3.utils.toWei('1000'));
     /// Approve swap contract to spend 1000 poolToken
     await poolToken.connect(user).approve(swap.address, web3.utils.toWei('1000'));
     /// Mint 100 token1 and 100 token2 to swap contract
@@ -1306,7 +1291,7 @@ describe("StableAsset", function () {
 
   it("should collect yield for exchange rate tokens during redeem single", async () => {
     /// Deploy swap and tokensExchangeRate
-    const { swap, token1, token2, poolToken, exchangeRate, exchangeRateToken } = await loadFixture(deploySwapAndTokensExchangeRate);
+    const { swap, token1, token2, poolToken, exchangeRate } = await loadFixture(deploySwapAndTokensExchangeRate);
     const [owner, feeRecipient, user, user2, yieldRecipient] = await ethers.getSigners();
     /// Unpause swap contract
     await swap.unpause();
@@ -1317,7 +1302,7 @@ describe("StableAsset", function () {
     /// Approve swap contract to spend 1000 token1
     await token1.connect(user).approve(swap.address, web3.utils.toWei('1000'));
     /// Approve swap contract to spend 1000 token2
-    await token2.connect(user).approve(exchangeRateToken.address, web3.utils.toWei('1000'));
+    await token2.connect(user).approve(swap.address, web3.utils.toWei('1000'));
     /// Approve swap contract to spend 1000 poolToken
     await poolToken.connect(user).approve(swap.address, web3.utils.toWei('1000'));
     /// Mint 100 token1 and 100 token2 to swap contract
@@ -1340,7 +1325,7 @@ describe("StableAsset", function () {
 
   it("should collect yield for exchange rate tokens during redeem multi", async () => {
     /// Deploy swap and tokensExchangeRate
-    const { swap, token1, token2, poolToken, exchangeRate, exchangeRateToken } = await loadFixture(deploySwapAndTokensExchangeRate);
+    const { swap, token1, token2, poolToken, exchangeRate } = await loadFixture(deploySwapAndTokensExchangeRate);
     const [owner, feeRecipient, user, user2, yieldRecipient] = await ethers.getSigners();
     /// Unpause swap contract
     await swap.unpause();
@@ -1351,8 +1336,7 @@ describe("StableAsset", function () {
     /// Approve swap contract to spend 1000 token1
     await token1.connect(user).approve(swap.address, web3.utils.toWei('1000'));
     /// Approve swap contract to spend 1000 token2
-    await token2.connect(user).approve(exchangeRateToken.address, web3.utils.toWei('1000'));
-    /// Approve swap contract to spend 1000 poolToken
+    await token2.connect(user).approve(swap.address, web3.utils.toWei('1000'));
     await poolToken.connect(user).approve(swap.address, web3.utils.toWei('1000'));
     /// Mint 100 token1 and 100 token2 to swap contract
     await swap.connect(user).mint([web3.utils.toWei('100'), web3.utils.toWei('100')], 0);
@@ -1504,41 +1488,41 @@ describe("StableAsset", function () {
     const [owner, feeRecipient, user, admin] = await ethers.getSigners();
     /// Check initial A is 100
     expect(await swap.initialA()).to.equals(100);
-    /// Check initial A block is 7
-    expect(await swap.initialABlock()).to.equals(7);
+    /// Check initial A block is 8
+    expect(await swap.initialABlock()).to.equals(8);
     /// Check future A is 100
     expect(await swap.futureA()).to.equals(100);
-    /// Check future A block is 7
-    expect(await swap.futureABlock()).to.equals(7);
+    /// Check future A block is 8
+    expect(await swap.futureABlock()).to.equals(8);
 
     /// Check updateA fails if not governance
     await expect(swap.connect(admin).updateA(1000, 20)).to.be.revertedWith("not governance");
 
     /// Check updateA fails if block in the past
-    await expect(swap.updateA(1000, 7)).to.be.revertedWith("block in the past");
+    await expect(swap.updateA(1000, 8)).to.be.revertedWith("block in the past");
+
+    /// Check updateA fails if block is 11
+    expect(await ethers.provider.getBlockNumber()).to.be.equals(11);
+    /// Check updateA fails if A not set
+    await expect(swap.updateA(0, 11)).to.be.revertedWith("A not set");
 
     /// Check block is 12
     expect(await ethers.provider.getBlockNumber()).to.be.equals(12);
-    /// Check updateA fails if A not set
-    await expect(swap.updateA(0, 12)).to.be.revertedWith("A not set");
+    /// Check updateA fails if A exceeds max
+    await expect(swap.updateA(1000000, 12)).to.be.revertedWith("A not set");
 
     /// Check block is 13
     expect(await ethers.provider.getBlockNumber()).to.be.equals(13);
-    /// Check updateA fails if A exceeds max
-    await expect(swap.updateA(1000000, 13)).to.be.revertedWith("A not set");
-
-    /// Check block is 14
-    expect(await ethers.provider.getBlockNumber()).to.be.equals(14);
-    /// Update A to 1000 at block 16
-    await swap.updateA(1000, 16); // need extra block to update
+    /// Update A to 1000 at block 17
+    await swap.updateA(1000, 17); // need extra block to update
     /// Check initial A is 100
     expect(await swap.initialA()).to.equals(100);
-    /// Check initial A block is 15
-    expect(await swap.initialABlock()).to.equals(15);
+    /// Check initial A block is 14
+    expect(await swap.initialABlock()).to.equals(14);
     /// Check future A is 1000
     expect(await swap.futureA()).to.equals(1000);
-    /// Check future A block is 16
-    expect(await swap.futureABlock()).to.equals(16);
+    /// Check future A block is 17
+    expect(await swap.futureABlock()).to.equals(17);
   });
 
   it("getA should work", async () => {
@@ -1548,8 +1532,8 @@ describe("StableAsset", function () {
 
     /// Check initial A is 100
     expect(await swap.initialA()).to.equals(100);
-    /// Check initial A block is 7
-    expect(await swap.initialABlock()).to.equals(7);
+    /// Check initial A block is 8
+    expect(await swap.initialABlock()).to.equals(8);
     /// Check future A is 100
     expect(await swap.getA()).to.equals(100);
 
@@ -1557,8 +1541,8 @@ describe("StableAsset", function () {
     await swap.updateA(1000, 100);
     /// Check future A is 1000
     expect(await swap.initialA()).to.equals(100);
-    /// Check initial A block is 11
-    expect(await swap.initialABlock()).to.equals(11);
+    /// Check future A block is 100
+    expect(await swap.initialABlock()).to.equals(10);
     /// Check future A is 1000
     expect(await swap.futureA()).to.equals(1000);
     /// Check future A block is 100
@@ -1573,20 +1557,20 @@ describe("StableAsset", function () {
       method: "hardhat_mine",
       params: [ethers.utils.hexlify(50)]
     });
-    /// Check block number is 61
-    expect(await ethers.provider.getBlockNumber()).to.be.equals(61);
-    /// Check getA is 605
-    expect(await swap.getA()).to.equals(605);
+    /// Check block number is 60
+    expect(await ethers.provider.getBlockNumber()).to.be.equals(60);
+    /// Check getA is 600
+    expect(await swap.getA()).to.equals(600);
 
     /// Mine 38 blocks
     await hre.network.provider.request({
       method: "hardhat_mine",
-      params: [ethers.utils.hexlify(38)]
+      params: [ethers.utils.hexlify(39)]
     });
     /// Check block number is 99
     expect(await ethers.provider.getBlockNumber()).to.be.equals(99);
-    /// Check getA is 989
-    expect(await swap.getA()).to.equals(989);
+    /// Check getA is 990
+    expect(await swap.getA()).to.equals(990);
 
     /// Mine 1 block
     await hre.network.provider.request({

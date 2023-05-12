@@ -2,26 +2,22 @@
 ## deploySwapAndTokens
 - Deploy WETH contract
 - Deploy token2 with name "test 2", symbol "T2", decimals 18
-- Deploy pool token with name "Pool Token", symbol "PT"
-- Deploy swap contract with [wETH, token2], [precision, precision], [mint fee, swap fee, redeem fee], fee recipient feeRecipient, yield recipient yieldRecipient, pool token poolToken, and A = 100
+- Deploy swap contract with [wETH, token2], [precision, precision], [mint fee, swap fee, redeem fee], fee recipient feeRecipient, yield recipient yieldRecipient, pool token poolToken, A = 100 and ConstantExchangeRate
 - Deploy application contract with WETH
 - Set minter of pool token to be swap contract
-- Approve swap contract to spend wETH
-- Approve swap contract to spend token2
+
+## deploySwapAndTokensExchangeRate
+- Set minter of pool token to be swap contract
 
 ## deploySwapAndTokensForLst
 - Deploy token1 with name "test 1", symbol "T1", decimals 18
 - Deploy token2 with name "test 2", symbol "T2", decimals 18
 - Deploy pool token with name "Pool Token", symbol "PT", decimals 18
-- Deploy swapOne contract with [wETH, token1], [precision, precision], [mint fee, swap fee, redeem fee], fee recipient feeRecipient, yield recipient yieldRecipient, pool token poolToken, and A = 100
-- Deploy swapTwo contract with [wETH, token2], [precision, precision], [mint fee, swap fee, redeem fee], fee recipient feeRecipient, yield recipient yieldRecipient, pool token poolToken, and A = 100
+- Deploy swap contract with [wETH, token1], [precision, precision], [mint fee, swap fee, redeem fee], fee recipient feeRecipient, yield recipient yieldRecipient, pool token poolToken, A = 100 and ConstantExchangeRate
+- Deploy swap contract with [wETH, token2], [precision, precision], [mint fee, swap fee, redeem fee], fee recipient feeRecipient, yield recipient yieldRecipient, pool token poolToken, A = 100 and ConstantExchangeRate
 - Deploy application contract with WETH
 - Set minter of pool token to be swapOne contract
 - Set minter of pool token to be swapTwo contract
-- Approve swapOne contract to spend wETH
-- Approve swapOne contract to spend token1
-- Approve swapTwo contract to spend wETH
-- Approve swapTwo contract to spend token2
 
 ## should mint
 - Deploy swap and tokens
@@ -51,6 +47,10 @@
 - Get balance of user before swap
 - Swap 1 token2 to ETH
 - Get balance of user after swap and check it is greater than before
+
+## should swap with token with exchange rate
+
+## should swap with eth with exchange rate
 
 ## should redeem proportion
 - Deploy swap and tokens

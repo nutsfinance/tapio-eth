@@ -1,4 +1,4 @@
-# ITokensWithExchangeRate
+# IExchangeRateProvider
 
 *Nuts Finance Developer*
 
@@ -26,6 +26,23 @@ function exchangeRate() external view returns (uint256)
 | Name | Type | Description |
 |---|---|---|
 | _0 | uint256 | The exchange rate of the token. |
+
+### exchangeRateDecimals
+
+```solidity
+function exchangeRateDecimals() external view returns (uint256)
+```
+
+
+
+*Returns the exchange rate decimals.*
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | The exchange rate decimals of the token. |
 
 
 
