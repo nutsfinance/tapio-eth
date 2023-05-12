@@ -61,6 +61,23 @@ function MAX_A() external view returns (uint256)
 |---|---|---|
 | _0 | uint256 | undefined |
 
+### YIELD_ERROR_MARGIN
+
+```solidity
+function YIELD_ERROR_MARGIN() external view returns (uint256)
+```
+
+
+
+*This is the maximum error margin for calculating transaction yield in the StableAsset contract.*
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined |
+
 ### admins
 
 ```solidity
@@ -83,23 +100,6 @@ function admins(address) external view returns (bool)
 |---|---|---|
 | _0 | bool | undefined |
 
-### approve
-
-```solidity
-function approve(address _token, address _spender) external nonpayable
-```
-
-
-
-*Pause mint/swap/redeem actions. Can unpause later.*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _token | address | The token to approve. |
-| _spender | address | The spender to approve. |
-
 ### balances
 
 ```solidity
@@ -115,6 +115,40 @@ function balances(uint256) external view returns (uint256)
 | Name | Type | Description |
 |---|---|---|
 | _0 | uint256 | undefined |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined |
+
+### exchangeRateProvider
+
+```solidity
+function exchangeRateProvider() external view returns (contract IExchangeRateProvider)
+```
+
+
+
+*Exchange rate provider for token at exchangeRateTokenIndex.*
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | contract IExchangeRateProvider | undefined |
+
+### exchangeRateTokenIndex
+
+```solidity
+function exchangeRateTokenIndex() external view returns (uint256)
+```
+
+
+
+*Index of tokens array for IExchangeRateProvider.*
+
 
 #### Returns
 
@@ -383,7 +417,7 @@ function initialABlock() external view returns (uint256)
 ### initialize
 
 ```solidity
-function initialize(address[] _tokens, uint256[] _precisions, uint256[] _fees, address _feeRecipient, address _yieldRecipient, address _poolToken, uint256 _A) external nonpayable
+function initialize(address[] _tokens, uint256[] _precisions, uint256[] _fees, address _feeRecipient, address _yieldRecipient, address _poolToken, uint256 _A, contract IExchangeRateProvider _exchangeRateProvider, uint256 _exchangeRateTokenIndex) external nonpayable
 ```
 
 
@@ -401,6 +435,8 @@ function initialize(address[] _tokens, uint256[] _precisions, uint256[] _fees, a
 | _yieldRecipient | address | The address that receives yield farming rewards. |
 | _poolToken | address | The address of the pool token. |
 | _A | uint256 | The initial value of the amplification coefficient A for the pool. |
+| _exchangeRateProvider | contract IExchangeRateProvider | undefined |
+| _exchangeRateTokenIndex | uint256 | undefined |
 
 ### mint
 

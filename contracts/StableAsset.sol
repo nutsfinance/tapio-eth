@@ -8,6 +8,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeab
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
 import "./misc/IERC20MintableBurnable.sol";
+import "./interfaces/IExchangeRateProvider.sol";
 
 /**
  * @title StableAsset swap
@@ -87,6 +88,11 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
    *  @dev This is the maximum error margin for calculating transaction fees in the StableAsset contract.
    */
   uint256 public constant FEE_ERROR_MARGIN = 1000;
+
+  /**
+   *  @dev This is the maximum error margin for calculating transaction yield in the StableAsset contract.
+   */
+  uint256 public constant YIELD_ERROR_MARGIN = 100000;
   /**
    * @dev This is the maximum value of the amplification coefficient A.
    */
@@ -166,6 +172,14 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
    * @dev These is a state variables that represents the future block number when A is set.
    */
   uint256 public futureABlock;
+  /**
+   * @dev Exchange rate provider for token at exchangeRateTokenIndex.
+   */
+  IExchangeRateProvider public exchangeRateProvider;
+  /**
+   * @dev Index of tokens array for IExchangeRateProvider.
+   */
+  uint256 public exchangeRateTokenIndex;
 
   /**
    * @dev Initializes the StableAsset contract with the given parameters.
@@ -184,7 +198,9 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     address _feeRecipient,
     address _yieldRecipient,
     address _poolToken,
-    uint256 _A
+    uint256 _A,
+    IExchangeRateProvider _exchangeRateProvider,
+    uint256 _exchangeRateTokenIndex
   ) public initializer {
     require(
       _tokens.length >= 2 && _tokens.length == _precisions.length,
@@ -211,6 +227,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     require(_yieldRecipient != address(0x0), "yield recipient not set");
     require(_poolToken != address(0x0), "pool token not set");
     require(_A > 0 && _A < MAX_A, "A not set");
+    require(address(_exchangeRateProvider) != address(0x0), "exchangeRate not set");
 
     __ReentrancyGuard_init();
 
@@ -223,6 +240,8 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     swapFee = _fees[1];
     redeemFee = _fees[2];
     poolToken = _poolToken;
+    exchangeRateProvider = _exchangeRateProvider;
+    exchangeRateTokenIndex = _exchangeRateTokenIndex;
 
     initialA = _A;
     futureA = _A;
@@ -425,10 +444,16 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
       if (_amounts[i] == 0) continue;
       // Update the balance in storage
       balances[i] = _balances[i];
+      uint256 transferAmount = _amounts[i];
+      if (i == exchangeRateTokenIndex) {
+        transferAmount = transferAmount
+          .mul(10 ** exchangeRateProvider.exchangeRateDecimals())
+          .div(exchangeRateProvider.exchangeRate());
+      }
       IERC20Upgradeable(tokens[i]).safeTransferFrom(
         msg.sender,
         address(this),
-        _amounts[i]
+        transferAmount
       );
     }
     totalSupply = newD;
@@ -516,25 +541,38 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     }
     require(dy >= _minDy, "fewer than expected");
 
-    IERC20Upgradeable(tokens[_i]).safeTransferFrom(
+    uint256 transferAmountI = _dx;
+    uint256 i = _i;
+    uint256 j = _j;
+    if (i == exchangeRateTokenIndex) {
+      transferAmountI = transferAmountI
+        .mul(10 ** exchangeRateProvider.exchangeRateDecimals())
+        .div(exchangeRateProvider.exchangeRate());
+    }
+    IERC20Upgradeable(tokens[i]).safeTransferFrom(
       msg.sender,
       address(this),
-      _dx
+      transferAmountI
     );
     // Important: When swap fee > 0, the swap fee is charged on the output token.
     // Therefore, balances[j] < tokens[j].balanceOf(this)
     // Since balances[j] is used to compute D, D is unchanged.
     // collectFees() is used to convert the difference between balances[j] and tokens[j].balanceOf(this)
     // into pool token as fees!
-    IERC20Upgradeable(tokens[_j]).safeTransferFrom(
-      address(this),
+    uint256 transferAmountJ = dy;
+    if (j == exchangeRateTokenIndex) {
+      transferAmountJ = transferAmountJ
+        .mul(10 ** exchangeRateProvider.exchangeRateDecimals())
+        .div(exchangeRateProvider.exchangeRate());
+    }
+    IERC20Upgradeable(tokens[j]).safeTransfer(
       msg.sender,
-      dy
+      transferAmountJ
     );
 
-    emit TokenSwapped(msg.sender, tokens[_i], tokens[_j], _dx, dy);
+    emit TokenSwapped(msg.sender, tokens[i], tokens[j], transferAmountI, transferAmountJ);
     collectFeeOrYield(true);
-    return dy;
+    return transferAmountJ;
   }
 
   /**
@@ -612,10 +650,16 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
       require(amounts[i] >= _minRedeemAmounts[i], "fewer than expected");
       // Updates the balance in storage
       balances[i] = _balances[i].sub(tokenAmount);
-      IERC20Upgradeable(tokens[i]).safeTransferFrom(
-        address(this),
+      uint256 transferAmount = amounts[i];
+      if (i == exchangeRateTokenIndex) {
+        transferAmount = transferAmount
+          .mul(10 ** exchangeRateProvider.exchangeRateDecimals())
+          .div(exchangeRateProvider.exchangeRate());
+      }
+      amounts[i] = transferAmount;
+      IERC20Upgradeable(tokens[i]).safeTransfer(
         msg.sender,
-        amounts[i]
+        transferAmount
       );
     }
 
@@ -710,18 +754,23 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     balances[i] = y;
     uint256[] memory amounts = new uint256[](_balances.length);
     amounts[i] = dy;
-    IERC20Upgradeable(tokens[i]).safeTransferFrom(
-      address(this),
+    uint256 transferAmount = dy;
+    if (i == exchangeRateTokenIndex) {
+      transferAmount = transferAmount
+        .mul(10 ** exchangeRateProvider.exchangeRateDecimals())
+        .div(exchangeRateProvider.exchangeRate());
+    }
+    IERC20Upgradeable(tokens[i]).safeTransfer(
       msg.sender,
-      dy
+      transferAmount
     );
 
-    totalSupply = D.sub(_amount);
-    IERC20MintableBurnable(poolToken).burnFrom(msg.sender, _amount);
     uint256 amount = _amount;
+    totalSupply = D.sub(amount);
+    IERC20MintableBurnable(poolToken).burnFrom(msg.sender, amount);
     emit Redeemed(msg.sender, amount.add(feeAmount), amounts, feeAmount);
     collectFeeOrYield(true);
-    return dy;
+    return transferAmount;
   }
 
   /**
@@ -810,18 +859,25 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     uint256 burnAmount = redeemAmount.sub(feeAmount);
     totalSupply = oldD.sub(burnAmount);
     IERC20MintableBurnable(poolToken).burnFrom(msg.sender, burnAmount);
+    uint256[] memory amounts = _amounts;
     for (i = 0; i < _balances.length; i++) {
       if (_amounts[i] == 0) continue;
-      IERC20Upgradeable(tokens[i]).safeTransferFrom(
-        address(this),
+      uint256 transferAmount = _amounts[i];
+      if (i == exchangeRateTokenIndex) {
+        transferAmount = transferAmount
+          .mul(10 ** exchangeRateProvider.exchangeRateDecimals())
+          .div(exchangeRateProvider.exchangeRate());
+      }
+      amounts[i] = transferAmount;
+      IERC20Upgradeable(tokens[i]).safeTransfer(
         msg.sender,
-        _amounts[i]
+        transferAmount
       );
     }
 
-    emit Redeemed(msg.sender, redeemAmount, _amounts, feeAmount);
+    emit Redeemed(msg.sender, redeemAmount, amounts, feeAmount);
     collectFeeOrYield(true);
-    return _amounts;
+    return amounts;
   }
 
   /**
@@ -840,9 +896,13 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     uint256 oldD = totalSupply;
 
     for (uint256 i = 0; i < _balances.length; i++) {
-      _balances[i] = IERC20Upgradeable(tokens[i]).balanceOf(address(this)).mul(
-        precisions[i]
-      );
+      uint256 balanceI = IERC20Upgradeable(tokens[i]).balanceOf(address(this));
+      if (i == exchangeRateTokenIndex) {
+        balanceI = balanceI.mul(exchangeRateProvider.exchangeRate()).div(
+          10 ** exchangeRateProvider.exchangeRateDecimals()
+        );
+      }
+      _balances[i] = balanceI.mul(precisions[i]);
     }
     uint256 newD = _getD(_balances, A);
 
@@ -860,13 +920,23 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     uint256 oldD = totalSupply;
 
     for (uint256 i = 0; i < _balances.length; i++) {
-      _balances[i] = IERC20Upgradeable(tokens[i]).balanceOf(address(this)).mul(
-        precisions[i]
-      );
+      uint256 balanceI = IERC20Upgradeable(tokens[i]).balanceOf(address(this));
+      if (i == exchangeRateTokenIndex) {
+        balanceI = balanceI.mul(exchangeRateProvider.exchangeRate()).div(
+          10 ** exchangeRateProvider.exchangeRateDecimals()
+        );
+      }
+      _balances[i] = balanceI.mul(precisions[i]);
     }
     uint256 newD = _getD(_balances, A);
     if (isFee) {
       if (oldD > newD && oldD.sub(newD) < newD.div(FEE_ERROR_MARGIN)) {
+        return 0;
+      } else if (oldD > newD) {
+        revert("pool imbalanced");
+      }
+    } else {
+      if (oldD > newD && oldD.sub(newD) < newD.div(YIELD_ERROR_MARGIN)) {
         return 0;
       } else if (oldD > newD) {
         revert("pool imbalanced");
@@ -996,17 +1066,6 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     futureABlock = _futureABlock;
 
     emit AModified(_futureA, _futureABlock);
-  }
-
-  /**
-   * @dev Pause mint/swap/redeem actions. Can unpause later.
-   * @param _token The token to approve.
-   * @param _spender The spender to approve.
-   */
-  function approve(address _token, address _spender) external {
-    require(msg.sender == governance, "not governance");
-
-    IERC20Upgradeable(_token).safeApprove(_spender, 2 ** 256 - 1);
   }
 
   /**

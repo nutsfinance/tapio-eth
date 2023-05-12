@@ -3,10 +3,9 @@ import { ethers, upgrades } from "hardhat";
 async function main() {
   const [deployer] = await ethers.getSigners();
   console.log(deployer.address);
-  const StableAsset = await ethers.getContractFactory("StableAsset");
+  const StableAssetApplication = await ethers.getContractFactory("StableAssetApplication");
 
-  const swapOne = await upgrades.upgradeProxy('0xd22f46Ba0425066159F828EFA5fFEab4DAeb9fd0', StableAsset);
-  const swapTwo = await upgrades.upgradeProxy('0x6f07114487BaC63856060f9f1739d66b16DF579b', StableAsset);
+  const application = await upgrades.upgradeProxy('0x9aabd039fD0bF767Db26293a039998e85Bd31255', StableAssetApplication);
 
   console.log("application deployed");
 }

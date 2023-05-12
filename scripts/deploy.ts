@@ -11,13 +11,12 @@ async function main() {
   console.log(deployer.address);
   const MockToken = await ethers.getContractFactory("MockToken");
   const MockTokenWithExchangeRate = await ethers.getContractFactory("MockExchangeRateProvider");
-  const TokensWithExchangeRate = await ethers.getContractFactory("TokensWithExchangeRate");
+  const ConstantExchangeRateProvider = await ethers.getContractFactory("ConstantExchangeRateProvider");
 
   const cbETH = await MockToken.deploy("Coinbase ETH", "cbETH", 18);
   console.log("cbETH deployed 1");
-  const exchangeRate = await MockTokenWithExchangeRate.deploy("1000000000000000000");
+  const exchangeRate = await MockTokenWithExchangeRate.deploy("1000000000000000000", "18");
   console.log("cbETH deployed 2");
-  const exchangeRateToken = await upgrades.deployProxy(TokensWithExchangeRate, [cbETH.address, exchangeRate.address, '18']);
   console.log("cbETH deployed 3");
   const StableAssetToken = await ethers.getContractFactory("StableAssetToken");
   console.log("cbETH deployed 4");
@@ -25,9 +24,10 @@ async function main() {
   console.log("cbETH deployed 5");
 
   console.log("cbETH deployed");
+  const constant = await ConstantExchangeRateProvider.deploy();
   console.log(`cbETH: ${cbETH.address}`);
   console.log(`exchangeRate: ${exchangeRate.address}`);
-  console.log(`exchangeRateToken: ${exchangeRateToken.address}`);
+  console.log(`constant: ${constant.address}`);
 
   const wETHAddress = '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6';
   const stETHAddress = '0x1643E812aE58766192Cf7D2Cf9567dF2C37e9B7F';
@@ -38,21 +38,15 @@ async function main() {
   console.log("poolToken deployed");
   console.log(`poolToken: ${poolToken.address}`);
 
-  const stETHSwap = await upgrades.deployProxy(StableAsset, [[wETHAddress, stETHAddress], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeAddress, yieldAddress, poolToken.address, 100]);
-  const cbETHSwap = await upgrades.deployProxy(StableAsset, [[wETHAddress, exchangeRateToken.address], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeAddress, yieldAddress, poolToken.address, 100]);
+  const stETHSwap = await upgrades.deployProxy(StableAsset, [[wETHAddress, stETHAddress], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeAddress, yieldAddress, poolToken.address, 100, constant.address, 1]);
+  const cbETHSwap = await upgrades.deployProxy(StableAsset, [[wETHAddress, cbETH.address], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeAddress, yieldAddress, poolToken.address, 100, exchangeRate.address, 1]);
   console.log(`stETHSwap: ${stETHSwap.address}`);
   console.log(`cbETHSwap: ${cbETHSwap.address}`);
   
   await poolToken.setMinter(stETHSwap.address, true);
-  await stETHSwap.approve(wETHAddress, stETHSwap.address);
-  await stETHSwap.approve(stETHAddress, stETHSwap.address);
-
   await poolToken.setMinter(cbETHSwap.address, true);
-  await cbETHSwap.approve(wETHAddress, cbETHSwap.address);
-  await cbETHSwap.approve(cbETH.address, cbETHSwap.address);
-  await cbETHSwap.approve(wETHAddress, exchangeRateToken.address);
-  await cbETHSwap.approve(cbETH.address, exchangeRateToken.address);
-
+  await stETHSwap.unpause();
+  await cbETHSwap.unpause();
   console.log("Approval compelted");
 }
 

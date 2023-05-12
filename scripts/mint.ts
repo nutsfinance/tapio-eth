@@ -9,11 +9,9 @@ const FEE_DENOMITOR = '10000000000';
 async function main() {
   const [deployer] = await ethers.getSigners();
   console.log(deployer.address);
-  const StableSwap = await ethers.getContractFactory("StableSwap");
-  const MockToken = await ethers.getContractFactory("MockToken");
-  const TokensWithExchangeRate = await ethers.getContractFactory("TokensWithExchangeRate");
-  const cbETH = await MockToken.attach('0xd994DD0FA5D62306BC2E46B96104E7Fda80Afa62');
-  await cbETH.mint(deployer.address, '100000000000000000000');
+  const StableAssetApplication = await ethers.getContractFactory("StableAssetApplication");
+  const application = await StableAssetApplication.attach('0x9aabd039fD0bF767Db26293a039998e85Bd31255');
+  await application.mint('0xd22f46Ba0425066159F828EFA5fFEab4DAeb9fd0', ['1000000000000000', '1000000000000000'], '0', {value: '1000000000000000'});
 }
 
 // We recommend this pattern to be able to use async/await everywhere
