@@ -3,6 +3,7 @@
   "scripts": {
     "clean": "hardhat clean",
     "test": "hardhat test",
+    "doc": "ts-node test/docs/generate-tests-doc.ts",
     "coverage": "hardhat coverage"
   },
   "devDependencies": {
