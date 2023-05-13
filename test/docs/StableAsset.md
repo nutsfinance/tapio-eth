@@ -1,0 +1,640 @@
+
+## deploySwapAndTokens
+- Deploy token1 with name "test 1", symbol "T1", decimals 18
+- Deploy token2 with name "test 2", symbol "T2", decimals 18
+- Deploy pool token with name "Pool Token", symbol "PT", decimals 18
+- Deploy constant exchange rate provider with exchange rate 1
+- Deploy swap contract with [token1, token2], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient, yieldRecipient, poolToken, A = 100 and ConstantExchangeRate
+- Set swap as minter of pool token
+
+## deploySwapAndTokensExchangeRate
+- Deploy token1 with name "test 1", symbol "T1", decimals 18
+- Deploy token2 with name "test 2", symbol "T2", decimals 18
+- Deploy MockTokenWithExchangeRate with exchange rate 1 and decimals 18
+- Deploy pool token with name "Pool Token", symbol "PT", decimals 18
+- Deploy swap contract with [token1, token2], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient, yieldRecipient, poolToken, and A = 100
+- Set swap as minter of pool token
+- Deploy swap and tokens
+- Check swap tokens[0] is token1
+- Check swap tokens[1] is token2
+- Check swap precisions[0] is PRECISION
+- Check swap precisions[1] is PRECISION
+- Check swap mintFee is MINT_FEE
+- Check swap swapFee is SWAP_FEE
+- Check swap redeemFee is REDEEM_FEE
+- Check swap poolToken is poolToken
+- Check swap feeRecipient is feeRecipient
+- Check swap governance is owner
+- Check swap paused is true
+- Check swap initialA is 100
+- Deploy token1 with name "test 1", symbol "T1", decimals 18
+- Deploy token2 with name "test 2", symbol "T2", decimals 18
+- Deploy pool token with name "test 17", symbol "T17", decimals 17
+- Deploy pool token with name "test 19", symbol "T19", decimals 19
+- Deploy pool token with name "Pool Token", symbol "PT", decimals 18
+- Check deploy swap with no tokens
+- Check deploy swap with token length not match
+- Check deploy swap with fee length not match
+- Check deploy swap with token not set
+- Check deploy swap with fee recipient not set
+- Check deploy swap with yield recipient not set
+- Check deploy swap with pool token not set
+- Check deploy swap with A not set
+- Check deploy swap with A exceed max
+
+## should return the correct mint amount when two tokens are equal
+- Deploy swap and tokens
+- Get mint amount with 100 token1 and 100 token2
+- Check amounts[0] is mint amount
+- Check amounts[1] is fee amount
+- Check total amount is correct
+- Check total amount is 200
+- Check fee amount is correct
+- Check invariant after mint
+
+## should return the correct mint amount when two tokens are not equal
+- Deploy swap and tokens
+- Get mint amount when token1 is 110 and token2 is 90
+- Check amounts[0] is mint amount
+- Check amounts[1] is fee amount
+- Check total amount is correct
+- Check total amount is 200
+- Check invariant after mint
+- Deploy swap and tokens
+- Unpause swap contract
+- Mint 100 token1 to user
+- Mint 100 token2 to user
+- Approve swap contract to spend 100 token1
+- Approve swap contract to spend 100 token2
+- Get mint amount with 100 token1 and 100 token2
+- Check amounts[0] is mint amount
+- Check amounts[1] is fee amount
+- Check token1 balance is 100
+- Check token2 balance is 100
+- Check pool token balance is 0
+- Check fee recipient balance is 0
+- Check swap token1 balance is 0
+- Check swap token2 balance is 0
+- Check swap total supply is 0
+- Mint 100 token1 and 100 token2 to pool token
+- Check token1 balance is 0
+- Check token2 balance is 0
+- Check pool token balance is mint amount
+- Check fee recipient balance is fee amount
+- Check swap token1 balance is 100
+- Check swap token2 balance is 100
+- Check swap total supply is 200
+- Check pool token total supply is 200
+- Deploy swap and tokens
+- Unpause swap contract
+- Mint 110 token1 to user
+- Mint 90 token2 to user
+- Approve swap contract to spend 110 token1
+- Approve swap contract to spend 90 token2
+- Get mint amount with 110 token1 and 90 token2
+- Check amounts[0] is mint amount
+- Check amounts[1] is fee amount
+- Check token1 balance is 110
+- Check token2 balance is 90
+- Check pool token balance is 0
+- Check fee recipient balance is 0
+- Check swap token1 balance is 0
+- Mint 110 token1 and 90 token2 to pool token
+- Check token1 balance is 0
+- Check token2 balance is 0
+- Check pool token balance is mint amount
+- Check fee recipient balance is fee amount
+- Check swap token1 balance is 110
+- Check swap token2 balance is 90
+- Check swap total supply is about 200
+- Check pool token total supply is about 200
+
+## should return the correct mint amount with initial balance when two tokens are not equal
+- Deploy swap and tokens
+- Unpause swap contract
+- Mint 105 token1 to user
+- Mint 85 token2 to user
+- Approve swap contract to spend 105 token1
+- Approve swap contract to spend 85 token2
+- Mint 105 token1 and 85 token2 to pool token
+- Get mint amount with 110 token1 and 90 token2
+- Check amounts[0] is mint amount
+- Check amounts[1] is fee amount
+- Check total amount is mint amount + fee amount
+- Check fee amount is 0.1%
+- Check invariant is 110 * 90 = 9900
+- Deploy swap and tokens
+- Unpause swap contract
+- Get mint amount with 105 token1 and 85 token2
+- Check total amount is mint amount + fee amount
+- Mint 105 token1 to user
+- Mint 85 token2 to user
+- Approve swap contract to spend 105 token1
+- Approve swap contract to spend 85 token2
+- Mint 105 token1 and 85 token2 to pool token
+- Mint 8 token2 to user2
+- Approve swap contract to spend 8 token2
+- Get exchange amount with 8 token2 to token1
+- Get exchange total amount
+- Before exchange, we have 105 token1 and 85 token2
+- After exchange, 8 token2 is exchanged in so that token2 balance becomes 93
+- Deploy swap and tokens
+- Unpause swap contract
+- Mint 105 token1 to user
+- Mint 85 token2 to user
+- Approve swap contract to spend 105 token1
+- Approve swap contract to spend 85 token2
+- Mint 105 token1 and 85 token2 to pool token
+- Mint 8 token2 to user2
+- Approve swap contract to spend 8 token2
+- Get exchange amount with 8 token2 to token1
+- Get exchange total amount
+- Check user2 token1 balance is 0
+- Check user2 token2 balance is 8
+- Check swap token1 balance is 105
+- Check swap token2 balance is 85
+- Check pool token1 balance is 105
+- Check pool token2 balance is 85
+- Check pool token balance is 190
+- Get fee before exchange
+- Swap 8 token2 to token1
+- Get fee after exchange
+- The amount of token1 got. In original format.
+- The amount of token2 left. In original format.
+- 105 token1 - actual exchange output  (in original format)
+- 85 token2 + 8 token2  (in original format)
+- Check fee after exchange is greater than fee before exchange
+- 85 token2 + 8 token2 (in converted format)
+- Check pool token balance same as swap token balance
+- Deploy swap and tokens
+- We use total amount to approximate D!
+- Get mint amount with 105 token1 and 85 token2
+- Get total amount
+- Mint 105 token1 to user
+- Mint 85 token2 to user
+- Approve swap contract to spend 105 token1
+- Approve swap contract to spend 85 token2
+- Mint 105 token1 and 85 token2 to pool token
+- Get redeem amount with 25 pool token
+- Get token1 amount
+- Get token2 amount
+- Get fee amount
+- Assert that poolToken redeemed / poolToken total = token1 amount / token1 balance = token2 amount / token2 balance
+- Check invariant
+- Deploy swap and tokens
+- Unpause swap
+- We use total amount to approximate D!
+- Get mint amount with 105 token1 and 85 token2
+- Get total amount
+- Mint 105 token1 to user
+- Mint 85 token2 to user
+- Approve swap contract to spend 105 token1
+- Approve swap contract to spend 85 token2
+- Mint 105 token1 and 85 token2 to pool token
+- Get redeem amount with 25 pool token
+- Get token1 amount
+- Get token2 amount
+- Get fee amount
+- Transfer 25 pool token to user2
+- Check user2 token1 balance is 0
+- Check user2 token2 balance is 0
+- Check user2 pool token balance is 25
+- Check swap token1 balance is 105
+- Check swap token2 balance is 85
+- Check swap pool token1 balance is 105
+- Check swap pool token2 balance is 85
+- Check swap total supply
+- Check pool token total supply is same as swap total supply
+- Get fee before
+- Approve swap contract to spend 8 token2
+- Redeem 25 pool token
+- The amount of token1 got. In original format.
+- Check user2 token1 balance is token1Amount
+- Check user2 token2 balance is token2Amount
+- Check user2 pool token balance is 0
+- Check fee recipient pool token balance is feeAmount
+- Check swap token1 balance is 105 - token1Amount
+- Check swap token2 balance is 85 - token2Amount
+- Check swap pool token1 balance is 105 - token1Amount
+- Check swap pool token2 balance is 85 - token2Amount
+- Check swap total supply
+- Deploy swap and tokens
+- Unpause swap contract
+- We use total amount to approximate D!
+- Get mint amount with 105 token1 and 85 token2
+- Get total amount
+- Mint 105 token1 to user
+- Mint 85 token2 to user
+- Approve swap contract to spend 105 token1
+- Approve swap contract to spend 85 token2
+- Mint 105 token1 and 85 token2 to swap contract
+- Get redeem amount with 25 pool token
+- Get redeem amount to a single token
+- Get token1 amount from amounts
+- Get fee amount from amounts
+- Assert invariant
+- Deploy swap and tokens
+- Unpause swap contract
+- We use total amount to approximate D!
+- Get mint amount with 105 token1 and 85 token2
+- Get total amount
+- Mint 105 token1 to user
+- Mint 85 token2 to user
+- Approve swap contract to spend 105 token1
+- Approve swap contract to spend 85 token2
+- Mint 105 token1 and 85 token2 to swap contract
+- Get redeem amount with 25 pool token
+- Get redeem amount to a single token
+- Get token1 amount from amounts
+- Get fee amount from amounts
+- Transfer 25 pool token to user2
+- Check user2 token1 balance is 0
+- Check user2 token2 balance is 0
+- Check user2 swap pool token balance is 25
+- Check swap pool token1 balance is 105
+- Check swap pool token2 balance is 85
+- Check swap pool token1 balance is 105
+- Check swap pool token2 balance is 85
+- Check swap pool total supply is same as pool token total supply
+- Get fee before redeem
+- Approve swap contract to spend 25 pool token
+- Redeem 25 pool token to token1
+- The amount of token1 got. In original format.
+- Check user2 token1 balance is token1Amount
+- Check user2 token2 balance is 0
+- Check user2 swap pool token balance is 0
+- Check fee recipient pool token balance is feeAmount + feeBefore
+- Check swap pool token1 balance is 105 - token1Amount
+- Check swap pool token2 balance is 85
+- Check swap pool token1 balance is 105 - token1Amount
+- Check swap pool token2 balance is 85
+- Check swap pool total supply is same as pool token total supply
+- Deploy swap contract
+- Unpause swap contract
+- We use total amount to approximate D!
+- Get mint amount with 105 token1 and 85 token2
+- Get total amount
+- Mint 105 token1 to user
+- Mint 85 token2 to user
+- Approve swap contract to spend 105 token1
+- Approve swap contract to spend 85 token2
+- Mint 105 token1 and 85 token2 to swap contract
+- Get redeem amount with 10 token1 and 5 token2
+- Get redeem amount from amounts
+- Get fee amount from amounts
+- Check redeem amount
+- Assert invariant
+- Deploy swap and tokens
+- Unpause swap contract
+- We use total amount to approximate D!
+- Get mint amount with 105 token1 and 85 token2
+- Get total amount
+- Mint 105 token1 to user
+- Mint 85 token2 to user
+- Approve swap contract to spend 105 token1
+- Approve swap contract to spend 85 token2
+- Mint 105 token1 and 85 token2 to swap contract
+- Get redeem amount with 10 token1 and 5 token2
+- Get redeem amount from amounts
+- Get fee amount from amounts
+- Transfer 25 pool token to user2
+- Check user2 token1 balance is 0
+- Check user2 token2 balance is 0
+- Check user2 pool token balance is 25
+- Check swap pool token1 balance is 105
+- Check swap pool token2 balance is 85
+- Check swap pool token1 balance is 105
+- Check swap pool token2 balance is 85
+- Check swap total supply is same as pool token total supply
+- Get fee before
+- Approve swap contract to spend pool token
+- Redeem 10 token1 and 5 token2 to user2
+- The amount of token1 got. In original format.
+- Check user2 token1 balance is 10
+- Check user2 token2 balance is 5
+- Check user2 pool token balance is 25 - redeemAmount
+- Check fee recipient pool token balance is feeAmount + feeBefore
+- Check swap pool token1 balance is 95
+- Check swap pool token2 balance is 80
+- Check swap pool token1 balance is 95
+- Check swap pool token2 balance is 80
+- Check swap total supply is same as pool token total supply
+- Deploy swap and tokens
+- Unpause swap contract
+- Mint 1000 token1 to user
+- Mint 1000 token2 to user
+- Approve swap contract to spend 1000 token1
+- Approve swap contract to spend 1000 token2
+- Mint 100 token1 and 100 token2 to swap contract
+- Get yield amount before
+- Mint 10 token1 to swap contract
+- Mint 100 token1 and 100 token2 to swap contract
+- Get yield amount after
+- Check yield amount before is 0
+- Check yield amount is greater than before
+- Deploy swap and tokens
+- Unpause swap contract
+- Mint 1000 token1 to user
+- Mint 1000 token2 to user
+- Approve swap contract to spend 1000 token1
+- Approve swap contract to spend 1000 token2
+- Mint 100 token1 and 100 token2 to swap contract
+- Get yield amount before
+- Mint 10 token1 to swap contract
+- Swap 1 token1 to token2
+- Get yield amount after
+- Check yield amount before is 0
+- Check yield amount is greater than before
+- Deploy swap and tokens
+- Unpause swap contract
+- Mint 1000 token1 to user
+- Mint 1000 token2 to user
+- Approve swap contract to spend 1000 token1
+- Approve swap contract to spend 1000 token2
+- Approve swap contract to spend 1000 pool token
+- Mint 100 token1 and 100 token2 to swap contract
+- Get yield amount before
+- Mint 10 token1 to swap contract
+- Redeem 1 pool token
+- Get yield amount after
+- Check yield amount before is 0
+- Check yield amount is greater than before
+- Deploy swap and tokens
+- Unpause swap contract
+- Mint 1000 token1 to user
+- Mint 1000 token2 to user
+- Approve swap contract to spend 1000 token1
+- Approve swap contract to spend 1000 token2
+- Approve swap contract to spend 1000 pool token
+- Mint 100 token1 and 100 token2 to swap contract
+- Get yield amount before
+- Mint 10 token1 to swap contract
+- Redeem 1 token1
+- Get yield amount after
+- Check yield amount before is 0
+- Check yield amount is greater than before
+- Deploy swap and tokens
+- Unpause swap contract
+- Mint 1000 token1 to user
+- Mint 1000 token2 to user
+- Approve swap contract to spend 1000 token1
+- Approve swap contract to spend 1000 token2
+- Approve swap contract to spend 1000 pool token
+- Mint 100 token1 and 100 token2 to swap contract
+- Get yield amount before
+- Mint 10 token1 to swap contract
+- Redeem 1 token1, 1 token2, and max pool token is 100
+- Get yield amount after
+- Check yield amount before is 0
+- Check yield amount is greater than before
+- Deploy swap and tokens
+- Unpause swap contract
+- We use total amount to approximate D!
+- Get mint amount for 105 token1 and 85 token2
+- Get total amount
+- Mint 105 token1 to user
+- Mint 85 token2 to user
+- Approve swap contract to spend 105 token1
+- Approve swap contract to spend 85 token2
+- Mint 105 token1 and 85 token2 to swap contract
+- Mint 10 token1 to swap contract
+- Get redeem amount for 10 token1 and 5 token2
+- Get redeem amount from amounts
+- Get fee amount from amounts
+- Check redeem amount
+- Assert invariant
+- Deploy swap and tokens
+- Unpause swap contract
+- We use total amount to approximate D!
+- Get mint amount for 105 token1 and 85 token2
+- Get total amount
+- Mint 105 token1 to user
+- Mint 85 token2 to user
+- Approve swap contract to spend 105 token1
+- Approve swap contract to spend 85 token2
+- Mint 105 token1 and 85 token2 to swap contract
+- Mint 10 token1 to swap contract
+- Set redeem amount is 25 token1
+- Get redeem amount
+- Get token1 amount from amounts
+- Get fee amount from amounts
+- Assert invariant
+- Deploy swap and tokens
+- Unpause swap contract
+- We use total amount to approximate D!
+- Get mint amount for 105 token1 and 85 token2
+- Mint 105 token1 to user
+- Mint 85 token2 to user
+- Approve swap contract to spend 105 token1
+- Approve swap contract to spend 85 token2
+- Mint 105 token1 and 85 token2 to swap contract
+- Mint 10 token1 to swap contract
+- Get redeem amounts for 25 poolToken
+- Get token1 amount from amounts
+- Get token2 amount from amounts
+- Get fee amount from amounts
+- Get total amount
+- Assert that poolToken redeemed / poolToken total = token1 amount / token1 balance = token2 amount / token2 balance
+- Assert invariant
+- Deploy swap and tokens
+- Unpause swap contract
+- We use total amount to approximate D!
+- Get mint amount for 105 token1 and 85 token2
+- Get total amount
+- Mint 105 token1 to user
+- Mint 85 token2 to user
+- Approve swap contract to spend 105 token1
+- Approve swap contract to spend 85 token2
+- Mint 105 token1 and 85 token2 to swap contract
+- Mint 8 token2 to user2
+- Approve swap contract to spend 8 token2
+- Mint 8 token2 to swap contract
+- Get exchange amount for 8 token2
+- Get total amount
+- Before exchange, we have 105 token1 and 85 token2
+- After exchange, 8 token2 is exchanged in so that token2 balance becomes 93
+- Assert invariant
+
+## should return the correct mint amount when two tokens are not equal rebasing
+- Deploy swap and tokens
+- Mint 10 token1 to swap contract
+- Mint 10 token2 to swap contract
+- Get mint amount for 110 token1 and 90 token2
+- Get mint amount from amounts
+- Get fee amount from amounts
+- Get total amount
+- Assert fee amount is correct
+- Assert invariant
+
+## should return the correct mint amount when two tokens are equal rebasing
+- Deploy swap and tokens
+- Mint 10 token1 to swap contract
+- Mint 10 token2 to swap contract
+- Get mint amount for 100 token1 and 100 token2
+- Get mint amount from amounts
+- Get fee amount from amounts
+- Get total amount
+- Check total amount is 200
+- Assert fee amount is correct
+- Assert invariant
+- Deploy swap and tokensExchangeRate
+- Unpause swap contract
+- Mint 1000 token1 to user
+- Mint 1000 token2 to user
+- Approve swap contract to spend 1000 token1
+- Approve swap contract to spend 1000 token2
+- Mint 1000 token1 and 1000 token2 to swap contract
+- Get yield amount before
+- Set exchange rate to 1.1
+- Mint 1000 token1 and 1000 token2 to swap contract
+- Get yield amount after
+- Assert yield amount before is 0
+- Assert yield amount after is greater than yield amount before
+- Deploy swap and tokensExchangeRate
+- Unpause swap contract
+- Mint 1000 token1 to user
+- Mint 1000 token2 to user
+- Approve swap contract to spend 1000 token1
+- Approve swap contract to spend 1000 token2
+- Mint 100 token1 and 100 token2 to swap contract
+- Get yield amount before
+- Set exchange rate to 1.1
+- Swap 1 token1 to token2
+- Get yield amount after
+- Assert yield amount before is 0
+- Assert yield amount after is greater than yield amount before
+- Deploy swap and tokensExchangeRate
+- Unpause swap contract
+- Mint 1000 token1 to user
+- Mint 1000 token2 to user
+- Approve swap contract to spend 1000 token1
+- Approve swap contract to spend 1000 token2
+- Approve swap contract to spend 1000 poolToken
+- Mint 100 token1 and 100 token2 to swap contract
+- Get yield amount before
+- Set exchange rate to 1.1
+- Redeem 1 poolToken
+- Get yield amount after
+- Assert yield amount before is 0
+- Assert yield amount after is greater than yield amount before
+- Deploy swap and tokensExchangeRate
+- Unpause swap contract
+- Mint 1000 token1 to user
+- Mint 1000 token2 to user
+- Approve swap contract to spend 1000 token1
+- Approve swap contract to spend 1000 token2
+- Approve swap contract to spend 1000 poolToken
+- Mint 100 token1 and 100 token2 to swap contract
+- Get yield amount before
+- Set exchange rate to 1.1
+- Redeem 1 poolToken
+- Get yield amount after
+- Assert yield amount before is 0
+- Assert yield amount after is greater than yield amount before
+- Deploy swap and tokensExchangeRate
+- Unpause swap contract
+- Mint 1000 token1 to user
+- Mint 1000 token2 to user
+- Approve swap contract to spend 1000 token1
+- Approve swap contract to spend 1000 token2
+- Mint 100 token1 and 100 token2 to swap contract
+- Get yield amount before
+- Set exchange rate to 1.1
+- Redeem 1 token1 and 1 token2
+- Get yield amount after
+- Assert yield amount before is 0
+- Assert yield amount after is greater than yield amount before
+- Deploy swap and tokens
+- Check can't update governance if not governance
+- Update governance to user
+- Check governance is user
+- Deploy swap and tokens
+- Check can't update mint fee if not governance
+- Update mint fee to 1000
+- Set mint fee is 1000
+- Deploy swap and tokens
+- Set swap fee to 1000
+- Set swap fee is 1000
+- Deploy swap and tokens
+- Set redeem fee to 1000
+- Set redeem fee is 1000
+- Deploy swap and tokens
+- Check can't pause if not governance
+- Check can't unpause when paused
+- Pause swap
+- Check paused is false
+- Check can't unpause if not governance
+- Check can't pause when unpaused
+- Pause swap
+- Check paused is true
+- Deploy swap and tokens
+- Check initial fee recipient is fee recipient
+- Check can't set fee recipient if not governance
+- Check can't set fee recipient to zero address
+- Set fee recipient to user
+- Check fee recipient is user
+- Deploy swap and tokens
+- Check initial pool token is pool token
+- Check can't set pool token if not governance
+- Check can't set pool token to zero address
+- Set pool token to token2
+- Check pool token is token2
+- Deploy swap and tokens
+- Check initial admin is owner
+- Check can't set admin to zero address
+- Set admin to true
+- Check admin is true
+- Set admin to false
+- Check admin is false
+- Deploy swap and tokens
+- Check initial A is 100
+- Check initial A block is 8
+- Check future A is 100
+- Check future A block is 8
+- Check updateA fails if not governance
+- Check updateA fails if block in the past
+- Check updateA fails if block is 11
+- Check updateA fails if A not set
+- Check block is 12
+- Check updateA fails if A exceeds max
+- Check block is 13
+- Update A to 1000 at block 17
+- Check initial A is 100
+- Check initial A block is 14
+- Check future A is 1000
+- Check future A block is 17
+- Deploy swap and tokens
+- Check initial A is 100
+- Check initial A block is 8
+- Check future A is 100
+- Update A to 1000 when block is 100
+- Check future A is 1000
+- Check future A block is 100
+- Check future A is 1000
+- Check future A block is 100
+- Check getA is 100
+- Mine 50 blocks
+- Check block number is 60
+- Check getA is 600
+- Mine 38 blocks
+- Check block number is 99
+- Check getA is 990
+- Mine 1 block
+- Check block number is 100
+- Check getA is 1000
+- Mine 1 block
+- Check getA is 1000
+- Check block number is 101
+- Update A to 500 when block number is 200
+- Mine 40 blocks
+- Check block number is 142
+- Check getA is 796
+- Mine 57 blocks
+- Check block number is 199
+- Check getA is 506
+- Mine 1 block
+- Check block number is 200
+- Check getA is 500
+- Mine 1 block
+- Check block number is 201
+- Check getA is 500

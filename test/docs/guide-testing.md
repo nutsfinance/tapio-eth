@@ -23,6 +23,13 @@ Running the tests
 ```bash
 npm test
 ```
+### Test Doc
+
+**Description:** Generate test documentation based on test code.
+
+```bash
+npm run doc
+```
 
 ## Coverage
 
