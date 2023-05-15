@@ -387,8 +387,14 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     uint256 i = 0;
     for (i = 0; i < _balances.length; i++) {
       if (_amounts[i] == 0) continue;
+      uint256 balanceAmount = _amounts[i];
+      if (i == exchangeRateTokenIndex) {
+        balanceAmount = balanceAmount
+          .mul(exchangeRateProvider.exchangeRate())
+          .div(10 ** exchangeRateProvider.exchangeRateDecimals());
+      }
       // balance = balance + amount * precision
-      _balances[i] = _balances[i].add(_amounts[i].mul(precisions[i]));
+      _balances[i] = _balances[i].add(balanceAmount.mul(precisions[i]));
     }
     uint256 newD = _getD(_balances, A);
     // newD should be bigger than or equal to oldD
@@ -428,7 +434,13 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
         require(oldD > 0, "zero amount");
         continue;
       }
-      _balances[i] = _balances[i].add(_amounts[i].mul(precisions[i]));
+      uint256 balanceAmount = _amounts[i];
+      if (i == exchangeRateTokenIndex) {
+        balanceAmount = balanceAmount
+          .mul(exchangeRateProvider.exchangeRate())
+          .div(10 ** exchangeRateProvider.exchangeRateDecimals());
+      }
+      _balances[i] = _balances[i].add(balanceAmount.mul(precisions[i]));
     }
     uint256 newD = _getD(_balances, A);
     // newD should be bigger than or equal to oldD
@@ -447,16 +459,10 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
       if (_amounts[i] == 0) continue;
       // Update the balance in storage
       balances[i] = _balances[i];
-      uint256 transferAmount = _amounts[i];
-      if (i == exchangeRateTokenIndex) {
-        transferAmount = transferAmount
-          .mul(10 ** exchangeRateProvider.exchangeRateDecimals())
-          .div(exchangeRateProvider.exchangeRate());
-      }
       IERC20Upgradeable(tokens[i]).safeTransferFrom(
         msg.sender,
         address(this),
-        transferAmount
+        _amounts[i]
       );
     }
     totalSupply = newD;
@@ -490,18 +496,30 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
 
     uint256 A = getA();
     uint256 D = _totalSupply;
+    uint256 balanceAmount = _dx;
+    if (_i == exchangeRateTokenIndex) {
+      balanceAmount = balanceAmount
+        .mul(exchangeRateProvider.exchangeRate())
+        .div(10 ** exchangeRateProvider.exchangeRateDecimals());
+    }
     // balance[i] = balance[i] + dx * precisions[i]
-    _balances[_i] = _balances[_i].add(_dx.mul(precisions[_i]));
+    _balances[_i] = _balances[_i].add(balanceAmount.mul(precisions[_i]));
     uint256 y = _getY(_balances, _j, D, A);
     // dy = (balance[j] - y - 1) / precisions[j] in case there was rounding errors
-    uint256 j = _j;
-    uint256 dy = _balances[j].sub(y).sub(1).div(precisions[j]);
+    uint256 dy = _balances[_j].sub(y).sub(1).div(precisions[_j]);
 
     if (swapFee > 0) {
       dy = dy.sub(dy.mul(swapFee).div(FEE_DENOMINATOR));
     }
 
-    return (dy, _totalSupply);
+    uint256 transferAmountJ = dy;
+    if (_j == exchangeRateTokenIndex) {
+      transferAmountJ = transferAmountJ
+        .mul(10 ** exchangeRateProvider.exchangeRateDecimals())
+        .div(exchangeRateProvider.exchangeRate());
+    }
+
+    return (transferAmountJ, _totalSupply);
   }
 
   /**
@@ -529,8 +547,14 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     uint256[] memory _balances = balances;
     uint256 A = getA();
     uint256 D = totalSupply;
+    uint256 balanceAmount = _dx;
+    if (_i == exchangeRateTokenIndex) {
+      balanceAmount = balanceAmount
+        .mul(exchangeRateProvider.exchangeRate())
+        .div(10 ** exchangeRateProvider.exchangeRateDecimals());
+    }
     // balance[i] = balance[i] + dx * precisions[i]
-    _balances[_i] = _balances[_i].add(_dx.mul(precisions[_i]));
+    _balances[_i] = _balances[_i].add(balanceAmount.mul(precisions[_i]));
     uint256 y = _getY(_balances, _j, D, A);
     // dy = (balance[j] - y - 1) / precisions[j] in case there was rounding errors
     uint256 dy = _balances[_j].sub(y).sub(1).div(precisions[_j]);
@@ -542,20 +566,17 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     if (fee > 0) {
       dy = dy.sub(dy.mul(fee).div(FEE_DENOMINATOR));
     }
+    if (_i == exchangeRateTokenIndex) {
+      _minDy = _minDy.mul(exchangeRateProvider.exchangeRate()).div(
+        10 ** exchangeRateProvider.exchangeRateDecimals()
+      );
+    }
     require(dy >= _minDy, "fewer than expected");
 
-    uint256 transferAmountI = _dx;
-    uint256 i = _i;
-    uint256 j = _j;
-    if (i == exchangeRateTokenIndex) {
-      transferAmountI = transferAmountI
-        .mul(10 ** exchangeRateProvider.exchangeRateDecimals())
-        .div(exchangeRateProvider.exchangeRate());
-    }
-    IERC20Upgradeable(tokens[i]).safeTransferFrom(
+    IERC20Upgradeable(tokens[_i]).safeTransferFrom(
       msg.sender,
       address(this),
-      transferAmountI
+      _dx
     );
     // Important: When swap fee > 0, the swap fee is charged on the output token.
     // Therefore, balances[j] < tokens[j].balanceOf(this)
@@ -563,20 +584,14 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     // collectFees() is used to convert the difference between balances[j] and tokens[j].balanceOf(this)
     // into pool token as fees!
     uint256 transferAmountJ = dy;
-    if (j == exchangeRateTokenIndex) {
+    if (_j == exchangeRateTokenIndex) {
       transferAmountJ = transferAmountJ
         .mul(10 ** exchangeRateProvider.exchangeRateDecimals())
         .div(exchangeRateProvider.exchangeRate());
     }
-    IERC20Upgradeable(tokens[j]).safeTransfer(msg.sender, transferAmountJ);
+    IERC20Upgradeable(tokens[_j]).safeTransfer(msg.sender, transferAmountJ);
 
-    emit TokenSwapped(
-      msg.sender,
-      tokens[i],
-      tokens[j],
-      transferAmountI,
-      transferAmountJ
-    );
+    emit TokenSwapped(msg.sender, tokens[_i], tokens[_j], _dx, transferAmountJ);
     collectFeeOrYield(true);
     return transferAmountJ;
   }
@@ -609,6 +624,13 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
       // We might choose to use poolToken.totalSupply to compute the amount, but decide to use
       // D in case we have multiple minters on the pool token.
       amounts[i] = _balances[i].mul(_amount).div(D).div(precisions[i]);
+      uint256 transferAmount = amounts[i];
+      if (i == exchangeRateTokenIndex) {
+        transferAmount = transferAmount
+          .mul(10 ** exchangeRateProvider.exchangeRateDecimals())
+          .div(exchangeRateProvider.exchangeRate());
+      }
+      amounts[i] = transferAmount;
     }
 
     return (amounts, feeAmount, _totalSupply);
@@ -653,7 +675,13 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
       uint256 tokenAmount = _balances[i].mul(_amount).div(D);
       // Important: Underlying tokens must convert back to original decimals!
       amounts[i] = tokenAmount.div(precisions[i]);
-      require(amounts[i] >= _minRedeemAmounts[i], "fewer than expected");
+      uint256 minRedeemAmount = _minRedeemAmounts[i];
+      if (i == exchangeRateTokenIndex) {
+        minRedeemAmount = minRedeemAmount
+          .mul(exchangeRateProvider.exchangeRate())
+          .div(10 ** exchangeRateProvider.exchangeRateDecimals());
+      }
+      require(amounts[i] >= minRedeemAmount, "fewer than expected");
       // Updates the balance in storage
       balances[i] = _balances[i].sub(tokenAmount);
       uint256 transferAmount = amounts[i];
@@ -705,10 +733,15 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     // The pool token amount becomes D - _amount
     uint256 y = _getY(_balances, _i, D.sub(_amount), A);
     // dy = (balance[i] - y - 1) / precisions[i] in case there was rounding errors
-    uint256 i = _i;
-    uint256 dy = _balances[i].sub(y).sub(1).div(precisions[_i]);
+    uint256 dy = _balances[_i].sub(y).sub(1).div(precisions[_i]);
+    uint256 transferAmount = dy;
+    if (_i == exchangeRateTokenIndex) {
+      transferAmount = transferAmount
+        .mul(10 ** exchangeRateProvider.exchangeRateDecimals())
+        .div(exchangeRateProvider.exchangeRate());
+    }
 
-    return (dy, feeAmount, _totalSupply);
+    return (transferAmount, feeAmount, _totalSupply);
   }
 
   /**
@@ -745,25 +778,29 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
       );
       _amount = _amount.sub(feeAmount);
     }
+    if (_i == exchangeRateTokenIndex) {
+      _minRedeemAmount = _minRedeemAmount
+        .mul(exchangeRateProvider.exchangeRate())
+        .div(10 ** exchangeRateProvider.exchangeRateDecimals());
+    }
 
     // y is converted(18 decimals)
-    uint256 i = _i;
-    uint256 y = _getY(_balances, i, D.sub(_amount), A);
+    uint256 y = _getY(_balances, _i, D.sub(_amount), A);
     // dy is not converted
     // dy = (balance[i] - y - 1) / precisions[i] in case there was rounding errors
-    uint256 dy = _balances[i].sub(y).sub(1).div(precisions[i]);
+    uint256 dy = _balances[_i].sub(y).sub(1).div(precisions[_i]);
     require(dy >= _minRedeemAmount, "fewer than expected");
     // Updates token balance in storage
-    balances[i] = y;
+    balances[_i] = y;
     uint256[] memory amounts = new uint256[](_balances.length);
-    amounts[i] = dy;
+    amounts[_i] = dy;
     uint256 transferAmount = dy;
-    if (i == exchangeRateTokenIndex) {
+    if (_i == exchangeRateTokenIndex) {
       transferAmount = transferAmount
         .mul(10 ** exchangeRateProvider.exchangeRateDecimals())
         .div(exchangeRateProvider.exchangeRate());
     }
-    IERC20Upgradeable(tokens[i]).safeTransfer(msg.sender, transferAmount);
+    IERC20Upgradeable(tokens[_i]).safeTransfer(msg.sender, transferAmount);
 
     uint256 amount = _amount;
     totalSupply = D.sub(amount);
@@ -793,7 +830,13 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     for (uint256 i = 0; i < _balances.length; i++) {
       if (_amounts[i] == 0) continue;
       // balance = balance + amount * precision
-      _balances[i] = _balances[i].sub(_amounts[i].mul(precisions[i]));
+      uint256 balanceAmount = _amounts[i];
+      if (i == exchangeRateTokenIndex) {
+        balanceAmount = balanceAmount
+          .mul(10 ** exchangeRateProvider.exchangeRateDecimals())
+          .div(exchangeRateProvider.exchangeRate());
+      }
+      _balances[i] = _balances[i].sub(balanceAmount.mul(precisions[i]));
     }
     uint256 newD = _getD(_balances, A);
 
@@ -831,8 +874,14 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     uint256 i = 0;
     for (i = 0; i < _balances.length; i++) {
       if (_amounts[i] == 0) continue;
+      uint256 balanceAmount = _amounts[i];
+      if (i == exchangeRateTokenIndex) {
+        balanceAmount = balanceAmount
+          .mul(10 ** exchangeRateProvider.exchangeRateDecimals())
+          .div(exchangeRateProvider.exchangeRate());
+      }
       // balance = balance + amount * precision
-      _balances[i] = _balances[i].sub(_amounts[i].mul(precisions[i]));
+      _balances[i] = _balances[i].sub(balanceAmount.mul(precisions[i]));
     }
     uint256 newD = _getD(_balances, A);
 
@@ -862,14 +911,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     uint256[] memory amounts = _amounts;
     for (i = 0; i < _balances.length; i++) {
       if (_amounts[i] == 0) continue;
-      uint256 transferAmount = _amounts[i];
-      if (i == exchangeRateTokenIndex) {
-        transferAmount = transferAmount
-          .mul(10 ** exchangeRateProvider.exchangeRateDecimals())
-          .div(exchangeRateProvider.exchangeRate());
-      }
-      amounts[i] = transferAmount;
-      IERC20Upgradeable(tokens[i]).safeTransfer(msg.sender, transferAmount);
+      IERC20Upgradeable(tokens[i]).safeTransfer(msg.sender, _amounts[i]);
     }
 
     emit Redeemed(msg.sender, redeemAmount, amounts, feeAmount);
