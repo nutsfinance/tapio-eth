@@ -44,6 +44,16 @@
       "address": "0x6f07114487BaC63856060f9f1739d66b16DF579b",
       "txHash": "0x8f95254e64e90051d14e16675df8ef67c7d63eab864d9fd28ac0b8124fc651c8",
       "kind": "transparent"
+    },
+    {
+      "address": "0x9C3aF1d0b2590d4143AEafF23eF23E6B533fC7c5",
+      "txHash": "0x3f86bff813a50e4d82f82c523495f26069c3e800669f83aeb30832d08cba4ac5",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xa97aB47cE31EDA363305897D64a242976186A0f6",
+      "txHash": "0x7e52e29dda7f251052bfd114e20429d3ced575073de21fe0502baa32463b7839",
+      "kind": "transparent"
     }
   ],
   "impls": {
@@ -1983,6 +1993,78 @@
           "t_mapping(t_address,t_bool)": {
             "label": "mapping(address => bool)",
             "numberOfBytes": "32"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "d2854c019fda23b102adbeda16560d06d0826df68c74541780a497c855c28c9f": {
+      "address": "0xe746c6E07a7Ec019bb376B92f8F438434944b2D1",
+      "txHash": "0x734f6d70c44d1cc1c9cd55edfcf7b08bcedbaac6213220a0bc310124eab063bd",
+      "layout": {
+        "solcVersion": "0.8.18",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "_status",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_uint256",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:38"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "ReentrancyGuardUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol:80"
+          },
+          {
+            "label": "rocketToken",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_contract(RocketTokenRETHInterface)732",
+            "contract": "RocketTokenExchangeRateProvider",
+            "src": "contracts/reth/RocketTokenExchangeRateProvider.sol:12"
+          }
+        ],
+        "types": {
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_contract(RocketTokenRETHInterface)732": {
+            "label": "contract RocketTokenRETHInterface",
+            "numberOfBytes": "20"
           },
           "t_uint256": {
             "label": "uint256",
