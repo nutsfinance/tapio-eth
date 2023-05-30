@@ -566,7 +566,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     if (fee > 0) {
       dy = dy.sub(dy.mul(fee).div(FEE_DENOMINATOR));
     }
-    if (_i == exchangeRateTokenIndex) {
+    if (_j == exchangeRateTokenIndex) {
       _minDy = _minDy.mul(exchangeRateProvider.exchangeRate()).div(
         10 ** exchangeRateProvider.exchangeRateDecimals()
       );
