@@ -911,7 +911,7 @@ event AModified(uint256 futureA, uint256 futureABlock)
 ### FeeCollected
 
 ```solidity
-event FeeCollected(address indexed recipient, uint256 feeAmount)
+event FeeCollected(address indexed recipient, uint256 feeAmount, uint256 totalSupply)
 ```
 
 
@@ -924,6 +924,23 @@ event FeeCollected(address indexed recipient, uint256 feeAmount)
 |---|---|---|
 | recipient `indexed` | address | is the address of the fee recipient. |
 | feeAmount  | uint256 | is the amount of fee collected. |
+| totalSupply  | uint256 | is the total supply of LP token. |
+
+### FeeRecipientModified
+
+```solidity
+event FeeRecipientModified(address recipient)
+```
+
+
+
+*This event is emitted when the fee recipient is modified.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| recipient  | address | is the new value of the recipient. |
 
 ### Initialized
 
@@ -940,6 +957,22 @@ event Initialized(uint8 version)
 | Name | Type | Description |
 |---|---|---|
 | version  | uint8 | undefined |
+
+### MintFeeModified
+
+```solidity
+event MintFeeModified(uint256 mintFee)
+```
+
+
+
+*This event is emitted when the mint fee is modified.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| mintFee  | uint256 | is the new value of the mint fee. |
 
 ### Minted
 
@@ -960,6 +993,22 @@ This event is emitted when liquidity is added to the StableAsset contract.
 | amounts  | uint256[] | is an array containing the amounts of each token contributed by the provider. |
 | feeAmount  | uint256 | is the amount of transaction fee charged for the liquidity provision. |
 
+### RedeemFeeModified
+
+```solidity
+event RedeemFeeModified(uint256 redeemFee)
+```
+
+
+
+*This event is emitted when the redeem fee is modified.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| redeemFee  | uint256 | is the new value of the redeem fee. |
+
 ### Redeemed
 
 ```solidity
@@ -978,6 +1027,22 @@ event Redeemed(address indexed provider, uint256 redeemAmount, uint256[] amounts
 | redeemAmount  | uint256 | is the amount of liquidity tokens redeemed by the provider. |
 | amounts  | uint256[] | is an array containing the amounts of each token received by the provider. |
 | feeAmount  | uint256 | is the amount of transaction fee charged for the liquidity provision. |
+
+### SwapFeeModified
+
+```solidity
+event SwapFeeModified(uint256 swapFee)
+```
+
+
+
+*This event is emitted when the swap fee is modified.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| swapFee  | uint256 | is the new value of the swap fee. |
 
 ### TokenSwapped
 
@@ -1002,7 +1067,7 @@ This event is emitted when a token swap occurs.
 ### YieldCollected
 
 ```solidity
-event YieldCollected(address indexed recipient, uint256 feeAmount)
+event YieldCollected(address indexed recipient, uint256 feeAmount, uint256 totalSupply)
 ```
 
 
@@ -1015,6 +1080,23 @@ event YieldCollected(address indexed recipient, uint256 feeAmount)
 |---|---|---|
 | recipient `indexed` | address | is the address of the yield recipient. |
 | feeAmount  | uint256 | is the amount of yield collected. |
+| totalSupply  | uint256 | is the total supply of LP token. |
+
+### YieldRecipientModified
+
+```solidity
+event YieldRecipientModified(address recipient)
+```
+
+
+
+*This event is emitted when the yield recipient is modified.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| recipient  | address | is the new value of the recipient. |
 
 
 

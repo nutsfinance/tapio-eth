@@ -71,4 +71,13 @@ contract StableAssetToken is ERC20BurnableUpgradeable {
     require(minters[msg.sender], "not minter");
     _mint(_user, _amount);
   }
+
+  /**
+   * @dev Mints new stable swap token. Only minters can burn stable swap token.
+   * @param _amount Amount of stable swap token to burn.
+   */
+  function burn(uint256 _amount) public override {
+    require(minters[msg.sender], "not minter");
+    _burn(_msgSender(), _amount);
+  }
 }

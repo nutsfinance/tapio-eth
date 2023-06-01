@@ -81,18 +81,18 @@ function balanceOf(address account) external view returns (uint256)
 ### burn
 
 ```solidity
-function burn(uint256 amount) external nonpayable
+function burn(uint256 _amount) external nonpayable
 ```
 
 
 
-*Destroys `amount` tokens from the caller. See {ERC20-_burn}.*
+*Mints new stable swap token. Only minters can burn stable swap token.*
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| amount | uint256 | undefined |
+| _amount | uint256 | Amount of stable swap token to burn. |
 
 ### burnFrom
 

@@ -106,7 +106,8 @@ contract StableAssetApplication is Initializable, ReentrancyGuardUpgradeable {
 
     if (_j == wETHIndex) {
       wETH.withdraw(swapAmount);
-      payable(msg.sender).transfer(swapAmount);
+      (bool success, ) =  msg.sender.call {value: swapAmount}("");
+      require(success, "Transfer failed.");
     } else {
       IERC20Upgradeable(tokens[_j]).safeTransfer(msg.sender, swapAmount);
     }
@@ -142,7 +143,8 @@ contract StableAssetApplication is Initializable, ReentrancyGuardUpgradeable {
     for (uint256 i = 0; i < tokens.length; i++) {
       if (i == wETHIndex) {
         wETH.withdraw(amounts[i]);
-        payable(msg.sender).transfer(amounts[i]);
+        (bool success, ) =  msg.sender.call {value: amounts[i]}("");
+        require(success, "Transfer failed.");
       } else {
         IERC20Upgradeable(tokens[i]).safeTransfer(msg.sender, amounts[i]);
       }
@@ -176,7 +178,8 @@ contract StableAssetApplication is Initializable, ReentrancyGuardUpgradeable {
 
     if (_i == wETHIndex) {
       wETH.withdraw(redeemAmount);
-      payable(msg.sender).transfer(redeemAmount);
+      (bool success, ) =  msg.sender.call {value: redeemAmount}("");
+      require(success, "Transfer failed.");
     } else {
       IERC20Upgradeable(tokens[_i]).safeTransfer(msg.sender, redeemAmount);
     }
