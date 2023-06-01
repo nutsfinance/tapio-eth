@@ -14,7 +14,8 @@ import "./StableAsset.sol";
  * @title StableAsset Application
  * @author Nuts Finance Developer
  * @notice The StableSwap Application provides an interface for users to interact with StableSwap pool contracts
- * @dev The StableSwap Application contract allows users to mint pool tokens, swap between different tokens, and redeem pool tokens to underlying tokens
+ * @dev The StableSwap Application contract allows users to mint pool tokens, swap between different tokens, and redeem pool tokens to underlying tokens.
+ * This contract should never store assets.
  */
 contract StableAssetApplication is Initializable, ReentrancyGuardUpgradeable {
   using SafeMathUpgradeable for uint256;
@@ -106,7 +107,7 @@ contract StableAssetApplication is Initializable, ReentrancyGuardUpgradeable {
 
     if (_j == wETHIndex) {
       wETH.withdraw(swapAmount);
-      (bool success, ) =  msg.sender.call {value: swapAmount}("");
+      (bool success, ) = msg.sender.call{value: swapAmount}("");
       require(success, "Transfer failed.");
     } else {
       IERC20Upgradeable(tokens[_j]).safeTransfer(msg.sender, swapAmount);
@@ -143,7 +144,7 @@ contract StableAssetApplication is Initializable, ReentrancyGuardUpgradeable {
     for (uint256 i = 0; i < tokens.length; i++) {
       if (i == wETHIndex) {
         wETH.withdraw(amounts[i]);
-        (bool success, ) =  msg.sender.call {value: amounts[i]}("");
+        (bool success, ) = msg.sender.call{value: amounts[i]}("");
         require(success, "Transfer failed.");
       } else {
         IERC20Upgradeable(tokens[i]).safeTransfer(msg.sender, amounts[i]);
@@ -178,7 +179,7 @@ contract StableAssetApplication is Initializable, ReentrancyGuardUpgradeable {
 
     if (_i == wETHIndex) {
       wETH.withdraw(redeemAmount);
-      (bool success, ) =  msg.sender.call {value: redeemAmount}("");
+      (bool success, ) = msg.sender.call{value: redeemAmount}("");
       require(success, "Transfer failed.");
     } else {
       IERC20Upgradeable(tokens[_i]).safeTransfer(msg.sender, redeemAmount);
