@@ -1046,6 +1046,16 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
   }
 
   /**
+   * @dev Updates the recipient of yield.
+   * @param _yieldRecipient The new recipient of yield.
+   */
+  function setYieldRecipient(address _yieldRecipient) external {
+    require(msg.sender == governance, "not governance");
+    require(_yieldRecipient != address(0x0), "fee recipient not set");
+    yieldRecipient = _yieldRecipient;
+  }
+
+  /**
    * @dev Updates the pool token.
    * @param _poolToken The new pool token.
    */

@@ -745,6 +745,22 @@ function setSwapFee(uint256 _swapFee) external nonpayable
 |---|---|---|
 | _swapFee | uint256 | The new swap fee. |
 
+### setYieldRecipient
+
+```solidity
+function setYieldRecipient(address _yieldRecipient) external nonpayable
+```
+
+
+
+*Updates the recipient of yield.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _yieldRecipient | address | The new recipient of yield. |
+
 ### swap
 
 ```solidity
