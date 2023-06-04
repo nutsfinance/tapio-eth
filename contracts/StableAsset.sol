@@ -65,14 +65,22 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
    * @param feeAmount is the amount of fee collected.
    * @param totalSupply is the total supply of LP token.
    */
-  event FeeCollected(address indexed recipient, uint256 feeAmount, uint256 totalSupply);
+  event FeeCollected(
+    address indexed recipient,
+    uint256 feeAmount,
+    uint256 totalSupply
+  );
   /**
    * @dev This event is emitted when yield is collected by the StableAsset contract.
    * @param recipient is the address of the yield recipient.
    * @param feeAmount is the amount of yield collected.
    * @param totalSupply is the total supply of LP token.
    */
-  event YieldCollected(address indexed recipient, uint256 feeAmount, uint256 totalSupply);
+  event YieldCollected(
+    address indexed recipient,
+    uint256 feeAmount,
+    uint256 totalSupply
+  );
   /**
    * @dev This event is emitted when the A parameter is modified.
    * @param futureA is the new value of the A parameter.
@@ -109,6 +117,12 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
    * @param recipient is the new value of the recipient.
    */
   event YieldRecipientModified(address recipient);
+
+  /**
+   * @dev This event is emitted when the governance is modified.
+   * @param governance is the new value of the governance.
+   */
+  event GovernanceModified(address governance);
 
   /**
    * @dev This is the denominator used for calculating transaction fees in the StableAsset contract.
@@ -1039,6 +1053,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
   function setGovernance(address _governance) external {
     require(msg.sender == governance, "not governance");
     governance = _governance;
+    emit GovernanceModified(_governance);
   }
 
   /**

@@ -942,6 +942,22 @@ event FeeRecipientModified(address recipient)
 |---|---|---|
 | recipient  | address | is the new value of the recipient. |
 
+### GovernanceModified
+
+```solidity
+event GovernanceModified(address governance)
+```
+
+
+
+*This event is emitted when the governance is modified.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| governance  | address | is the new value of the governance. |
+
 ### Initialized
 
 ```solidity

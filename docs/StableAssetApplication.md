@@ -6,7 +6,7 @@
 
 The StableSwap Application provides an interface for users to interact with StableSwap pool contracts
 
-*The StableSwap Application contract allows users to mint pool tokens, swap between different tokens, and redeem pool tokens to underlying tokens*
+*The StableSwap Application contract allows users to mint pool tokens, swap between different tokens, and redeem pool tokens to underlying tokens. This contract should never store assets.*
 
 ## Methods
 
