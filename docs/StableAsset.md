@@ -324,7 +324,7 @@ function getRedeemSingleAmount(uint256 _amount, uint256 _i) external view return
 ### getSwapAmount
 
 ```solidity
-function getSwapAmount(uint256 _i, uint256 _j, uint256 _dx) external view returns (uint256, uint256)
+function getSwapAmount(uint256 _i, uint256 _j, uint256 _dx) external view returns (uint256, uint256, uint256)
 ```
 
 
@@ -344,7 +344,8 @@ function getSwapAmount(uint256 _i, uint256 _j, uint256 _dx) external view return
 | Name | Type | Description |
 |---|---|---|
 | _0 | uint256 | Unconverted amount of token _j to swap out. |
-| _1 | uint256 | The new total supply of pool tokens after the swap. |
+| _1 | uint256 | The amount of fees charged. |
+| _2 | uint256 | The new total supply of pool tokens after the swap. |
 
 ### getTokens
 
@@ -1063,7 +1064,7 @@ event SwapFeeModified(uint256 swapFee)
 ### TokenSwapped
 
 ```solidity
-event TokenSwapped(address indexed buyer, address indexed tokenSold, address indexed tokenBought, uint256 amountSold, uint256 amountBought)
+event TokenSwapped(address indexed buyer, address indexed tokenSold, address indexed tokenBought, uint256 amountSold, uint256 amountBought, uint256 feeAmount)
 ```
 
 This event is emitted when a token swap occurs.
@@ -1079,6 +1080,7 @@ This event is emitted when a token swap occurs.
 | tokenBought `indexed` | address | is the address of the token that was bought. |
 | amountSold  | uint256 | is the amount of `tokenSold` that was sold. |
 | amountBought  | uint256 | is the amount of `tokenBought` that was bought. |
+| feeAmount  | uint256 | is the amount of transaction fee charged for the swap. |
 
 ### YieldCollected
 

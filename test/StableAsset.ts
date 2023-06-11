@@ -1488,12 +1488,12 @@ describe("StableAsset", function () {
     const [owner, feeRecipient, user, admin] = await ethers.getSigners();
     /// Check initial A is 100
     expect(await swap.initialA()).to.equals(100);
-    /// Check initial A block is 8
-    expect(await swap.initialABlock()).to.equals(8);
+    /// Check initial A block is 23
+    expect(await swap.initialABlock()).to.equals(23);
     /// Check future A is 100
     expect(await swap.futureA()).to.equals(100);
-    /// Check future A block is 8
-    expect(await swap.futureABlock()).to.equals(8);
+    /// Check future A block is 23
+    expect(await swap.futureABlock()).to.equals(23);
 
     /// Check updateA fails if not governance
     await expect(swap.connect(admin).updateA(1000, 20)).to.be.revertedWith("not governance");
@@ -1501,28 +1501,28 @@ describe("StableAsset", function () {
     /// Check updateA fails if block in the past
     await expect(swap.updateA(1000, 8)).to.be.revertedWith("block in the past");
 
-    /// Check updateA fails if block is 11
-    expect(await ethers.provider.getBlockNumber()).to.be.equals(11);
+    /// Check updateA fails if block is 26
+    expect(await ethers.provider.getBlockNumber()).to.be.equals(26);
     /// Check updateA fails if A not set
-    await expect(swap.updateA(0, 11)).to.be.revertedWith("A not set");
+    await expect(swap.updateA(0, 26)).to.be.revertedWith("A not set");
 
-    /// Check block is 12
-    expect(await ethers.provider.getBlockNumber()).to.be.equals(12);
+    /// Check block is 27
+    expect(await ethers.provider.getBlockNumber()).to.be.equals(27);
     /// Check updateA fails if A exceeds max
-    await expect(swap.updateA(1000000, 12)).to.be.revertedWith("A not set");
+    await expect(swap.updateA(1000000, 27)).to.be.revertedWith("A not set");
 
-    /// Check block is 13
-    expect(await ethers.provider.getBlockNumber()).to.be.equals(13);
-    /// Update A to 1000 at block 17
-    await swap.updateA(1000, 17); // need extra block to update
+    /// Check block is 28
+    expect(await ethers.provider.getBlockNumber()).to.be.equals(28);
+    /// Update A to 1000 at block 37
+    await swap.updateA(1000, 37); // need extra block to update
     /// Check initial A is 100
     expect(await swap.initialA()).to.equals(100);
-    /// Check initial A block is 14
-    expect(await swap.initialABlock()).to.equals(14);
+    /// Check initial A block is 29
+    expect(await swap.initialABlock()).to.equals(29);
     /// Check future A is 1000
     expect(await swap.futureA()).to.equals(1000);
-    /// Check future A block is 17
-    expect(await swap.futureABlock()).to.equals(17);
+    /// Check future A block is 37
+    expect(await swap.futureABlock()).to.equals(37);
   });
 
   it("getA should work", async () => {
@@ -1532,8 +1532,8 @@ describe("StableAsset", function () {
 
     /// Check initial A is 100
     expect(await swap.initialA()).to.equals(100);
-    /// Check initial A block is 8
-    expect(await swap.initialABlock()).to.equals(8);
+    /// Check initial A block is 23
+    expect(await swap.initialABlock()).to.equals(23);
     /// Check future A is 100
     expect(await swap.getA()).to.equals(100);
 
@@ -1542,7 +1542,7 @@ describe("StableAsset", function () {
     /// Check future A is 1000
     expect(await swap.initialA()).to.equals(100);
     /// Check future A block is 100
-    expect(await swap.initialABlock()).to.equals(10);
+    expect(await swap.initialABlock()).to.equals(25);
     /// Check future A is 1000
     expect(await swap.futureA()).to.equals(1000);
     /// Check future A block is 100
@@ -1555,12 +1555,12 @@ describe("StableAsset", function () {
     /// Mine 50 blocks
     await hre.network.provider.request({
       method: "hardhat_mine",
-      params: [ethers.utils.hexlify(50)]
+      params: [ethers.utils.hexlify(35)]
     });
     /// Check block number is 60
     expect(await ethers.provider.getBlockNumber()).to.be.equals(60);
-    /// Check getA is 600
-    expect(await swap.getA()).to.equals(600);
+    /// Check getA is 520
+    expect(await swap.getA()).to.equals(520);
 
     /// Mine 38 blocks
     await hre.network.provider.request({
@@ -1569,8 +1569,8 @@ describe("StableAsset", function () {
     });
     /// Check block number is 99
     expect(await ethers.provider.getBlockNumber()).to.be.equals(99);
-    /// Check getA is 990
-    expect(await swap.getA()).to.equals(990);
+    /// Check getA is 988
+    expect(await swap.getA()).to.equals(988);
 
     /// Mine 1 block
     await hre.network.provider.request({

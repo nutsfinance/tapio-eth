@@ -588,24 +588,24 @@
 - Check admin is false
 - Deploy swap and tokens
 - Check initial A is 100
-- Check initial A block is 8
+- Check initial A block is 23
 - Check future A is 100
-- Check future A block is 8
+- Check future A block is 23
 - Check updateA fails if not governance
 - Check updateA fails if block in the past
-- Check updateA fails if block is 11
+- Check updateA fails if block is 26
 - Check updateA fails if A not set
-- Check block is 12
+- Check block is 27
 - Check updateA fails if A exceeds max
-- Check block is 13
-- Update A to 1000 at block 17
+- Check block is 28
+- Update A to 1000 at block 37
 - Check initial A is 100
-- Check initial A block is 14
+- Check initial A block is 29
 - Check future A is 1000
-- Check future A block is 17
+- Check future A block is 37
 - Deploy swap and tokens
 - Check initial A is 100
-- Check initial A block is 8
+- Check initial A block is 23
 - Check future A is 100
 - Update A to 1000 when block is 100
 - Check future A is 1000
@@ -615,10 +615,10 @@
 - Check getA is 100
 - Mine 50 blocks
 - Check block number is 60
-- Check getA is 600
+- Check getA is 520
 - Mine 38 blocks
 - Check block number is 99
-- Check getA is 990
+- Check getA is 988
 - Mine 1 block
 - Check block number is 100
 - Check getA is 1000

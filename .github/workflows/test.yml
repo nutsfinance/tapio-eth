@@ -10,9 +10,11 @@ jobs:
         with:
           node-version: '18.x'
 
-      - name: test
-        run: |
-          cp .env-example .env
-          npm install
-          npm test
-          npm run coverage
+      - name: Setup env
+        run: cp .env.example .env
+      - name: Install dependencies
+        run: npm install
+      - name: Run test
+        run: npm test
+      - name: Coverage test
+        run: npm run coverage

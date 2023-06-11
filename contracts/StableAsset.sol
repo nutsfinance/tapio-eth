@@ -25,13 +25,15 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
    * @param tokenBought is the address of the token that was bought.
    * @param amountSold is the amount of `tokenSold` that was sold.
    * @param amountBought is the amount of `tokenBought` that was bought.
+   * @param feeAmount is the amount of transaction fee charged for the swap.
    */
   event TokenSwapped(
     address indexed buyer,
     address indexed tokenSold,
     address indexed tokenBought,
     uint256 amountSold,
-    uint256 amountBought
+    uint256 amountBought,
+    uint256 feeAmount
   );
   /**
    * @notice This event is emitted when liquidity is added to the StableAsset contract.
@@ -489,10 +491,9 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     // newD should be bigger than or equal to oldD
     uint256 mintAmount = newD - oldD;
 
-    uint256 fee = mintFee;
-    uint256 feeAmount;
-    if (fee > 0) {
-      feeAmount = (mintAmount * fee) / FEE_DENOMINATOR;
+    uint256 feeAmount = 0;
+    if (mintFee > 0) {
+      feeAmount = (mintAmount * mintFee) / FEE_DENOMINATOR;
       mintAmount = mintAmount - feeAmount;
     }
     require(mintAmount >= _minMintAmount, "fewer than expected");
@@ -522,13 +523,14 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
    * @param _j Token index to swap out.
    * @param _dx Unconverted amount of token _i to swap in.
    * @return Unconverted amount of token _j to swap out.
+   * @return The amount of fees charged.
    * @return The new total supply of pool tokens after the swap.
    */
   function getSwapAmount(
     uint256 _i,
     uint256 _j,
     uint256 _dx
-  ) external view returns (uint256, uint256) {
+  ) external view returns (uint256, uint256, uint256) {
     uint256[] memory _balances;
     uint256 _totalSupply;
     (_balances, _totalSupply) = getPendingYieldAmount();
@@ -550,9 +552,11 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     uint256 y = _getY(_balances, _j, D, A);
     // dy = (balance[j] - y - 1) / precisions[j] in case there was rounding errors
     uint256 dy = (_balances[_j] - y - 1) / precisions[_j];
+    uint256 feeAmount = 0;
 
     if (swapFee > 0) {
-      dy = dy - ((dy * swapFee) / FEE_DENOMINATOR);
+      feeAmount = (dy * swapFee) / FEE_DENOMINATOR;
+      dy = dy - feeAmount;
     }
 
     uint256 transferAmountJ = dy;
@@ -563,7 +567,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
         exchangeRateProvider.exchangeRate();
     }
 
-    return (transferAmountJ, _totalSupply);
+    return (transferAmountJ, feeAmount, _totalSupply);
   }
 
   /**
@@ -606,9 +610,10 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     balances[_j] = y;
     balances[_i] = _balances[_i];
 
-    uint256 fee = swapFee;
-    if (fee > 0) {
-      dy = dy - ((dy * fee) / FEE_DENOMINATOR);
+    uint256 feeAmount = 0;
+    if (swapFee > 0) {
+      feeAmount = (dy * swapFee) / FEE_DENOMINATOR;
+      dy = dy - feeAmount;
     }
     if (_j == exchangeRateTokenIndex) {
       _minDy =
@@ -636,7 +641,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     }
     IERC20Upgradeable(tokens[_j]).safeTransfer(msg.sender, transferAmountJ);
 
-    emit TokenSwapped(msg.sender, tokens[_i], tokens[_j], _dx, transferAmountJ);
+    emit TokenSwapped(msg.sender, tokens[_i], tokens[_j], _dx, transferAmountJ, feeAmount);
     collectFeeOrYield(true);
     return transferAmountJ;
   }
@@ -659,16 +664,16 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     uint256 D = _totalSupply;
     uint256[] memory amounts = new uint256[](_balances.length);
     uint256 feeAmount = 0;
+    uint256 redeemAmount = _amount;
     if (redeemFee > 0) {
       feeAmount = (_amount * redeemFee) / FEE_DENOMINATOR;
-      // Redemption fee is charged with pool token before redemption.
-      _amount = _amount - feeAmount;
+      redeemAmount = _amount - feeAmount;
     }
 
     for (uint256 i = 0; i < _balances.length; i++) {
       // We might choose to use poolToken.totalSupply to compute the amount, but decide to use
       // D in case we have multiple minters on the pool token.
-      amounts[i] = (_balances[i] * _amount) / D / precisions[i];
+      amounts[i] = (_balances[i] * redeemAmount) / D / precisions[i];
       uint256 transferAmount = amounts[i];
       if (i == exchangeRateTokenIndex) {
         transferAmount =
@@ -701,24 +706,17 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     uint256[] memory _balances = balances;
     uint256 D = totalSupply;
     uint256[] memory amounts = new uint256[](_balances.length);
-    uint256 fee = redeemFee;
-    uint256 feeAmount;
-    if (fee > 0) {
-      feeAmount = (_amount * fee) / FEE_DENOMINATOR;
-      // Redemption fee is paid with pool token
-      // No conversion is needed as the pool token has 18 decimals
-      IERC20Upgradeable(poolToken).safeTransferFrom(
-        msg.sender,
-        feeRecipient,
-        feeAmount
-      );
-      _amount = _amount - feeAmount;
+    uint256 feeAmount = 0;
+    uint256 redeemAmount = _amount;
+    if (redeemFee > 0) {
+      feeAmount = (_amount * redeemFee) / FEE_DENOMINATOR;
+      redeemAmount = _amount - feeAmount;
     }
 
     for (uint256 i = 0; i < _balances.length; i++) {
       // We might choose to use poolToken.totalSupply to compute the amount, but decide to use
       // D in case we have multiple minters on the pool token.
-      uint256 tokenAmount = (_balances[i] * _amount) / D;
+      uint256 tokenAmount = (_balances[i] * redeemAmount) / D;
       // Important: Underlying tokens must convert back to original decimals!
       amounts[i] = tokenAmount / precisions[i];
       uint256 minRedeemAmount = _minRedeemAmounts[i];
@@ -745,7 +743,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     // After reducing the redeem fee, the remaining pool tokens are burned!
     IERC20MintableBurnable(poolToken).burnFrom(msg.sender, _amount);
 
-    emit Redeemed(msg.sender, _amount + feeAmount, amounts, feeAmount);
+    emit Redeemed(msg.sender, _amount, amounts, feeAmount);
     collectFeeOrYield(true);
     return amounts;
   }
@@ -772,13 +770,13 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     uint256 A = getA();
     uint256 D = _totalSupply;
     uint256 feeAmount = 0;
+    uint256 redeemAmount = _amount;
     if (redeemFee > 0) {
       feeAmount = (_amount * redeemFee) / FEE_DENOMINATOR;
-      // Redemption fee is charged with pool token before redemption.
-      _amount = _amount - feeAmount;
+      redeemAmount = _amount - feeAmount;
     }
-    // The pool token amount becomes D - _amount
-    uint256 y = _getY(_balances, _i, D - _amount, A);
+    // The pool token amount becomes D - redeemAmount
+    uint256 y = _getY(_balances, _i, D - redeemAmount, A);
     // dy = (balance[i] - y - 1) / precisions[i] in case there was rounding errors
     uint256 dy = (_balances[_i] - y - 1) / precisions[_i];
     uint256 transferAmount = dy;
@@ -812,18 +810,11 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     uint256[] memory _balances = balances;
     uint256 A = getA();
     uint256 D = totalSupply;
-    uint256 fee = redeemFee;
     uint256 feeAmount = 0;
-    if (fee > 0) {
-      // Redemption fee is charged with pool token before redemption.
-      feeAmount = (_amount * fee) / FEE_DENOMINATOR;
-      // No conversion is needed as the pool token has 18 decimals
-      IERC20Upgradeable(poolToken).safeTransferFrom(
-        msg.sender,
-        feeRecipient,
-        feeAmount
-      );
-      _amount = _amount - feeAmount;
+    uint256 redeemAmount = _amount;
+    if (redeemFee > 0) {
+      feeAmount = (_amount * redeemFee) / FEE_DENOMINATOR;
+      redeemAmount = _amount - feeAmount;
     }
     if (_i == exchangeRateTokenIndex) {
       _minRedeemAmount =
@@ -832,7 +823,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     }
 
     // y is converted(18 decimals)
-    uint256 y = _getY(_balances, _i, D - _amount, A);
+    uint256 y = _getY(_balances, _i, D - redeemAmount, A);
     // dy is not converted
     // dy = (balance[i] - y - 1) / precisions[i] in case there was rounding errors
     uint256 dy = (_balances[_i] - y - 1) / precisions[_i];
@@ -849,10 +840,9 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     }
     IERC20Upgradeable(tokens[_i]).safeTransfer(msg.sender, transferAmount);
 
-    uint256 amount = _amount;
-    totalSupply = D - amount;
-    IERC20MintableBurnable(poolToken).burnFrom(msg.sender, amount);
-    emit Redeemed(msg.sender, amount + feeAmount, amounts, feeAmount);
+    totalSupply = D - _amount;
+    IERC20MintableBurnable(poolToken).burnFrom(msg.sender, _amount);
+    emit Redeemed(msg.sender, _amount, amounts, feeAmount);
     collectFeeOrYield(true);
     return transferAmount;
   }
@@ -892,9 +882,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     uint256 redeemAmount = oldD - newD;
     uint256 feeAmount = 0;
     if (redeemFee > 0) {
-      redeemAmount =
-        (redeemAmount * FEE_DENOMINATOR) /
-        (FEE_DENOMINATOR - redeemFee);
+      redeemAmount = (redeemAmount * FEE_DENOMINATOR) / (FEE_DENOMINATOR - redeemFee);
       feeAmount = redeemAmount - (oldD - newD);
     }
 
@@ -936,25 +924,17 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
 
     // newD should be smaller than or equal to oldD
     uint256 redeemAmount = oldD - newD;
-    uint256 fee = redeemFee;
     uint256 feeAmount = 0;
-    if (fee > 0) {
-      redeemAmount = (redeemAmount * FEE_DENOMINATOR) / (FEE_DENOMINATOR - fee);
+    if (redeemFee > 0) {
+      redeemAmount = (redeemAmount * FEE_DENOMINATOR) / (FEE_DENOMINATOR - redeemFee);
       feeAmount = redeemAmount - (oldD - newD);
-      // No conversion is needed as the pool token has 18 decimals
-      IERC20Upgradeable(poolToken).safeTransferFrom(
-        msg.sender,
-        feeRecipient,
-        feeAmount
-      );
     }
     require(redeemAmount <= _maxRedeemAmount, "more than expected");
 
     // Updates token balances in storage.
     balances = _balances;
-    uint256 burnAmount = redeemAmount - feeAmount;
-    totalSupply = oldD - burnAmount;
-    IERC20MintableBurnable(poolToken).burnFrom(msg.sender, burnAmount);
+    totalSupply = oldD - redeemAmount;
+    IERC20MintableBurnable(poolToken).burnFrom(msg.sender, redeemAmount);
     uint256[] memory amounts = _amounts;
     for (i = 0; i < _balances.length; i++) {
       if (_amounts[i] == 0) continue;
