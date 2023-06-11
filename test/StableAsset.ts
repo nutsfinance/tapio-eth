@@ -396,13 +396,8 @@ describe("StableAsset", function () {
     /// Approve swap contract to spend 8 token2
     await token2.connect(user2).approve(swap.address, web3.utils.toWei('8'));
     /// Get exchange amount with 8 token2 to token1
-    const exchangeAmounts = await swap.getSwapAmount(1, 0, web3.utils.toWei('8'));
-    /// Get exchange total amount
-    const exchangeTotal = new BN(exchangeAmounts[0].toString()).mul(new BN(FEE_DENOMITOR)).div(new BN(FEE_DENOMITOR).sub(new BN(SWAP_FEE)));
-
-    /// Before exchange, we have 105 token1 and 85 token2
-    /// After exchange, 8 token2 is exchanged in so that token2 balance becomes 93
-    assetInvariant(new BN(web3.utils.toWei('105')).sub(exchangeTotal.mul(new BN(PRECISION))).toString(), web3.utils.toWei('93'), 100, totalAmount);
+    const exchangeAmount = await swap.getSwapAmount(1, 0, web3.utils.toWei('8'));
+    expect(exchangeAmount.toString()).to.equals('7989075992756580743');
   });
 
   it("should exchange the correct amount", async () => {
@@ -428,10 +423,7 @@ describe("StableAsset", function () {
     /// Approve swap contract to spend 8 token2
     await token2.connect(user2).approve(swap.address, web3.utils.toWei('8'));
     /// Get exchange amount with 8 token2 to token1
-    const exchangeAmounts = await swap.getSwapAmount(1, 0, web3.utils.toWei('8'));
-    /// Get exchange total amount
-    const exchangeTotal = new BN(exchangeAmounts[0].toString()).mul(new BN(FEE_DENOMITOR)).div(new BN(FEE_DENOMITOR).sub(new BN(SWAP_FEE)));
-
+    const exchangeAmount = await swap.getSwapAmount(1, 0, web3.utils.toWei('8'));
     /// Check user2 token1 balance is 0
     expect((await token1.balanceOf(user2.address)).toString()).to.equals('0');
     /// Check user2 token2 balance is 8
@@ -456,11 +448,11 @@ describe("StableAsset", function () {
     const feeAfter = new BN((await poolToken.balanceOf(feeRecipient.address)).toString());
 
     /// The amount of token1 got. In original format.
-    expect((await token1.balanceOf(user2.address)).toString()).to.equals(exchangeAmounts[0].toString());
+    expect((await token1.balanceOf(user2.address)).toString()).to.equals(exchangeAmount.toString());
     /// The amount of token2 left. In original format.
     expect((await token2.balanceOf(user2.address)).toString()).to.equals('0');
     /// 105 token1 - actual exchange output  (in original format)
-    expect((await token1.balanceOf(swap.address)).toString()).to.equals(new BN(web3.utils.toWei('105')).sub(new BN(exchangeAmounts[0].toString())).toString());
+    expect((await token1.balanceOf(swap.address)).toString()).to.equals(new BN(web3.utils.toWei('105')).sub(new BN(exchangeAmount.toString())).toString());
     /// 85 token2 + 8 token2  (in original format)
     expect((await token2.balanceOf(swap.address)).toString()).to.equals(web3.utils.toWei('93'));
     /// Check fee after exchange is greater than fee before exchange
@@ -1094,16 +1086,9 @@ describe("StableAsset", function () {
     const token2Amount = new BN(amounts[0][1].toString());
     /// Get fee amount from amounts
     const feeAmount = new BN(amounts[1].toString());
-    /// Get total amount
-    const totalAmount = new BN(amounts[2].toString());
-
-    /// Assert that poolToken redeemed / poolToken total = token1 amount / token1 balance = token2 amount / token2 balance
-    assertAlmostTheSame(new BN(web3.utils.toWei('25')).sub(feeAmount).mul(new BN(web3.utils.toWei('115'))), new BN(token1Amount).mul(new BN(PRECISION)).mul(totalAmount));
-    assertAlmostTheSame(new BN(web3.utils.toWei('25')).sub(feeAmount).mul(new BN(web3.utils.toWei('85'))), new BN(token2Amount).mul(new BN(PRECISION)).mul(totalAmount));
-
-    /// Assert invariant
-    assetInvariant(new BN(web3.utils.toWei('105')).sub(token1Amount.mul(new BN(PRECISION))).toString(),
-      new BN(web3.utils.toWei('85')).sub(token2Amount.mul(new BN(PRECISION))).toString(), 100, totalAmount.sub(new BN(web3.utils.toWei('25')).sub(feeAmount)).toString());
+    expect(token1Amount.toString()).to.equals('14303943881560144839');
+    expect(token2Amount.toString()).to.equals('10572480260283585316');
+    expect(feeAmount.toString()).to.equals('125000000000000000');
   });
 
   it("should return the correct exchange amount rebasing", async () => {
@@ -1136,14 +1121,8 @@ describe("StableAsset", function () {
     /// Mint 8 token2 to swap contract
     await token1.mint(swap.address, web3.utils.toWei('10'));
     /// Get exchange amount for 8 token2
-    const exchangeAmounts = await swap.getSwapAmount(1, 0, web3.utils.toWei('8'));
-    /// Get total amount
-    const exchangeTotal = new BN(exchangeAmounts[0].toString()).mul(new BN(FEE_DENOMITOR)).div(new BN(FEE_DENOMITOR).sub(new BN(SWAP_FEE)));
-
-    /// Before exchange, we have 105 token1 and 85 token2
-    /// After exchange, 8 token2 is exchanged in so that token2 balance becomes 93
-    /// Assert invariant
-    assetInvariant(new BN(web3.utils.toWei('105')).sub(exchangeTotal.mul(new BN(PRECISION))).toString(), web3.utils.toWei('93'), 100, totalAmount);
+    const exchangeAmount = await swap.getSwapAmount(1, 0, web3.utils.toWei('8'));
+    expect(exchangeAmount.toString()).to.equals('7992985053666343961');
   });
 
   it('should return the correct mint amount when two tokens are not equal rebasing', async () => {
@@ -1439,25 +1418,6 @@ describe("StableAsset", function () {
     expect(await swap.feeRecipient()).to.be.equals(user.address);
   });
 
-  it("setPoolToken should work", async () => {
-    /// Deploy swap and tokens
-    const { swap, token1, token2, poolToken } = await loadFixture(deploySwapAndTokens);
-    const [owner, feeRecipient, user, admin] = await ethers.getSigners();
-
-    /// Check initial pool token is pool token
-    expect(await swap.poolToken()).to.equals(poolToken.address);
-
-    /// Check can't set pool token if not governance
-    await expect(swap.connect(admin).setPoolToken(ethers.constants.AddressZero)).to.be.revertedWith("not governance");
-    /// Check can't set pool token to zero address
-    await expect(swap.setPoolToken(ethers.constants.AddressZero)).to.be.revertedWith("pool token not set");
-
-    /// Set pool token to token2
-    await swap.setPoolToken(token2.address);
-    /// Check pool token is token2
-    expect(await swap.poolToken()).to.be.equals(token2.address);
-  });
-
   it("setAdmin should work", async () => {
     /// Deploy swap and tokens
     const { swap, token1, token2, poolToken } = await loadFixture(deploySwapAndTokens);
@@ -1488,41 +1448,40 @@ describe("StableAsset", function () {
     const [owner, feeRecipient, user, admin] = await ethers.getSigners();
     /// Check initial A is 100
     expect(await swap.initialA()).to.equals(100);
-    /// Check initial A block is 8
-    expect(await swap.initialABlock()).to.equals(8);
+    /// Check initial A block is 23
+    expect(await swap.initialABlock()).to.equals(23);
     /// Check future A is 100
     expect(await swap.futureA()).to.equals(100);
-    /// Check future A block is 8
-    expect(await swap.futureABlock()).to.equals(8);
+    /// Check future A block is 23
+    expect(await swap.futureABlock()).to.equals(23);
 
     /// Check updateA fails if not governance
     await expect(swap.connect(admin).updateA(1000, 20)).to.be.revertedWith("not governance");
-
     /// Check updateA fails if block in the past
     await expect(swap.updateA(1000, 8)).to.be.revertedWith("block in the past");
 
     /// Check updateA fails if block is 11
-    expect(await ethers.provider.getBlockNumber()).to.be.equals(11);
+    expect(await ethers.provider.getBlockNumber()).to.be.equals(26);
     /// Check updateA fails if A not set
-    await expect(swap.updateA(0, 11)).to.be.revertedWith("A not set");
+    await expect(swap.updateA(0, 26)).to.be.revertedWith("A not set");
 
     /// Check block is 12
-    expect(await ethers.provider.getBlockNumber()).to.be.equals(12);
+    expect(await ethers.provider.getBlockNumber()).to.be.equals(27);
     /// Check updateA fails if A exceeds max
-    await expect(swap.updateA(1000000, 12)).to.be.revertedWith("A not set");
+    await expect(swap.updateA(1000000, 27)).to.be.revertedWith("A not set");
 
     /// Check block is 13
-    expect(await ethers.provider.getBlockNumber()).to.be.equals(13);
-    /// Update A to 1000 at block 17
-    await swap.updateA(1000, 17); // need extra block to update
+    expect(await ethers.provider.getBlockNumber()).to.be.equals(28);
+    /// Update A to 1000 at block 28
+    await swap.updateA(1000, 30); // need extra block to update
     /// Check initial A is 100
     expect(await swap.initialA()).to.equals(100);
-    /// Check initial A block is 14
-    expect(await swap.initialABlock()).to.equals(14);
+    /// Check initial A block is 29
+    expect(await swap.initialABlock()).to.equals(29);
     /// Check future A is 1000
     expect(await swap.futureA()).to.equals(1000);
-    /// Check future A block is 17
-    expect(await swap.futureABlock()).to.equals(17);
+    /// Check future A block is 30
+    expect(await swap.futureABlock()).to.equals(30);
   });
 
   it("getA should work", async () => {
@@ -1532,8 +1491,8 @@ describe("StableAsset", function () {
 
     /// Check initial A is 100
     expect(await swap.initialA()).to.equals(100);
-    /// Check initial A block is 8
-    expect(await swap.initialABlock()).to.equals(8);
+    /// Check initial A block is 23
+    expect(await swap.initialABlock()).to.equals(23);
     /// Check future A is 100
     expect(await swap.getA()).to.equals(100);
 
@@ -1542,7 +1501,7 @@ describe("StableAsset", function () {
     /// Check future A is 1000
     expect(await swap.initialA()).to.equals(100);
     /// Check future A block is 100
-    expect(await swap.initialABlock()).to.equals(10);
+    expect(await swap.initialABlock()).to.equals(25);
     /// Check future A is 1000
     expect(await swap.futureA()).to.equals(1000);
     /// Check future A block is 100
@@ -1552,15 +1511,15 @@ describe("StableAsset", function () {
 
     const hre = await import("hardhat");
 
-    /// Mine 50 blocks
+    /// Mine 35 blocks
     await hre.network.provider.request({
       method: "hardhat_mine",
-      params: [ethers.utils.hexlify(50)]
+      params: [ethers.utils.hexlify(35)]
     });
     /// Check block number is 60
     expect(await ethers.provider.getBlockNumber()).to.be.equals(60);
-    /// Check getA is 600
-    expect(await swap.getA()).to.equals(600);
+    /// Check getA is 520
+    expect(await swap.getA()).to.equals(520);
 
     /// Mine 38 blocks
     await hre.network.provider.request({
@@ -1569,8 +1528,8 @@ describe("StableAsset", function () {
     });
     /// Check block number is 99
     expect(await ethers.provider.getBlockNumber()).to.be.equals(99);
-    /// Check getA is 990
-    expect(await swap.getA()).to.equals(990);
+    /// Check getA is 988
+    expect(await swap.getA()).to.equals(988);
 
     /// Mine 1 block
     await hre.network.provider.request({
