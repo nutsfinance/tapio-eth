@@ -397,7 +397,7 @@ describe("StableAsset", function () {
     await token2.connect(user2).approve(swap.address, web3.utils.toWei('8'));
     /// Get exchange amount with 8 token2 to token1
     const exchangeAmount = await swap.getSwapAmount(1, 0, web3.utils.toWei('8'));
-    expect(exchangeAmount.toString()).to.equals('7989075992756580743');
+    expect(exchangeAmount.toString()).to.equals('7989075992756580743,16010172330173508');
   });
 
   it("should exchange the correct amount", async () => {
@@ -423,7 +423,7 @@ describe("StableAsset", function () {
     /// Approve swap contract to spend 8 token2
     await token2.connect(user2).approve(swap.address, web3.utils.toWei('8'));
     /// Get exchange amount with 8 token2 to token1
-    const exchangeAmount = await swap.getSwapAmount(1, 0, web3.utils.toWei('8'));
+    const exchangeAmount = (await swap.getSwapAmount(1, 0, web3.utils.toWei('8')))[0];
     /// Check user2 token1 balance is 0
     expect((await token1.balanceOf(user2.address)).toString()).to.equals('0');
     /// Check user2 token2 balance is 8
@@ -1122,7 +1122,7 @@ describe("StableAsset", function () {
     await token1.mint(swap.address, web3.utils.toWei('10'));
     /// Get exchange amount for 8 token2
     const exchangeAmount = await swap.getSwapAmount(1, 0, web3.utils.toWei('8'));
-    expect(exchangeAmount.toString()).to.equals('7992985053666343961');
+    expect(exchangeAmount.toString()).to.equals('7992985053666343961,16018006119571831');
   });
 
   it('should return the correct mint amount when two tokens are not equal rebasing', async () => {
