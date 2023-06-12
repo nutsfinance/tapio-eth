@@ -7,6 +7,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import "@openzeppelin/contracts/governance/utils/IVotes.sol";
 
 import "../interfaces/ISmartWalletChecker.sol";
 
@@ -23,7 +24,7 @@ import "../interfaces/ISmartWalletChecker.sol";
 // 0 +--------+------> time
 //       maxtime (4 years?)
 
-contract VotingEscrow is Initializable, ReentrancyGuardUpgradeable {
+contract VotingEscrow is Initializable, ReentrancyGuardUpgradeable, IVotes {
   using SafeERC20Upgradeable for IERC20Upgradeable;
 
   struct Point {
@@ -35,7 +36,6 @@ contract VotingEscrow is Initializable, ReentrancyGuardUpgradeable {
   // We cannot really do block numbers per se b/c slope is per time, not per block
   // and per block could be fairly bad b/c Ethereum changes blocktimes.
   // What we can do is to extrapolate ***At functions
-
 
   struct LockedBalance {
     uint128 amount;
@@ -598,5 +598,43 @@ contract VotingEscrow is Initializable, ReentrancyGuardUpgradeable {
   function changeController(address _newController) external {
     require(msg.sender == controller, "not controller");
     controller = _newController;
+  }
+
+  function getVotes(address account) external view override returns (uint256) {
+    return this.balanceOf(account);
+  }
+
+  function getPastVotes(
+    address account,
+    uint256 blockNumber
+  ) external view override returns (uint256) {
+    return this.balanceOfAt(account, blockNumber);
+  }
+
+  function getPastTotalSupply(
+    uint256 blockNumber
+  ) external view override returns (uint256) {
+    return this.totalSupplyAt(blockNumber);
+  }
+
+  function delegates(
+    address account
+  ) external view override returns (address) {
+    revert("unimplemented");
+  }
+
+  function delegate(address delegatee) external override {
+    revert("unimplemented");
+  }
+
+  function delegateBySig(
+    address delegatee,
+    uint256 nonce,
+    uint256 expiry,
+    uint8 v,
+    bytes32 r,
+    bytes32 s
+  ) external override {
+    revert("unimplemented");
   }
 }
