@@ -10,6 +10,28 @@ The StableSwap Application provides an interface for users to interact with Stab
 
 ## Methods
 
+### allowedPoolAddress
+
+```solidity
+function allowedPoolAddress(address) external view returns (bool)
+```
+
+
+
+*Allowed pool address.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | address | undefined |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | bool | undefined |
+
 ### getSwapAmountCrossPool
 
 ```solidity
@@ -35,6 +57,23 @@ function getSwapAmountCrossPool(contract StableAsset _sourceSwap, contract Stabl
 | Name | Type | Description |
 |---|---|---|
 | _0 | uint256 | undefined |
+
+### governance
+
+```solidity
+function governance() external view returns (address)
+```
+
+
+
+*This is the account that has governance control over the StableAssetApplication contract.*
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | address | undefined |
 
 ### initialize
 
@@ -107,6 +146,22 @@ function redeemSingle(contract StableAsset _swap, uint256 _amount, uint256 _i, u
 | _i | uint256 | Index of the token to redeem to. |
 | _minRedeemAmount | uint256 | Minimum amount of the underlying token to redeem to. |
 
+### setGovernance
+
+```solidity
+function setGovernance(address _governance) external nonpayable
+```
+
+
+
+*Updates the govenance address.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _governance | address | The new governance address. |
+
 ### swap
 
 ```solidity
@@ -148,6 +203,23 @@ function swapCrossPool(contract StableAsset _sourceSwap, contract StableAsset _d
 | _amount | uint256 | Amount of source token to swap. |
 | _minSwapAmount | uint256 | Minimum amount of the dest token to receive. |
 
+### updatePool
+
+```solidity
+function updatePool(address _swap, bool _enabled) external nonpayable
+```
+
+
+
+*Enable/Disable the pool address.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _swap | address | The swap address. |
+| _enabled | bool | Enable or disable swap. |
+
 ### wETH
 
 ```solidity
@@ -169,6 +241,22 @@ function wETH() external view returns (contract IWETH)
 
 ## Events
 
+### GovernanceModified
+
+```solidity
+event GovernanceModified(address governance)
+```
+
+
+
+*This event is emitted when the governance is modified.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| governance  | address | is the new value of the governance. |
+
 ### Initialized
 
 ```solidity
@@ -184,6 +272,23 @@ event Initialized(uint8 version)
 | Name | Type | Description |
 |---|---|---|
 | version  | uint8 | undefined |
+
+### PoolModified
+
+```solidity
+event PoolModified(address swap, bool enabled)
+```
+
+
+
+*This event is emitted when the pool is modified.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| swap  | address | is the new value of the swap. |
+| enabled  | bool | pool enabled or disabled. |
 
 
 

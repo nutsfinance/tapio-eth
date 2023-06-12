@@ -27,23 +27,6 @@ function FEE_DENOMINATOR() external view returns (uint256)
 |---|---|---|
 | _0 | uint256 | undefined |
 
-### FEE_ERROR_MARGIN
-
-```solidity
-function FEE_ERROR_MARGIN() external view returns (uint256)
-```
-
-
-
-*This is the maximum error margin for calculating transaction fees in the StableAsset contract.*
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined |
-
 ### MAX_A
 
 ```solidity
@@ -53,23 +36,6 @@ function MAX_A() external view returns (uint256)
 
 
 *This is the maximum value of the amplification coefficient A.*
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined |
-
-### YIELD_ERROR_MARGIN
-
-```solidity
-function YIELD_ERROR_MARGIN() external view returns (uint256)
-```
-
-
-
-*This is the maximum error margin for calculating transaction yield in the StableAsset contract.*
 
 
 #### Returns
@@ -156,6 +122,23 @@ function exchangeRateTokenIndex() external view returns (uint256)
 |---|---|---|
 | _0 | uint256 | undefined |
 
+### feeErrorMargin
+
+```solidity
+function feeErrorMargin() external view returns (uint256)
+```
+
+
+
+*Fee error margin.*
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined |
+
 ### feeRecipient
 
 ```solidity
@@ -227,7 +210,7 @@ function getA() external view returns (uint256)
 ### getMintAmount
 
 ```solidity
-function getMintAmount(uint256[] _amounts) external view returns (uint256, uint256, uint256)
+function getMintAmount(uint256[] _amounts) external view returns (uint256, uint256)
 ```
 
 
@@ -246,12 +229,11 @@ function getMintAmount(uint256[] _amounts) external view returns (uint256, uint2
 |---|---|---|
 | _0 | uint256 | The amount of pool tokens to be minted. |
 | _1 | uint256 | The amount of fees charged. |
-| _2 | uint256 | The total supply after the minting. |
 
 ### getRedeemMultiAmount
 
 ```solidity
-function getRedeemMultiAmount(uint256[] _amounts) external view returns (uint256, uint256, uint256)
+function getRedeemMultiAmount(uint256[] _amounts) external view returns (uint256, uint256)
 ```
 
 
@@ -270,12 +252,11 @@ function getRedeemMultiAmount(uint256[] _amounts) external view returns (uint256
 |---|---|---|
 | _0 | uint256 | The amount of pool token that needs to be redeemed. |
 | _1 | uint256 | The amount of pool token charged for redemption fee. |
-| _2 | uint256 | The total supply of pool tokens. |
 
 ### getRedeemProportionAmount
 
 ```solidity
-function getRedeemProportionAmount(uint256 _amount) external view returns (uint256[], uint256, uint256)
+function getRedeemProportionAmount(uint256 _amount) external view returns (uint256[], uint256)
 ```
 
 
@@ -294,12 +275,11 @@ function getRedeemProportionAmount(uint256 _amount) external view returns (uint2
 |---|---|---|
 | _0 | uint256[] | An array of the amounts of each token to redeem. |
 | _1 | uint256 | The amount of fee charged |
-| _2 | uint256 | The total supply of pool tokens after redemption. |
 
 ### getRedeemSingleAmount
 
 ```solidity
-function getRedeemSingleAmount(uint256 _amount, uint256 _i) external view returns (uint256, uint256, uint256)
+function getRedeemSingleAmount(uint256 _amount, uint256 _i) external view returns (uint256, uint256)
 ```
 
 
@@ -319,12 +299,11 @@ function getRedeemSingleAmount(uint256 _amount, uint256 _i) external view return
 |---|---|---|
 | _0 | uint256 | The amount of single token that will be redeemed. |
 | _1 | uint256 | The amount of pool token charged for redemption fee. |
-| _2 | uint256 | The total supply of pool tokens. |
 
 ### getSwapAmount
 
 ```solidity
-function getSwapAmount(uint256 _i, uint256 _j, uint256 _dx) external view returns (uint256, uint256, uint256)
+function getSwapAmount(uint256 _i, uint256 _j, uint256 _dx) external view returns (uint256, uint256)
 ```
 
 
@@ -345,7 +324,6 @@ function getSwapAmount(uint256 _i, uint256 _j, uint256 _dx) external view return
 |---|---|---|
 | _0 | uint256 | Unconverted amount of token _j to swap out. |
 | _1 | uint256 | The amount of fees charged. |
-| _2 | uint256 | The new total supply of pool tokens after the swap. |
 
 ### getTokens
 
@@ -438,6 +416,23 @@ function initialize(address[] _tokens, uint256[] _precisions, uint256[] _fees, a
 | _A | uint256 | The initial value of the amplification coefficient A for the pool. |
 | _exchangeRateProvider | contract IExchangeRateProvider | undefined |
 | _exchangeRateTokenIndex | uint256 | undefined |
+
+### maxDeltaD
+
+```solidity
+function maxDeltaD() external view returns (uint256)
+```
+
+
+
+*Max delta D.*
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined |
 
 ### mint
 
@@ -698,22 +693,6 @@ function setMintFee(uint256 _mintFee) external nonpayable
 |---|---|---|
 | _mintFee | uint256 | The new mint fee. |
 
-### setPoolToken
-
-```solidity
-function setPoolToken(address _poolToken) external nonpayable
-```
-
-
-
-*Updates the pool token.*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _poolToken | address | The new pool token. |
-
 ### setRedeemFee
 
 ```solidity
@@ -871,6 +850,71 @@ function updateA(uint256 _futureA, uint256 _futureABlock) external nonpayable
 | _futureA | uint256 | The new A value. |
 | _futureABlock | uint256 | The block number to update A value. |
 
+### updateFeeErrorMargin
+
+```solidity
+function updateFeeErrorMargin(uint256 newValue) external nonpayable
+```
+
+
+
+*update fee error margin.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| newValue | uint256 | undefined |
+
+### updateMaxDeltaDMargin
+
+```solidity
+function updateMaxDeltaDMargin(uint256 newValue) external nonpayable
+```
+
+
+
+*update yield error margin.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| newValue | uint256 | undefined |
+
+### updateYieldErrorMargin
+
+```solidity
+function updateYieldErrorMargin(uint256 newValue) external nonpayable
+```
+
+
+
+*update yield error margin.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| newValue | uint256 | undefined |
+
+### yieldErrorMargin
+
+```solidity
+function yieldErrorMargin() external view returns (uint256)
+```
+
+
+
+*Yield error margin.*
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined |
+
 ### yieldRecipient
 
 ```solidity
@@ -927,6 +971,22 @@ event FeeCollected(address indexed recipient, uint256 feeAmount, uint256 totalSu
 | feeAmount  | uint256 | is the amount of fee collected. |
 | totalSupply  | uint256 | is the total supply of LP token. |
 
+### FeeMarginModified
+
+```solidity
+event FeeMarginModified(uint256 margin)
+```
+
+
+
+*This event is emitted when the fee margin is modified.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| margin  | uint256 | is the new value of the margin. |
+
 ### FeeRecipientModified
 
 ```solidity
@@ -974,6 +1034,22 @@ event Initialized(uint8 version)
 | Name | Type | Description |
 |---|---|---|
 | version  | uint8 | undefined |
+
+### MaxDeltaDModified
+
+```solidity
+event MaxDeltaDModified(uint256 delta)
+```
+
+
+
+*This event is emitted when the max delta D is modified.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| delta  | uint256 | is the new value of the delta. |
 
 ### MintFeeModified
 
@@ -1099,6 +1175,22 @@ event YieldCollected(address indexed recipient, uint256 feeAmount, uint256 total
 | recipient `indexed` | address | is the address of the yield recipient. |
 | feeAmount  | uint256 | is the amount of yield collected. |
 | totalSupply  | uint256 | is the total supply of LP token. |
+
+### YieldMarginModified
+
+```solidity
+event YieldMarginModified(uint256 margin)
+```
+
+
+
+*This event is emitted when the fee margin is modified.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| margin  | uint256 | is the new value of the margin. |
 
 ### YieldRecipientModified
 

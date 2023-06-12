@@ -127,18 +127,41 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
   event GovernanceModified(address governance);
 
   /**
+   * @dev This event is emitted when the fee margin is modified.
+   * @param margin is the new value of the margin.
+   */
+  event FeeMarginModified(uint256 margin);
+
+  /**
+   * @dev This event is emitted when the fee margin is modified.
+   * @param margin is the new value of the margin.
+   */
+  event YieldMarginModified(uint256 margin);
+
+  /**
+   * @dev This event is emitted when the max delta D is modified.
+   * @param delta is the new value of the delta.
+   */
+  event MaxDeltaDModified(uint256 delta);
+
+  /**
    * @dev This is the denominator used for calculating transaction fees in the StableAsset contract.
    */
   uint256 public constant FEE_DENOMINATOR = 10 ** 10;
   /**
    *  @dev This is the maximum error margin for calculating transaction fees in the StableAsset contract.
    */
-  uint256 public constant FEE_ERROR_MARGIN = 1000;
+  uint256 private constant DEFAULT_FEE_ERROR_MARGIN = 100000;
 
   /**
    *  @dev This is the maximum error margin for calculating transaction yield in the StableAsset contract.
    */
-  uint256 public constant YIELD_ERROR_MARGIN = 100000;
+  uint256 private constant DEFAULT_YIELD_ERROR_MARGIN = 10000;
+
+  /**
+   *  @dev This is the maximum error margin for updating A in the StableAsset contract.
+   */
+  uint256 private constant DEFAULT_MAX_DELTA_D = 100000;
   /**
    * @dev This is the maximum value of the amplification coefficient A.
    */
@@ -228,6 +251,21 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
   uint256 public exchangeRateTokenIndex;
 
   /**
+   * @dev Fee error margin.
+   */
+  uint256 public feeErrorMargin;
+
+  /**
+   * @dev Yield error margin.
+   */
+  uint256 public yieldErrorMargin;
+
+  /**
+   * @dev Max delta D.
+   */
+  uint256 public maxDeltaD;
+
+  /**
    * @dev Initializes the StableAsset contract with the given parameters.
    * @param _tokens The tokens in the pool.
    * @param _precisions The precisions of each token (10 ** (18 - token decimals)).
@@ -253,9 +291,11 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
       "input mismatch"
     );
     require(_fees.length == 3, "no fees");
+    for (uint256 i = 0; i < 3; i++) {
+      require(_fees[i] < FEE_DENOMINATOR, "fee percentage too large");
+    }
     for (uint256 i = 0; i < _tokens.length; i++) {
       require(_tokens[i] != address(0x0), "token not set");
-      /* TODO: fix test cases
       // query tokens decimals
       (, bytes memory queriedDecimals) = _tokens[i].staticcall(
         abi.encodeWithSignature("decimals()")
@@ -265,7 +305,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
       require(
         _precisions[i] != 0 && _precisions[i] == 10 ** (18 - decimals),
         "precision not set"
-      ); */
+      );
       require(_precisions[i] != 0, "precision not set");
       balances.push(0);
     }
@@ -277,7 +317,10 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
       address(_exchangeRateProvider) != address(0x0),
       "exchangeRate not set"
     );
-
+    require(
+      _exchangeRateTokenIndex < _tokens.length,
+      "exchange rate token index out of range"
+    );
     __ReentrancyGuard_init();
 
     governance = msg.sender;
@@ -296,6 +339,9 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     futureA = _A;
     initialABlock = block.number;
     futureABlock = block.number;
+    feeErrorMargin = DEFAULT_FEE_ERROR_MARGIN;
+    yieldErrorMargin = DEFAULT_YIELD_ERROR_MARGIN;
+    maxDeltaD = DEFAULT_MAX_DELTA_D;
 
     // The swap must start with paused state!
     paused = true;
@@ -364,7 +410,9 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
         if (prevD - D <= 1) break;
       }
     }
-
+    if (i == 255) {
+      revert("doesn't converge");
+    }
     return D;
   }
 
@@ -408,7 +456,9 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
         if (prevY - y <= 1) break;
       }
     }
-
+    if (i == 255) {
+      revert("doesn't converge");
+    }
     return y;
   }
 
@@ -417,11 +467,10 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
    * @param _amounts Unconverted token balances.
    * @return The amount of pool tokens to be minted.
    * @return The amount of fees charged.
-   * @return The total supply after the minting.
    */
   function getMintAmount(
     uint256[] calldata _amounts
-  ) external view returns (uint256, uint256, uint256) {
+  ) external view returns (uint256, uint256) {
     uint256[] memory _balances;
     uint256 _totalSupply;
     (_balances, _totalSupply) = getPendingYieldAmount();
@@ -451,7 +500,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
       mintAmount = mintAmount - feeAmount;
     }
 
-    return (mintAmount, feeAmount, _totalSupply);
+    return (mintAmount, feeAmount);
   }
 
   /**
@@ -524,13 +573,12 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
    * @param _dx Unconverted amount of token _i to swap in.
    * @return Unconverted amount of token _j to swap out.
    * @return The amount of fees charged.
-   * @return The new total supply of pool tokens after the swap.
    */
   function getSwapAmount(
     uint256 _i,
     uint256 _j,
     uint256 _dx
-  ) external view returns (uint256, uint256, uint256) {
+  ) external view returns (uint256, uint256) {
     uint256[] memory _balances;
     uint256 _totalSupply;
     (_balances, _totalSupply) = getPendingYieldAmount();
@@ -567,7 +615,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
         exchangeRateProvider.exchangeRate();
     }
 
-    return (transferAmountJ, feeAmount, _totalSupply);
+    return (transferAmountJ, feeAmount);
   }
 
   /**
@@ -651,11 +699,10 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
    * @param _amount Amount of pool tokens to redeem.
    * @return An array of the amounts of each token to redeem.
    * @return The amount of fee charged
-   * @return The total supply of pool tokens after redemption.
    */
   function getRedeemProportionAmount(
     uint256 _amount
-  ) external view returns (uint256[] memory, uint256, uint256) {
+  ) external view returns (uint256[] memory, uint256) {
     uint256[] memory _balances;
     uint256 _totalSupply;
     (_balances, _totalSupply) = getPendingYieldAmount();
@@ -684,7 +731,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
       amounts[i] = transferAmount;
     }
 
-    return (amounts, feeAmount, _totalSupply);
+    return (amounts, feeAmount);
   }
 
   /**
@@ -754,12 +801,11 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
    * @param _i Index of the underlying token to redeem to.
    * @return The amount of single token that will be redeemed.
    * @return The amount of pool token charged for redemption fee.
-   * @return The total supply of pool tokens.
    */
   function getRedeemSingleAmount(
     uint256 _amount,
     uint256 _i
-  ) external view returns (uint256, uint256, uint256) {
+  ) external view returns (uint256, uint256) {
     uint256[] memory _balances;
     uint256 _totalSupply;
     (_balances, _totalSupply) = getPendingYieldAmount();
@@ -786,7 +832,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
         exchangeRateProvider.exchangeRate();
     }
 
-    return (transferAmount, feeAmount, _totalSupply);
+    return (transferAmount, feeAmount);
   }
 
   /**
@@ -831,13 +877,13 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     // Updates token balance in storage
     balances[_i] = y;
     uint256[] memory amounts = new uint256[](_balances.length);
-    amounts[_i] = dy;
     uint256 transferAmount = dy;
     if (_i == exchangeRateTokenIndex) {
       transferAmount =
         (transferAmount * (10 ** exchangeRateProvider.exchangeRateDecimals())) /
         exchangeRateProvider.exchangeRate();
     }
+    amounts[_i] = transferAmount;
     IERC20Upgradeable(tokens[_i]).safeTransfer(msg.sender, transferAmount);
 
     totalSupply = D - _amount;
@@ -852,11 +898,10 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
    * @param _amounts Unconverted token balances.
    * @return The amount of pool token that needs to be redeemed.
    * @return The amount of pool token charged for redemption fee.
-   * @return The total supply of pool tokens.
    */
   function getRedeemMultiAmount(
     uint256[] calldata _amounts
-  ) external view returns (uint256, uint256, uint256) {
+  ) external view returns (uint256, uint256) {
     uint256[] memory _balances;
     uint256 _totalSupply;
     (_balances, _totalSupply) = getPendingYieldAmount();
@@ -870,9 +915,8 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
       uint256 balanceAmount = _amounts[i];
       if (i == exchangeRateTokenIndex) {
         balanceAmount =
-          (balanceAmount *
-            (10 ** exchangeRateProvider.exchangeRateDecimals())) /
-          exchangeRateProvider.exchangeRate();
+          (balanceAmount * exchangeRateProvider.exchangeRate()) /
+          10 ** exchangeRateProvider.exchangeRateDecimals();
       }
       _balances[i] = _balances[i] - (balanceAmount * precisions[i]);
     }
@@ -886,7 +930,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
       feeAmount = redeemAmount - (oldD - newD);
     }
 
-    return (redeemAmount, feeAmount, _totalSupply);
+    return (redeemAmount, feeAmount);
   }
 
   /**
@@ -913,9 +957,8 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
       uint256 balanceAmount = _amounts[i];
       if (i == exchangeRateTokenIndex) {
         balanceAmount =
-          (balanceAmount *
-            (10 ** exchangeRateProvider.exchangeRateDecimals())) /
-          exchangeRateProvider.exchangeRate();
+          (balanceAmount * exchangeRateProvider.exchangeRate()) /
+          10 ** exchangeRateProvider.exchangeRateDecimals();
       }
       // balance = balance + amount * precision
       _balances[i] = _balances[i] - (balanceAmount * precisions[i]);
@@ -993,14 +1036,18 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
       _balances[i] = balanceI * precisions[i];
     }
     uint256 newD = _getD(_balances, A);
+
+    balances = _balances;
+    totalSupply = newD;
+
     if (isFee) {
-      if (oldD > newD && (oldD - newD) < (newD / FEE_ERROR_MARGIN)) {
+      if (oldD > newD && (oldD - newD) < feeErrorMargin) {
         return 0;
       } else if (oldD > newD) {
         revert("pool imbalanced");
       }
     } else {
-      if (oldD > newD && (oldD - newD) < (newD / YIELD_ERROR_MARGIN)) {
+      if (oldD > newD && (oldD - newD) < yieldErrorMargin) {
         return 0;
       } else if (oldD > newD) {
         revert("pool imbalanced");
@@ -1010,9 +1057,6 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     if (feeAmount == 0) {
       return 0;
     }
-
-    balances = _balances;
-    totalSupply = newD;
 
     if (isFee) {
       address recipient = feeRecipient;
@@ -1092,16 +1136,6 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
   }
 
   /**
-   * @dev Updates the pool token.
-   * @param _poolToken The new pool token.
-   */
-  function setPoolToken(address _poolToken) external {
-    require(msg.sender == governance, "not governance");
-    require(_poolToken != address(0x0), "pool token not set");
-    poolToken = _poolToken;
-  }
-
-  /**
    * @dev Pause mint/swap/redeem actions. Can unpause later.
    */
   function pause() external {
@@ -1148,7 +1182,40 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     futureA = _futureA;
     futureABlock = _futureABlock;
 
+    uint256 newD = _getD(balances, futureA);
+    uint256 absolute = totalSupply > newD
+      ? totalSupply - newD
+      : newD - totalSupply;
+    require(absolute < maxDeltaD, "Pool imbalanced");
+
     emit AModified(_futureA, _futureABlock);
+  }
+
+  /**
+   * @dev update fee error margin.
+   */
+  function updateFeeErrorMargin(uint256 newValue) external {
+    require(msg.sender == governance, "not governance");
+    feeErrorMargin = newValue;
+    emit FeeMarginModified(newValue);
+  }
+
+  /**
+   * @dev update yield error margin.
+   */
+  function updateYieldErrorMargin(uint256 newValue) external {
+    require(msg.sender == governance, "not governance");
+    yieldErrorMargin = newValue;
+    emit YieldMarginModified(newValue);
+  }
+
+  /**
+   * @dev update yield error margin.
+   */
+  function updateMaxDeltaDMargin(uint256 newValue) external {
+    require(msg.sender == governance, "not governance");
+    maxDeltaD = newValue;
+    emit MaxDeltaDModified(newValue);
   }
 
   /**

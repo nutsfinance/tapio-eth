@@ -253,13 +253,16 @@ contract GaugeController is Initializable, ReentrancyGuardUpgradeable {
     uint256 rewardAvailable = (rewardRatePerWeek *
       (currentTimestamp - lastCheckpoint)) / WEEK;
     uint256 total = 0;
+    uint256[] memory rewardPoolsCalc = new uint256[](poolSize);
     for (uint256 i = 0; i < poolSize; i++) {
-      total += getRewardForPool(i);
+      uint256 result = getRewardForPool(i);
+      total += result;
+      rewardPoolsCalc[i] = result;
     }
     for (uint256 i = 0; i < poolSize; i++) {
       uint256 share = 0;
       if (total > 0) {
-        share = (getRewardForPool(i) * rewardAvailable) / total;
+        share = (rewardPoolsCalc[i] * rewardAvailable) / total;
       }
       claimable[i] += share;
       emit Checkpointed(

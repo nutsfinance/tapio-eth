@@ -33,6 +33,7 @@ describe("StableAssetApplication", function () {
     const application = await upgrades.deployProxy(StableAssetApplication, [wETH.address]);
     /// Set minter of pool token to be swap contract
     await poolToken.setMinter(swap.address, true);
+    await application.updatePool(swap.address, true);
     return { swap, wETH, token2, poolToken, application };
   }
 
@@ -56,6 +57,7 @@ describe("StableAssetApplication", function () {
     const application = await upgrades.deployProxy(StableAssetApplication, [wETH.address]);
     /// Set minter of pool token to be swap contract
     await poolToken.setMinter(swap.address, true);
+    await application.updatePool(swap.address, true);
     return { swap, wETH, token2, poolToken, application };
   }
 
@@ -89,6 +91,8 @@ describe("StableAssetApplication", function () {
     await poolToken.setMinter(swapOne.address, true);
     /// Set minter of pool token to be swapTwo contract
     await poolToken.setMinter(swapTwo.address, true);
+    await application.updatePool(swapOne.address, true);
+    await application.updatePool(swapTwo.address, true);
     return { swapOne, swapTwo, wETH, token1, token2, poolToken, application };
   }
 

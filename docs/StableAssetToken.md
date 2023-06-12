@@ -86,7 +86,7 @@ function burn(uint256 _amount) external nonpayable
 
 
 
-*Mints new stable swap token. Only minters can burn stable swap token.*
+*Burn swap token. Only minters can burn stable swap token.*
 
 #### Parameters
 
@@ -97,19 +97,19 @@ function burn(uint256 _amount) external nonpayable
 ### burnFrom
 
 ```solidity
-function burnFrom(address account, uint256 amount) external nonpayable
+function burnFrom(address _account, uint256 _amount) external nonpayable
 ```
 
 
 
-*Destroys `amount` tokens from `account`, deducting from the caller&#39;s allowance. See {ERC20-_burn} and {ERC20-allowance}. Requirements: - the caller must have allowance for ``accounts``&#39;s tokens of at least `amount`.*
+*Burn from users stable swap token. Only minters can burn stable swap token.*
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| account | address | undefined |
-| amount | uint256 | undefined |
+| _account | address | Account of stable swap token to burn. |
+| _amount | uint256 | Amount of stable swap token to burn. |
 
 ### decimals
 
@@ -194,7 +194,7 @@ function increaseAllowance(address spender, uint256 addedValue) external nonpaya
 ### initialize
 
 ```solidity
-function initialize(string name, string symbol) external nonpayable
+function initialize(string _name, string _symbol) external nonpayable
 ```
 
 
@@ -205,8 +205,8 @@ function initialize(string name, string symbol) external nonpayable
 
 | Name | Type | Description |
 |---|---|---|
-| name | string | Name of the stable swap token. |
-| symbol | string | Symbol of the stable swap token. |
+| _name | string | Name of the stable swap token. |
+| _symbol | string | Symbol of the stable swap token. |
 
 ### mint
 

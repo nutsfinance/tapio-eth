@@ -135,9 +135,6 @@
 - Mint 8 token2 to user2
 - Approve swap contract to spend 8 token2
 - Get exchange amount with 8 token2 to token1
-- Get exchange total amount
-- Before exchange, we have 105 token1 and 85 token2
-- After exchange, 8 token2 is exchanged in so that token2 balance becomes 93
 - Deploy swap and tokens
 - Unpause swap contract
 - Mint 105 token1 to user
@@ -148,7 +145,6 @@
 - Mint 8 token2 to user2
 - Approve swap contract to spend 8 token2
 - Get exchange amount with 8 token2 to token1
-- Get exchange total amount
 - Check user2 token1 balance is 0
 - Check user2 token2 balance is 8
 - Check swap token1 balance is 105
@@ -433,9 +429,6 @@
 - Get token1 amount from amounts
 - Get token2 amount from amounts
 - Get fee amount from amounts
-- Get total amount
-- Assert that poolToken redeemed / poolToken total = token1 amount / token1 balance = token2 amount / token2 balance
-- Assert invariant
 - Deploy swap and tokens
 - Unpause swap contract
 - We use total amount to approximate D!
@@ -450,10 +443,6 @@
 - Approve swap contract to spend 8 token2
 - Mint 8 token2 to swap contract
 - Get exchange amount for 8 token2
-- Get total amount
-- Before exchange, we have 105 token1 and 85 token2
-- After exchange, 8 token2 is exchanged in so that token2 balance becomes 93
-- Assert invariant
 
 ## should return the correct mint amount when two tokens are not equal rebasing
 - Deploy swap and tokens
@@ -574,12 +563,6 @@
 - Set fee recipient to user
 - Check fee recipient is user
 - Deploy swap and tokens
-- Check initial pool token is pool token
-- Check can't set pool token if not governance
-- Check can't set pool token to zero address
-- Set pool token to token2
-- Check pool token is token2
-- Deploy swap and tokens
 - Check initial admin is owner
 - Check can't set admin to zero address
 - Set admin to true
@@ -593,16 +576,16 @@
 - Check future A block is 23
 - Check updateA fails if not governance
 - Check updateA fails if block in the past
-- Check updateA fails if block is 26
+- Check updateA fails if block is 11
 - Check updateA fails if A not set
-- Check block is 27
+- Check block is 12
 - Check updateA fails if A exceeds max
-- Check block is 28
-- Update A to 1000 at block 37
+- Check block is 13
+- Update A to 1000 at block 28
 - Check initial A is 100
 - Check initial A block is 29
 - Check future A is 1000
-- Check future A block is 37
+- Check future A block is 30
 - Deploy swap and tokens
 - Check initial A is 100
 - Check initial A block is 23
@@ -613,7 +596,7 @@
 - Check future A is 1000
 - Check future A block is 100
 - Check getA is 100
-- Mine 50 blocks
+- Mine 35 blocks
 - Check block number is 60
 - Check getA is 520
 - Mine 38 blocks

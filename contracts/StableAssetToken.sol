@@ -30,14 +30,14 @@ contract StableAssetToken is ERC20BurnableUpgradeable {
 
   /**
    * @dev Initializes stable swap token contract.
-   * @param name Name of the stable swap token.
-   * @param symbol Symbol of the stable swap token.
+   * @param _name Name of the stable swap token.
+   * @param _symbol Symbol of the stable swap token.
    */
   function initialize(
-    string memory name,
-    string memory symbol
+    string memory _name,
+    string memory _symbol
   ) public initializer {
-    __ERC20_init(name, symbol);
+    __ERC20_init(_name, _symbol);
     governance = msg.sender;
   }
 
@@ -73,11 +73,22 @@ contract StableAssetToken is ERC20BurnableUpgradeable {
   }
 
   /**
-   * @dev Mints new stable swap token. Only minters can burn stable swap token.
+   * @dev Burn swap token. Only minters can burn stable swap token.
    * @param _amount Amount of stable swap token to burn.
    */
   function burn(uint256 _amount) public override {
     require(minters[msg.sender], "not minter");
     _burn(_msgSender(), _amount);
+  }
+
+  /**
+   * @dev Burn from users stable swap token. Only minters can burn stable swap token.
+   * @param _account Account of stable swap token to burn.
+   * @param _amount Amount of stable swap token to burn.
+   */
+  function burnFrom(address _account, uint256 _amount) public override {
+    require(minters[msg.sender], "not minter");
+    _spendAllowance(_account, _msgSender(), _amount);
+    _burn(_account, _amount);
   }
 }
