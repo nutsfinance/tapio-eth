@@ -604,6 +604,11 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
 
     if (swapFee > 0) {
       feeAmount = (dy * swapFee) / FEE_DENOMINATOR;
+      if (_j == exchangeRateTokenIndex) {
+        feeAmount =
+          (feeAmount * (10 ** exchangeRateProvider.exchangeRateDecimals())) /
+          exchangeRateProvider.exchangeRate();
+      }
       dy = dy - feeAmount;
     }
 
@@ -661,6 +666,11 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     uint256 feeAmount = 0;
     if (swapFee > 0) {
       feeAmount = (dy * swapFee) / FEE_DENOMINATOR;
+      if (_j == exchangeRateTokenIndex) {
+        feeAmount =
+          (feeAmount * (10 ** exchangeRateProvider.exchangeRateDecimals())) /
+          exchangeRateProvider.exchangeRate();
+      }
       dy = dy - feeAmount;
     }
     if (_j == exchangeRateTokenIndex) {
@@ -689,7 +699,14 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     }
     IERC20Upgradeable(tokens[_j]).safeTransfer(msg.sender, transferAmountJ);
 
-    emit TokenSwapped(msg.sender, tokens[_i], tokens[_j], _dx, transferAmountJ, feeAmount);
+    emit TokenSwapped(
+      msg.sender,
+      tokens[_i],
+      tokens[_j],
+      _dx,
+      transferAmountJ,
+      feeAmount
+    );
     collectFeeOrYield(true);
     return transferAmountJ;
   }
@@ -926,7 +943,9 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     uint256 redeemAmount = oldD - newD;
     uint256 feeAmount = 0;
     if (redeemFee > 0) {
-      redeemAmount = (redeemAmount * FEE_DENOMINATOR) / (FEE_DENOMINATOR - redeemFee);
+      redeemAmount =
+        (redeemAmount * FEE_DENOMINATOR) /
+        (FEE_DENOMINATOR - redeemFee);
       feeAmount = redeemAmount - (oldD - newD);
     }
 
@@ -969,7 +988,9 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     uint256 redeemAmount = oldD - newD;
     uint256 feeAmount = 0;
     if (redeemFee > 0) {
-      redeemAmount = (redeemAmount * FEE_DENOMINATOR) / (FEE_DENOMINATOR - redeemFee);
+      redeemAmount =
+        (redeemAmount * FEE_DENOMINATOR) /
+        (FEE_DENOMINATOR - redeemFee);
       feeAmount = redeemAmount - (oldD - newD);
     }
     require(redeemAmount <= _maxRedeemAmount, "more than expected");
