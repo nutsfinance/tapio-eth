@@ -604,23 +604,23 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
 
     if (swapFee > 0) {
       feeAmount = (dy * swapFee) / FEE_DENOMINATOR;
-      if (_j == exchangeRateTokenIndex) {
-        feeAmount =
-          (feeAmount * (10 ** exchangeRateProvider.exchangeRateDecimals())) /
-          exchangeRateProvider.exchangeRate();
-      }
       dy = dy - feeAmount;
     }
 
     uint256 transferAmountJ = dy;
+    uint256 feeAmountReturn = feeAmount;
     if (_j == exchangeRateTokenIndex) {
       transferAmountJ =
         (transferAmountJ *
           (10 ** exchangeRateProvider.exchangeRateDecimals())) /
         exchangeRateProvider.exchangeRate();
+      feeAmountReturn =
+        (feeAmountReturn *
+          (10 ** exchangeRateProvider.exchangeRateDecimals())) /
+        exchangeRateProvider.exchangeRate();
     }
 
-    return (transferAmountJ, feeAmount);
+    return (transferAmountJ, feeAmountReturn);
   }
 
   /**
@@ -666,11 +666,6 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     uint256 feeAmount = 0;
     if (swapFee > 0) {
       feeAmount = (dy * swapFee) / FEE_DENOMINATOR;
-      if (_j == exchangeRateTokenIndex) {
-        feeAmount =
-          (feeAmount * (10 ** exchangeRateProvider.exchangeRateDecimals())) /
-          exchangeRateProvider.exchangeRate();
-      }
       dy = dy - feeAmount;
     }
     if (_j == exchangeRateTokenIndex) {
@@ -691,10 +686,14 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     // collectFees() is used to convert the difference between balances[j] and tokens[j].balanceOf(this)
     // into pool token as fees!
     uint256 transferAmountJ = dy;
+    uint256 feeAmountEvent = feeAmount;
     if (_j == exchangeRateTokenIndex) {
       transferAmountJ =
         (transferAmountJ *
           (10 ** exchangeRateProvider.exchangeRateDecimals())) /
+        exchangeRateProvider.exchangeRate();
+      feeAmountEvent =
+        (feeAmountEvent * (10 ** exchangeRateProvider.exchangeRateDecimals())) /
         exchangeRateProvider.exchangeRate();
     }
     IERC20Upgradeable(tokens[_j]).safeTransfer(msg.sender, transferAmountJ);
@@ -705,7 +704,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
       tokens[_j],
       _dx,
       transferAmountJ,
-      feeAmount
+      feeAmountEvent
     );
     collectFeeOrYield(true);
     return transferAmountJ;
