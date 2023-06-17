@@ -9,7 +9,7 @@ async function main() {
   const application = await upgrades.deployProxy(StableAssetApplication, [wETHAddress]);
 
   console.log("application deployed");
-  console.log(`cbETH: ${application.address}`);
+  console.log(`application: ${application.address}`);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
