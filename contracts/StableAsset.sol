@@ -561,8 +561,8 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     totalSupply = newD;
     IERC20MintableBurnable(poolToken).mint(feeRecipient, feeAmount);
     IERC20MintableBurnable(poolToken).mint(msg.sender, mintAmount);
+    feeAmount = collectFeeOrYield(true);
     emit Minted(msg.sender, mintAmount, _amounts, feeAmount);
-    collectFeeOrYield(true);
     return mintAmount;
   }
 
@@ -686,27 +686,23 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     // collectFees() is used to convert the difference between balances[j] and tokens[j].balanceOf(this)
     // into pool token as fees!
     uint256 transferAmountJ = dy;
-    uint256 feeAmountEvent = feeAmount;
     if (_j == exchangeRateTokenIndex) {
       transferAmountJ =
         (transferAmountJ *
           (10 ** exchangeRateProvider.exchangeRateDecimals())) /
         exchangeRateProvider.exchangeRate();
-      feeAmountEvent =
-        (feeAmountEvent * (10 ** exchangeRateProvider.exchangeRateDecimals())) /
-        exchangeRateProvider.exchangeRate();
     }
     IERC20Upgradeable(tokens[_j]).safeTransfer(msg.sender, transferAmountJ);
 
+    feeAmount = collectFeeOrYield(true);
     emit TokenSwapped(
       msg.sender,
       tokens[_i],
       tokens[_j],
       _dx,
       transferAmountJ,
-      feeAmountEvent
+      feeAmount
     );
-    collectFeeOrYield(true);
     return transferAmountJ;
   }
 
@@ -806,8 +802,8 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     // After reducing the redeem fee, the remaining pool tokens are burned!
     IERC20MintableBurnable(poolToken).burnFrom(msg.sender, _amount);
 
+    feeAmount = collectFeeOrYield(true);
     emit Redeemed(msg.sender, _amount, amounts, feeAmount);
-    collectFeeOrYield(true);
     return amounts;
   }
 
@@ -904,8 +900,8 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
 
     totalSupply = D - _amount;
     IERC20MintableBurnable(poolToken).burnFrom(msg.sender, _amount);
+    feeAmount = collectFeeOrYield(true);
     emit Redeemed(msg.sender, _amount, amounts, feeAmount);
-    collectFeeOrYield(true);
     return transferAmount;
   }
 
@@ -1004,8 +1000,8 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
       IERC20Upgradeable(tokens[i]).safeTransfer(msg.sender, _amounts[i]);
     }
 
+    feeAmount = collectFeeOrYield(true);
     emit Redeemed(msg.sender, redeemAmount, amounts, feeAmount);
-    collectFeeOrYield(true);
     return amounts;
   }
 
