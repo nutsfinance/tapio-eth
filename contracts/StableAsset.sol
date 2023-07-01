@@ -21,18 +21,13 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
   /**
    * @notice This event is emitted when a token swap occurs.
    * @param buyer is the address of the account that made the swap.
-   * @param tokenSold is the address of the token that was sold.
-   * @param tokenBought is the address of the token that was bought.
-   * @param amountSold is the amount of `tokenSold` that was sold.
-   * @param amountBought is the amount of `tokenBought` that was bought.
+   * @param amounts is an array containing the amounts of each token received by the buyer.
    * @param feeAmount is the amount of transaction fee charged for the swap.
    */
   event TokenSwapped(
     address indexed buyer,
-    address indexed tokenSold,
-    address indexed tokenBought,
-    uint256 amountSold,
-    uint256 amountBought,
+    uint256 swapAmount,
+    int256[] amounts,
     uint256 feeAmount
   );
   /**
@@ -698,12 +693,14 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     }
     IERC20Upgradeable(tokens[_j]).safeTransfer(msg.sender, transferAmountJ);
 
+    int256[] memory amounts = new int256[](_balances.length);
+    amounts[_i] = -int256(_dx);
+    amounts[_j] = int256(transferAmountJ);
+
     emit TokenSwapped(
       msg.sender,
-      tokens[_i],
-      tokens[_j],
-      _dx,
       transferAmountJ,
+      amounts,
       feeAmountEvent
     );
     collectFeeOrYield(true);
