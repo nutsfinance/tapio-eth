@@ -75,11 +75,13 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
   /**
    * @dev This event is emitted when yield is collected by the StableAsset contract.
    * @param recipient is the address of the yield recipient.
+   * @param amounts is an array containing the amounts of each token the yield receives.
    * @param feeAmount is the amount of yield collected.
    * @param totalSupply is the total supply of LP token.
    */
   event YieldCollected(
     address indexed recipient,
+    uint256[] amounts,
     uint256 feeAmount,
     uint256 totalSupply
   );
@@ -1038,6 +1040,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
    * @return The amount of fee or yield collected.
    */
   function collectFeeOrYield(bool isFee) internal returns (uint256) {
+    uint256[] memory oldBalances = balances;
     uint256[] memory _balances = balances;
     uint256 A = getA();
     uint256 oldD = totalSupply;
@@ -1081,7 +1084,13 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     } else {
       address recipient = yieldRecipient;
       IERC20MintableBurnable(poolToken).mint(recipient, feeAmount);
-      emit YieldCollected(recipient, feeAmount, totalSupply);
+
+      uint256[] memory amounts = new uint256[](_balances.length);
+      for (uint256 i = 0; i < _balances.length; i++) {
+        amounts[i] = _balances[i] - oldBalances[i];
+      }
+
+      emit YieldCollected(recipient, amounts, feeAmount, totalSupply);
     }
     return feeAmount;
   }

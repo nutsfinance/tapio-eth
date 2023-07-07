@@ -1161,7 +1161,7 @@ This event is emitted when a token swap occurs.
 ### YieldCollected
 
 ```solidity
-event YieldCollected(address indexed recipient, uint256 feeAmount, uint256 totalSupply)
+event YieldCollected(address indexed recipient, uint256[] amounts, uint256 feeAmount, uint256 totalSupply)
 ```
 
 
@@ -1173,6 +1173,7 @@ event YieldCollected(address indexed recipient, uint256 feeAmount, uint256 total
 | Name | Type | Description |
 |---|---|---|
 | recipient `indexed` | address | is the address of the yield recipient. |
+| amounts  | uint256[] | is an array containing the amounts of each token the yield receives. |
 | feeAmount  | uint256 | is the amount of yield collected. |
 | totalSupply  | uint256 | is the total supply of LP token. |
 
