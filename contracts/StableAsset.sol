@@ -70,11 +70,13 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
   /**
    * @dev This event is emitted when yield is collected by the StableAsset contract.
    * @param recipient is the address of the yield recipient.
+   * @param amounts is an array containing the amounts of each token the yield receives.
    * @param feeAmount is the amount of yield collected.
    * @param totalSupply is the total supply of LP token.
    */
   event YieldCollected(
     address indexed recipient,
+    uint256[] amounts,
     uint256 feeAmount,
     uint256 totalSupply
   );
@@ -556,8 +558,8 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     totalSupply = newD;
     IERC20MintableBurnable(poolToken).mint(feeRecipient, feeAmount);
     IERC20MintableBurnable(poolToken).mint(msg.sender, mintAmount);
+    feeAmount = collectFeeOrYield(true);
     emit Minted(msg.sender, mintAmount, _amounts, feeAmount);
-    collectFeeOrYield(true);
     return mintAmount;
   }
 
@@ -681,14 +683,10 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     // collectFees() is used to convert the difference between balances[j] and tokens[j].balanceOf(this)
     // into pool token as fees!
     uint256 transferAmountJ = dy;
-    uint256 feeAmountEvent = feeAmount;
     if (_j == exchangeRateTokenIndex) {
       transferAmountJ =
         (transferAmountJ *
           (10 ** exchangeRateProvider.exchangeRateDecimals())) /
-        exchangeRateProvider.exchangeRate();
-      feeAmountEvent =
-        (feeAmountEvent * (10 ** exchangeRateProvider.exchangeRateDecimals())) /
         exchangeRateProvider.exchangeRate();
     }
     IERC20Upgradeable(tokens[_j]).safeTransfer(msg.sender, transferAmountJ);
@@ -697,13 +695,13 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     amounts[_i] = -int256(_dx);
     amounts[_j] = int256(transferAmountJ);
 
+    feeAmount = collectFeeOrYield(true);
     emit TokenSwapped(
       msg.sender,
       transferAmountJ,
       amounts,
-      feeAmountEvent
+      feeAmount
     );
-    collectFeeOrYield(true);
     return transferAmountJ;
   }
 
@@ -803,8 +801,8 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     // After reducing the redeem fee, the remaining pool tokens are burned!
     IERC20MintableBurnable(poolToken).burnFrom(msg.sender, _amount);
 
+    feeAmount = collectFeeOrYield(true);
     emit Redeemed(msg.sender, _amount, amounts, feeAmount);
-    collectFeeOrYield(true);
     return amounts;
   }
 
@@ -901,8 +899,8 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
 
     totalSupply = D - _amount;
     IERC20MintableBurnable(poolToken).burnFrom(msg.sender, _amount);
+    feeAmount = collectFeeOrYield(true);
     emit Redeemed(msg.sender, _amount, amounts, feeAmount);
-    collectFeeOrYield(true);
     return transferAmount;
   }
 
@@ -1001,8 +999,8 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
       IERC20Upgradeable(tokens[i]).safeTransfer(msg.sender, _amounts[i]);
     }
 
+    feeAmount = collectFeeOrYield(true);
     emit Redeemed(msg.sender, redeemAmount, amounts, feeAmount);
-    collectFeeOrYield(true);
     return amounts;
   }
 
@@ -1039,6 +1037,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
    * @return The amount of fee or yield collected.
    */
   function collectFeeOrYield(bool isFee) internal returns (uint256) {
+    uint256[] memory oldBalances = balances;
     uint256[] memory _balances = balances;
     uint256 A = getA();
     uint256 oldD = totalSupply;
@@ -1082,7 +1081,13 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     } else {
       address recipient = yieldRecipient;
       IERC20MintableBurnable(poolToken).mint(recipient, feeAmount);
-      emit YieldCollected(recipient, feeAmount, totalSupply);
+
+      uint256[] memory amounts = new uint256[](_balances.length);
+      for (uint256 i = 0; i < _balances.length; i++) {
+        amounts[i] = _balances[i] - oldBalances[i];
+      }
+
+      emit YieldCollected(recipient, amounts, feeAmount, totalSupply);
     }
     return feeAmount;
   }
