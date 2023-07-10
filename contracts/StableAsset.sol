@@ -3,6 +3,7 @@ pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 
@@ -299,13 +300,9 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     for (uint256 i = 0; i < _tokens.length; i++) {
       require(_tokens[i] != address(0x0), "token not set");
       // query tokens decimals
-      (, bytes memory queriedDecimals) = _tokens[i].staticcall(
-        abi.encodeWithSignature("decimals()")
-      );
-      uint8 decimals = abi.decode(queriedDecimals, (uint8));
-
+      uint256 _decimals = ERC20Upgradeable(_tokens[i]).decimals();
       require(
-        _precisions[i] != 0 && _precisions[i] == 10 ** (18 - decimals),
+        _precisions[i] != 0 && _precisions[i] == 10 ** (18 - _decimals),
         "precision not set"
       );
       require(_precisions[i] != 0, "precision not set");
