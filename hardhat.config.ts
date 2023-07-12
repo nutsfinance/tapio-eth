@@ -41,13 +41,11 @@ const config: HardhatUserConfig = {
   dodoc: {
     outputDir: "./docs",
     include: [
-      "contracts/interfaces",
-      "contracts/misc/ConstantExchangeRateProvider.sol",
-      "contracts/tokens",
-      "contracts/StableAsset.sol",
-      "contracts/StableAssetApplication.sol",
-      "contracts/StableAssetToken.sol",
+      "contracts"
     ],
+    exclude: [
+      "contracts/mock"
+    ]
   },
 };
 
