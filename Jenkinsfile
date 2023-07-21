@@ -22,7 +22,7 @@ spec:
         container(name: 'node') {
           withCredentials([string(credentialsId: 'jenkins-codecov-tokens', variable: 'CODECOV_TOKEN')]) {
             sh 'git config --global --add safe.directory \'*\''
-            sh 'cp .env-example .env'
+            sh 'cp .env.example .env'
             sh 'npm install'
             sh 'npm test'
             sh "npm run coverage"
