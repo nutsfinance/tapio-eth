@@ -93,7 +93,7 @@ jobs:
         with:
           status: ${{ job.status }}
         env:
-          SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
   e2e-edge:
     runs-on: ubuntu-latest
 
@@ -174,4 +174,4 @@ jobs:
         with:
           status: ${{ job.status }}
         env:
-          SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
