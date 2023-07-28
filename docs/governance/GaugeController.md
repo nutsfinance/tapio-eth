@@ -27,22 +27,6 @@ function WEEK() external view returns (uint256)
 |---|---|---|
 | _0 | uint256 | undefined |
 
-### addPool
-
-```solidity
-function addPool(address _poolAddress) external nonpayable
-```
-
-
-
-*Add a new pool.*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _poolAddress | address | The pool address to add. |
-
 ### checkpoint
 
 ```solidity
@@ -68,7 +52,7 @@ function claim() external nonpayable
 ### claimable
 
 ```solidity
-function claimable(uint256) external view returns (uint256)
+function claimable(address) external view returns (uint256)
 ```
 
 
@@ -79,7 +63,7 @@ function claimable(uint256) external view returns (uint256)
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint256 | undefined |
+| _0 | address | undefined |
 
 #### Returns
 
@@ -90,7 +74,7 @@ function claimable(uint256) external view returns (uint256)
 ### claimed
 
 ```solidity
-function claimed(uint256) external view returns (uint256)
+function claimed(address) external view returns (uint256)
 ```
 
 
@@ -101,7 +85,7 @@ function claimed(uint256) external view returns (uint256)
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint256 | undefined |
+| _0 | address | undefined |
 
 #### Returns
 
@@ -109,37 +93,22 @@ function claimed(uint256) external view returns (uint256)
 |---|---|---|
 | _0 | uint256 | undefined |
 
-### disablePool
+### getClaimable
 
 ```solidity
-function disablePool(uint256 _poolIndex) external nonpayable
+function getClaimable() external view returns (uint256)
 ```
 
 
 
-*Disable a pool.*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _poolIndex | uint256 | The pool index to disable. |
-
-### enablePool
-
-```solidity
-function enablePool(uint256 _poolIndex) external nonpayable
-```
+*Get claimable reward.*
 
 
-
-*Enable a pool.*
-
-#### Parameters
+#### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| _poolIndex | uint256 | The pool index to enable. |
+| _0 | uint256 | undefined |
 
 ### governance
 
@@ -161,7 +130,7 @@ function governance() external view returns (address)
 ### initialize
 
 ```solidity
-function initialize(address _rewardToken, address _poolToken, uint256 _rewardRatePerWeek) external nonpayable
+function initialize(address _rewardToken, address _poolToken, uint256 _rewardRatePerWeek, contract IGaugeRewardController _rewardController) external nonpayable
 ```
 
 
@@ -175,6 +144,7 @@ function initialize(address _rewardToken, address _poolToken, uint256 _rewardRat
 | _rewardToken | address | The address for the reward token. |
 | _poolToken | address | The address that receives yield farming rewards. |
 | _rewardRatePerWeek | uint256 | undefined |
+| _rewardController | contract IGaugeRewardController | undefined |
 
 ### lastCheckpoint
 
@@ -185,89 +155,6 @@ function lastCheckpoint() external view returns (uint256)
 
 
 *This is last checkpoint timestamp.*
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined |
-
-### poolActivated
-
-```solidity
-function poolActivated(uint256) external view returns (bool)
-```
-
-
-
-*This is a mapping of index and pool activated.*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | bool | undefined |
-
-### poolAddressToIndex
-
-```solidity
-function poolAddressToIndex(address) external view returns (uint256)
-```
-
-
-
-*This is a mapping of index and pool address.*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | address | undefined |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined |
-
-### poolIndexToAddress
-
-```solidity
-function poolIndexToAddress(uint256) external view returns (address)
-```
-
-
-
-*This is a mapping of index and pool address.*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined |
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | address | undefined |
-
-### poolSize
-
-```solidity
-function poolSize() external view returns (uint256)
-```
-
-
-
-*This is the total count of pool.*
 
 
 #### Returns
@@ -293,27 +180,22 @@ function poolToken() external view returns (address)
 |---|---|---|
 | _0 | address | undefined |
 
-### poolWeight
+### rewardController
 
 ```solidity
-function poolWeight(uint256) external view returns (uint256)
+function rewardController() external view returns (contract IGaugeRewardController)
 ```
 
 
 
-*This is a mapping of index and pool weight.*
+*Controller for reward weight calculation.*
 
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined |
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint256 | undefined |
+| _0 | contract IGaugeRewardController | undefined |
 
 ### rewardRatePerWeek
 
@@ -365,23 +247,6 @@ function setGovernance(address _governance) external nonpayable
 |---|---|---|
 | _governance | address | The new governance address. |
 
-### updatePoolWeight
-
-```solidity
-function updatePoolWeight(uint256 _poolIndex, uint256 weight) external nonpayable
-```
-
-
-
-*Disable a pool.*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _poolIndex | uint256 | The pool index to modify weight. |
-| weight | uint256 | The pool weight. |
-
 ### updateRewardRate
 
 ```solidity
@@ -405,7 +270,7 @@ function updateRewardRate(uint256 _rewardRatePerWeek) external nonpayable
 ### Checkpointed
 
 ```solidity
-event Checkpointed(uint256 indexed poolIndex, address indexed poolAddress, uint256 totalAmount, uint256 timestamp)
+event Checkpointed(address indexed poolAddress, uint256 totalAmount, uint256 timestamp)
 ```
 
 
@@ -416,7 +281,6 @@ event Checkpointed(uint256 indexed poolIndex, address indexed poolAddress, uint2
 
 | Name | Type | Description |
 |---|---|---|
-| poolIndex `indexed` | uint256 | is the pool index. |
 | poolAddress `indexed` | address | is the pool address. |
 | totalAmount  | uint256 | is the amount claimed. |
 | timestamp  | uint256 | is timestamp of checkpoint. |
@@ -424,7 +288,7 @@ event Checkpointed(uint256 indexed poolIndex, address indexed poolAddress, uint2
 ### Claimed
 
 ```solidity
-event Claimed(uint256 indexed poolIndex, address indexed poolAddress, uint256 amount)
+event Claimed(address indexed poolAddress, uint256 amount)
 ```
 
 
@@ -435,7 +299,6 @@ event Claimed(uint256 indexed poolIndex, address indexed poolAddress, uint256 am
 
 | Name | Type | Description |
 |---|---|---|
-| poolIndex `indexed` | uint256 | is the pool index. |
 | poolAddress `indexed` | address | is the pool address. |
 | amount  | uint256 | is the amount claimed. |
 
@@ -470,75 +333,6 @@ event Initialized(uint8 version)
 | Name | Type | Description |
 |---|---|---|
 | version  | uint8 | undefined |
-
-### PoolAdded
-
-```solidity
-event PoolAdded(uint256 indexed poolIndex, address indexed poolAddress)
-```
-
-
-
-*This event is emitted when a new pool is added.*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| poolIndex `indexed` | uint256 | is the new pool index. |
-| poolAddress `indexed` | address | is the new pool address. |
-
-### PoolDisabled
-
-```solidity
-event PoolDisabled(uint256 indexed poolIndex, address indexed poolAddress)
-```
-
-
-
-*This event is emitted when a pool is disabled.*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| poolIndex `indexed` | uint256 | is the pool index. |
-| poolAddress `indexed` | address | is the pool address. |
-
-### PoolEnabled
-
-```solidity
-event PoolEnabled(uint256 indexed poolIndex, address indexed poolAddress)
-```
-
-
-
-*This event is emitted when a pool is enabled.*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| poolIndex `indexed` | uint256 | is the pool index. |
-| poolAddress `indexed` | address | is the pool address. |
-
-### PoolWeightUpdated
-
-```solidity
-event PoolWeightUpdated(uint256 indexed poolIndex, address indexed poolAddress, uint256 weight)
-```
-
-
-
-*This event is emitted when a pool weight is updated.*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| poolIndex `indexed` | uint256 | is the pool index. |
-| poolAddress `indexed` | address | is the pool address. |
-| weight  | uint256 | is the pool weight. |
 
 ### RewardRateModified
 

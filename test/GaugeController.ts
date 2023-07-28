@@ -13,15 +13,19 @@ describe("GaugeController", function () {
     const [owner] = await ethers.getSigners();
 
     const GaugeController = await ethers.getContractFactory("GaugeController");
+    const GaugeRewardController = await ethers.getContractFactory("GaugeRewardController");
+    const VotingEscrow = await ethers.getContractFactory("VotingEscrow");
     const MockToken = await ethers.getContractFactory("MockToken");
     const StableAssetToken = await ethers.getContractFactory("StableAssetToken");
     const rewardToken = await MockToken.deploy("Reward", "R", 18);
     const poolToken = await upgrades.deployProxy(StableAssetToken, ["Pool Token", "PT"]);
 
-    const controller = await upgrades.deployProxy(GaugeController, [rewardToken.address, poolToken.address, "10000000000000000000000"]);
+    const votingEscrow = await upgrades.deployProxy(VotingEscrow, [rewardToken.address, "Voting Reward", "vR", "1"]);
+    const rewardController = await upgrades.deployProxy(GaugeRewardController, [rewardToken.address, votingEscrow.address]);
+    const controller = await upgrades.deployProxy(GaugeController, [rewardToken.address, poolToken.address, "10000000000", rewardController.address]);
     /// Set minter of pool token to be swap contract
     await poolToken.setMinter(owner.address, true);
-    return { controller, rewardToken, poolToken };
+    return { controller, rewardToken, poolToken, votingEscrow, rewardController };
   }
 
   it('should set governance', async () => {
@@ -61,169 +65,54 @@ describe("GaugeController", function () {
     await expect(controller.updateRewardRate("0")).to.be.revertedWith("reward rate not set");
   });
 
-  it('should add pool', async () => {
-    const { controller, rewardToken, poolToken } = await loadFixture(deployTokensAndController);
-    const [owner, other, poolOne] = await ethers.getSigners();
-
-    await controller.addPool(poolOne.address);
-    expect(await controller.poolIndexToAddress(0)).to.equals(poolOne.address);
-  });
-
-  it('should not add pool not governance', async () => {
-    const { controller, rewardToken, poolToken } = await loadFixture(deployTokensAndController);
-    const [owner, other, poolOne] = await ethers.getSigners();
-
-    await expect(controller.connect(other).addPool(poolOne.address)).to.be.revertedWith("not governance");
-  });
-
-  it('should not add pool not set', async () => {
-    const { controller, rewardToken, poolToken } = await loadFixture(deployTokensAndController);
-    const [owner, other] = await ethers.getSigners();
-
-    await expect(controller.addPool("0x0000000000000000000000000000000000000000")).to.be.revertedWith("pool address not set");
-  });
-
-  it('should enable pool', async () => {
-    const { controller, rewardToken, poolToken } = await loadFixture(deployTokensAndController);
-    const [owner, other, poolOne] = await ethers.getSigners();
-
-    await controller.addPool(poolOne.address);
-    await controller.enablePool(0);
-    expect(await controller.poolActivated(0)).to.equals(true);
-  });
-
-  it('should not enable pool not governance', async () => {
-    const { controller, rewardToken, poolToken } = await loadFixture(deployTokensAndController);
-    const [owner, other, poolOne] = await ethers.getSigners();
-
-    await expect(controller.connect(other).enablePool(0)).to.be.revertedWith("not governance");
-  });
-
-  it('should not enable pool not set', async () => {
-    const { controller, rewardToken, poolToken } = await loadFixture(deployTokensAndController);
-    const [owner, other] = await ethers.getSigners();
-
-    await expect(controller.enablePool("1")).to.be.revertedWith("pool address not set");
-  });
-
-  it('should disable pool', async () => {
-    const { controller, rewardToken, poolToken } = await loadFixture(deployTokensAndController);
-    const [owner, other, poolOne] = await ethers.getSigners();
-
-    await controller.addPool(poolOne.address);
-    await controller.disablePool(0);
-    expect(await controller.poolActivated(0)).to.equals(false);
-  });
-
-  it('should not disable pool not governance', async () => {
-    const { controller, rewardToken, poolToken } = await loadFixture(deployTokensAndController);
-    const [owner, other, poolOne] = await ethers.getSigners();
-
-    await expect(controller.connect(other).disablePool(0)).to.be.revertedWith("not governance");
-  });
-
-  it('should not disable pool not set', async () => {
-    const { controller, rewardToken, poolToken } = await loadFixture(deployTokensAndController);
-    const [owner, other] = await ethers.getSigners();
-
-    await expect(controller.disablePool("1")).to.be.revertedWith("pool address not set");
-  });
-
-  it('should update pool weight', async () => {
-    const { controller, rewardToken, poolToken } = await loadFixture(deployTokensAndController);
-    const [owner, other, poolOne] = await ethers.getSigners();
-
-    await controller.addPool(poolOne.address);
-    await controller.updatePoolWeight(0, "100");
-    expect(await controller.poolWeight(0)).to.equals("100");
-  });
-
-  it('should not update pool weight not governance', async () => {
-    const { controller, rewardToken, poolToken } = await loadFixture(deployTokensAndController);
-    const [owner, other, poolOne] = await ethers.getSigners();
-
-    await expect(controller.connect(other).updatePoolWeight(0, "100")).to.be.revertedWith("not governance");
-  });
-
-  it('should not update pool weight not set', async () => {
-    const { controller, rewardToken, poolToken } = await loadFixture(deployTokensAndController);
-    const [owner, other] = await ethers.getSigners();
-
-    await expect(controller.updatePoolWeight("1", "100")).to.be.revertedWith("pool address not set");
-  });
-
-  it('should checkpoint no balance', async () => {
-    const { controller, rewardToken, poolToken } = await loadFixture(deployTokensAndController);
-    const [owner, other, poolOne, poolTwo] = await ethers.getSigners();
-
-    await controller.addPool(poolOne.address);
-    await controller.addPool(poolTwo.address);
-    await controller.updatePoolWeight(0, "100");
-    await controller.updatePoolWeight(1, "100");
-
-    await time.increase(3600);
-    await controller.checkpoint();
-    const poolOneShare = await controller.claimable(poolOne.address);
-    const poolTwoShare = await controller.claimable(poolTwo.address);
-    expect(poolOneShare).to.equals("0");
-    expect(poolTwoShare).to.equals("0");
-  });
-
-  it('should checkpoint no weight', async () => {
-    const { controller, rewardToken, poolToken } = await loadFixture(deployTokensAndController);
-    const [owner, other, poolOne, poolTwo] = await ethers.getSigners();
-
-    await controller.addPool(poolOne.address);
-    await controller.addPool(poolTwo.address);
-    await poolToken.mint(poolOne.address, "10000");
-    await poolToken.mint(poolTwo.address, "20000");
-
-    await time.increase(3600);
-    await controller.checkpoint();
-    const poolOneShare = await controller.claimable(poolOne.address);
-    const poolTwoShare = await controller.claimable(poolTwo.address);
-    expect(poolOneShare).to.equals("0");
-    expect(poolTwoShare).to.equals("0");
-  });
-
   it('should checkpoint', async () => {
-    const { controller, rewardToken, poolToken } = await loadFixture(deployTokensAndController);
+    const { controller, rewardToken, poolToken, votingEscrow, rewardController } = await loadFixture(deployTokensAndController);
     const [owner, other, poolOne, poolTwo] = await ethers.getSigners();
-
-    await controller.addPool(poolOne.address);
-    await controller.addPool(poolTwo.address);
+ 
+    await rewardController['addType(string,uint256)']("Pool", "1");
+    await rewardController['addGauge(address,uint128,uint256)'](poolOne.address, 0, "1");
+    await rewardController['addGauge(address,uint128,uint256)'](poolTwo.address, 0, "1");
     await poolToken.mint(poolOne.address, "10000");
     await poolToken.mint(poolTwo.address, "10000");
-    await controller.updatePoolWeight(0, "100");
-    await controller.updatePoolWeight(1, "100");
+    await rewardToken.mint(other.address, "1000000000000000000");
+    await rewardToken.connect(other).approve(votingEscrow.address, "1000000000000000000");
+    await votingEscrow.connect(other).createLock("1000000000000000000", 1753675829);
+    await rewardController.connect(other).voteForGaugeWeights(poolOne.address, "1000");
+    await rewardController.connect(other).voteForGaugeWeights(poolTwo.address, "1000");
 
-    await time.increase(3600);
+
+    await time.increase(7 * 86400);
     await controller.checkpoint();
-    const poolOneShare = await controller.claimable(0);
-    const poolTwoShare = await controller.claimable(1);
+    const poolOneShare = await controller.claimable(poolOne.address);
+    const poolTwoShare = await controller.claimable(poolTwo.address);
     expect(poolOneShare).to.greaterThan(0);
     expect(poolOneShare).to.equals(poolTwoShare);
   });
 
   it('should claim', async () => {
-    const { controller, rewardToken, poolToken } = await loadFixture(deployTokensAndController);
+    const { controller, rewardToken, poolToken, votingEscrow, rewardController } = await loadFixture(deployTokensAndController);
     const [owner, other, poolOne, poolTwo] = await ethers.getSigners();
-
-    await controller.addPool(poolOne.address);
-    await controller.addPool(poolTwo.address);
+ 
+    await rewardController['addType(string,uint256)']("Pool", "1");
+    await rewardController['addGauge(address,uint128,uint256)'](poolOne.address, 0, "1");
+    await rewardController['addGauge(address,uint128,uint256)'](poolTwo.address, 0, "1");
     await poolToken.mint(poolOne.address, "10000");
     await poolToken.mint(poolTwo.address, "10000");
-    await controller.updatePoolWeight(0, "100");
-    await controller.updatePoolWeight(1, "100");
-    await rewardToken.mint(controller.address, "10000000000000000000000");
+    await rewardToken.mint(other.address, "1000000000000000000");
+    await rewardToken.mint(controller.address, "10000000000000000000000")
+    await rewardToken.connect(other).approve(votingEscrow.address, "1000000000000000000");
+    await votingEscrow.connect(other).createLock("1000000000000000000", 1753675829);
+    await rewardController.connect(other).voteForGaugeWeights(poolOne.address, "1000");
+    await rewardController.connect(other).voteForGaugeWeights(poolTwo.address, "1000");
 
-    await time.increase(3600);
+
+    await time.increase(7 * 86400);
     await controller.connect(poolOne).claim();
     await controller.connect(poolTwo).claim();
-    const poolOneShare = await controller.claimable(0);
-    const poolTwoShare = await controller.claimable(1);
-    const poolOneClaimed = await controller.claimed(0);
-    const poolTwoClaimed = await controller.claimed(1);
+    const poolOneShare = await controller.claimable(poolOne.address);
+    const poolTwoShare = await controller.claimable(poolTwo.address);
+    const poolOneClaimed = await controller.claimed(poolOne.address);
+    const poolTwoClaimed = await controller.claimed(poolTwo.address);
     const poolOneBalance = await rewardToken.balanceOf(poolOne.address);
     const poolTwoBalance = await rewardToken.balanceOf(poolTwo.address);
     expect(poolOneShare).to.greaterThan(0);
