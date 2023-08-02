@@ -223,6 +223,7 @@ contract StableAssetApplication is Initializable, ReentrancyGuardUpgradeable {
    * @param _destToken pool of the dest token.
    * @param _sourceToken source token.
    * @param _destToken dest token.
+   * @param _amount Amount of source token to swap.
    * @return The Amount of dest token to get.
    * @return The amount of fee to charge.
    */

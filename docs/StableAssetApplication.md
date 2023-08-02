@@ -50,7 +50,7 @@ function getSwapAmountCrossPool(contract StableAsset _sourceSwap, contract Stabl
 | _destSwap | contract StableAsset | undefined |
 | _sourceToken | address | source token. |
 | _destToken | address | dest token. |
-| _amount | uint256 | undefined |
+| _amount | uint256 | Amount of source token to swap. |
 
 #### Returns
 
