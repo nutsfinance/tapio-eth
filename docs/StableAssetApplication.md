@@ -35,7 +35,7 @@ function allowedPoolAddress(address) external view returns (bool)
 ### getSwapAmountCrossPool
 
 ```solidity
-function getSwapAmountCrossPool(contract StableAsset _sourceSwap, contract StableAsset _destSwap, address _sourceToken, address _destToken, uint256 _amount) external view returns (uint256)
+function getSwapAmountCrossPool(contract StableAsset _sourceSwap, contract StableAsset _destSwap, address _sourceToken, address _destToken, uint256 _amount) external view returns (uint256, uint256)
 ```
 
 
@@ -50,13 +50,14 @@ function getSwapAmountCrossPool(contract StableAsset _sourceSwap, contract Stabl
 | _destSwap | contract StableAsset | undefined |
 | _sourceToken | address | source token. |
 | _destToken | address | dest token. |
-| _amount | uint256 | Amount of source token to swap. |
+| _amount | uint256 | undefined |
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint256 | undefined |
+| _0 | uint256 | The Amount of dest token to get. |
+| _1 | uint256 | The amount of fee to charge. |
 
 ### governance
 
