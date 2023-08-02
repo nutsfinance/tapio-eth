@@ -1453,13 +1453,13 @@ describe("StableAsset", function () {
     await expect(swap.updateA(1000, 8)).to.be.revertedWith("block in the past");
 
     /// Check updateA fails if A not set
-    await expect(swap.updateA(0, 26)).to.be.revertedWith("A not set");
+    await expect(swap.updateA(0, 40)).to.be.revertedWith("A not set");
 
     /// Check updateA fails if A exceeds max
-    await expect(swap.updateA(1000000, 27)).to.be.revertedWith("A not set");
+    await expect(swap.updateA(1000000, 40)).to.be.revertedWith("A not set");
 
-    /// Update A to 1000 at block 28
-    await swap.updateA(1000, 30); // need extra block to update
+    /// Update A to 1000 at block 50
+    await swap.updateA(1000, 50); // need extra block to update
     /// Check initial A is 100
     expect(await swap.initialA()).to.equals(100);
     /// Check future A is 1000

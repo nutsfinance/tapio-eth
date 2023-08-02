@@ -311,7 +311,7 @@ describe("StableAssetApplication", function () {
     /// Get swap amount cross pool with token1 to token2
     const amount = await application.getSwapAmountCrossPool(swapOne.address, swapTwo.address, token1.address, token2.address, web3.utils.toWei('1'));
     /// Check amount is greater than 0
-    expect(amount).to.greaterThan(0);
+    expect(amount.toString()).to.equal("993980347757552144,5994925804469116");
   });
 
   it('should swap cross pool', async () => {
