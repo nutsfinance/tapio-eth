@@ -5,9 +5,8 @@ async function main() {
   console.log(deployer.address);
   const StableAsset = await ethers.getContractFactory("StableAsset");
 
-  const swapOne = await upgrades.upgradeProxy('0xd22f46Ba0425066159F828EFA5fFEab4DAeb9fd0', StableAsset);
-  const swapTwo = await upgrades.upgradeProxy('0x6f07114487BaC63856060f9f1739d66b16DF579b', StableAsset);
-  const swapThree = await upgrades.upgradeProxy('0xa97aB47cE31EDA363305897D64a242976186A0f6', StableAsset);
+  const swapOne = await upgrades.upgradeProxy('0x52543FE4597230ef59fC8C38D3a682Fa2F0fc026', StableAsset);
+  const swapTwo = await upgrades.upgradeProxy('0x8589F6Dedae785634f47132193680149d43cfaF3', StableAsset);
 
   console.log("application deployed");
 }

@@ -5,7 +5,7 @@ async function main() {
   console.log(deployer.address);
   const StableAssetApplication = await ethers.getContractFactory("StableAssetApplication");
 
-  const application = await upgrades.upgradeProxy('0x9aabd039fD0bF767Db26293a039998e85Bd31255', StableAssetApplication);
+  const application = await upgrades.upgradeProxy('0x019270711FF6774a14732F850f9A15008F15c05f', StableAssetApplication);
 
   console.log("application deployed");
 }
