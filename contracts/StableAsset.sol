@@ -28,7 +28,8 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
   event TokenSwapped(
     address indexed buyer,
     uint256 swapAmount,
-    int256[] amounts,
+    uint256[] amounts,
+    bool[] amountPositive,
     uint256 feeAmount
   );
   /**
@@ -688,15 +689,19 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     }
     IERC20Upgradeable(tokens[_j]).safeTransfer(msg.sender, transferAmountJ);
 
-    int256[] memory amounts = new int256[](_balances.length);
-    amounts[_i] = -int256(_dx);
-    amounts[_j] = int256(transferAmountJ);
+    uint256[] memory amounts = new uint256[](_balances.length);
+    bool[] memory amountPositive = new bool[](_balances.length);
+    amounts[_i] = _dx;
+    amounts[_j] = transferAmountJ;
+    amountPositive[_i] = false;
+    amountPositive[_j] = true;
 
     feeAmount = collectFeeOrYield(true);
     emit TokenSwapped(
       msg.sender,
       transferAmountJ,
       amounts,
+      amountPositive,
       feeAmount
     );
     return transferAmountJ;

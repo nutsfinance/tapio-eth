@@ -1140,7 +1140,7 @@ event SwapFeeModified(uint256 swapFee)
 ### TokenSwapped
 
 ```solidity
-event TokenSwapped(address indexed buyer, uint256 swapAmount, int256[] amounts, uint256 feeAmount)
+event TokenSwapped(address indexed buyer, uint256 swapAmount, uint256[] amounts, bool[] amountPositive, uint256 feeAmount)
 ```
 
 This event is emitted when a token swap occurs.
@@ -1153,7 +1153,8 @@ This event is emitted when a token swap occurs.
 |---|---|---|
 | buyer `indexed` | address | is the address of the account that made the swap. |
 | swapAmount  | uint256 | undefined |
-| amounts  | int256[] | is an array containing the amounts of each token received by the buyer. |
+| amounts  | uint256[] | is an array containing the amounts of each token received by the buyer. |
+| amountPositive  | bool[] | undefined |
 | feeAmount  | uint256 | is the amount of transaction fee charged for the swap. |
 
 ### YieldCollected
