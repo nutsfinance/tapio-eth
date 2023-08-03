@@ -150,15 +150,11 @@ describe("StableAsset", function () {
     await expect(upgrades.deployProxy(StableAsset, [[token1.address, ethers.constants.AddressZero], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient.address, yieldRecipient.address, poolToken.address, 0, constant.address, 1]))
       .to.be.revertedWith("token not set");
 
-    // TODO: uncomment after fix the TODO in initialize
-    // await expect(upgrades.deployProxy(StableAsset, [[token1.address, token2.address], [PRECISION, 10], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient.address, yieldRecipient.address, poolToken.address, 0]))
-    //     .to.be.revertedWith("precision not set");
+    await expect(upgrades.deployProxy(StableAsset, [[token1.address, token2.address], [PRECISION, 10], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient.address, yieldRecipient.address, poolToken.address, 0, constant.address, 1])).to.be.revertedWith("precision not set");
 
-    // await expect(upgrades.deployProxy(StableAsset, [[token1.address, token17.address], [PRECISION, "10000000000000000"], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient.address, yieldRecipient.address, poolToken.address, 0]))
-    //     .to.be.revertedWith("precision not set");
+    await expect(upgrades.deployProxy(StableAsset, [[token1.address, token17.address], [PRECISION, "10000000000000000"], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient.address, yieldRecipient.address, poolToken.address, 0, constant.address, 1])).to.be.revertedWith("precision not set");
 
-    // await expect(upgrades.deployProxy(StableAsset, [[token1.address, token19.address], [1, "1000000000000000000"], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient.address, yieldRecipient.address, poolToken.address, 0]))
-    //     .to.be.revertedWithPanic(0x11);
+    await expect(upgrades.deployProxy(StableAsset, [[token1.address, token19.address], [1, "1000000000000000000"], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient.address, yieldRecipient.address, poolToken.address, 0, constant.address, 1])).to.be.revertedWithPanic(0x11);
 
     /// Check deploy swap with fee recipient not set
     await expect(upgrades.deployProxy(StableAsset, [[token1.address, token2.address], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE, REDEEM_FEE], ethers.constants.AddressZero, yieldRecipient.address, poolToken.address, 0, constant.address, 1]))
@@ -1457,13 +1453,13 @@ describe("StableAsset", function () {
     await expect(swap.updateA(1000, 8)).to.be.revertedWith("block in the past");
 
     /// Check updateA fails if A not set
-    await expect(swap.updateA(0, 26)).to.be.revertedWith("A not set");
+    await expect(swap.updateA(0, 40)).to.be.revertedWith("A not set");
 
     /// Check updateA fails if A exceeds max
-    await expect(swap.updateA(1000000, 27)).to.be.revertedWith("A not set");
+    await expect(swap.updateA(1000000, 40)).to.be.revertedWith("A not set");
 
-    /// Update A to 1000 at block 28
-    await swap.updateA(1000, 30); // need extra block to update
+    /// Update A to 1000 at block 50
+    await swap.updateA(1000, 50); // need extra block to update
     /// Check initial A is 100
     expect(await swap.initialA()).to.equals(100);
     /// Check future A is 1000

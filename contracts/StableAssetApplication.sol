@@ -224,6 +224,8 @@ contract StableAssetApplication is Initializable, ReentrancyGuardUpgradeable {
    * @param _sourceToken source token.
    * @param _destToken dest token.
    * @param _amount Amount of source token to swap.
+   * @return The Amount of dest token to get.
+   * @return The amount of fee to charge.
    */
   function getSwapAmountCrossPool(
     StableAsset _sourceSwap,
@@ -231,7 +233,7 @@ contract StableAssetApplication is Initializable, ReentrancyGuardUpgradeable {
     address _sourceToken,
     address _destToken,
     uint256 _amount
-  ) public view returns (uint256) {
+  ) public view returns (uint256, uint256) {
     address[] memory sourceTokens = _sourceSwap.getTokens();
     address[] memory destTokens = _destSwap.getTokens();
     require(allowedPoolAddress[address(_sourceSwap)], "pool not allowed");
@@ -240,12 +242,12 @@ contract StableAssetApplication is Initializable, ReentrancyGuardUpgradeable {
     uint256 destIndex = findTokenIndex(destTokens, _destToken);
     uint256[] memory _mintAmounts = new uint256[](sourceTokens.length);
     _mintAmounts[sourceIndex] = _amount;
-    (uint256 mintAmount, ) = _sourceSwap.getMintAmount(_mintAmounts);
-    (uint256 redeemAmount, ) = _destSwap.getRedeemSingleAmount(
+    (uint256 mintAmount, uint256 mintFee) = _sourceSwap.getMintAmount(_mintAmounts);
+    (uint256 redeemAmount, uint256 redeemFee) = _destSwap.getRedeemSingleAmount(
       mintAmount,
       destIndex
     );
-    return redeemAmount;
+    return (redeemAmount, mintFee + redeemFee);
   }
 
   /**

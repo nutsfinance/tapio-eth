@@ -576,7 +576,7 @@
 - Check updateA fails if block in the past
 - Check updateA fails if A not set
 - Check updateA fails if A exceeds max
-- Update A to 1000 at block 28
+- Update A to 1000 at block 50
 - Check initial A is 100
 - Check future A is 1000
 - Deploy swap and tokens
