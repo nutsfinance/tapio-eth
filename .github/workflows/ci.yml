@@ -93,7 +93,7 @@ jobs:
         with:
           status: ${{ job.status }}
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
   e2e-edge:
     runs-on: ubuntu-latest
 
@@ -174,4 +174,4 @@ jobs:
         with:
           status: ${{ job.status }}
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
