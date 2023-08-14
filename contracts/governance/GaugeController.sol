@@ -58,10 +58,21 @@ contract GaugeController is Initializable, ReentrancyGuardUpgradeable {
   uint256 public lastCheckpoint;
 
   /**
+   * @dev Pending governance address,
+   */
+  address public pendingGovernance;
+
+  /**
    * @dev This event is emitted when the governance is modified.
    * @param governance is the new value of the governance.
    */
   event GovernanceModified(address governance);
+
+  /**
+   * @dev This event is emitted when the governance is modified.
+   * @param governance is the new value of the governance.
+   */
+  event GovernanceProposed(address governance);
 
   /**
    * @dev This event is emitted when the rewardRatePerWeek is modified.
@@ -116,14 +127,23 @@ contract GaugeController is Initializable, ReentrancyGuardUpgradeable {
   }
 
   /**
-   * @dev Updates the govenance address.
-   * @param _governance The new governance address.
+   * @dev Propose the govenance address.
+   * @param _governance Address of the new governance.
    */
-  function setGovernance(address _governance) external {
+  function proposeGovernance(address _governance) public {
     require(msg.sender == governance, "not governance");
-    require(_governance != address(0x0), "governance not set");
-    governance = _governance;
-    emit GovernanceModified(_governance);
+    pendingGovernance = _governance;
+    emit GovernanceProposed(_governance);
+  }
+
+  /**
+   * @dev Accept the govenance address.
+   */
+  function acceptGovernance() public {
+    require(msg.sender == pendingGovernance, "not pending governance");
+    governance = pendingGovernance;
+    pendingGovernance = address(0);
+    emit GovernanceModified(governance);
   }
 
   /**

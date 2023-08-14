@@ -10,6 +10,17 @@ The StableSwap Application provides an interface for users to interact with Stab
 
 ## Methods
 
+### acceptGovernance
+
+```solidity
+function acceptGovernance() external nonpayable
+```
+
+
+
+*Accept the govenance address.*
+
+
 ### allowedPoolAddress
 
 ```solidity
@@ -110,6 +121,39 @@ function mint(contract StableAsset _swap, uint256[] _amounts, uint256 _minMintAm
 | _amounts | uint256[] | Unconverted token balances used to mint pool token. |
 | _minMintAmount | uint256 | Minimum amount of pool token to mint. |
 
+### pendingGovernance
+
+```solidity
+function pendingGovernance() external view returns (address)
+```
+
+
+
+*Pending governance address,*
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | address | undefined |
+
+### proposeGovernance
+
+```solidity
+function proposeGovernance(address _governance) external nonpayable
+```
+
+
+
+*Propose the govenance address.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _governance | address | Address of the new governance. |
+
 ### redeemProportion
 
 ```solidity
@@ -146,22 +190,6 @@ function redeemSingle(contract StableAsset _swap, uint256 _amount, uint256 _i, u
 | _amount | uint256 | Amount of pool token to redeem. |
 | _i | uint256 | Index of the token to redeem to. |
 | _minRedeemAmount | uint256 | Minimum amount of the underlying token to redeem to. |
-
-### setGovernance
-
-```solidity
-function setGovernance(address _governance) external nonpayable
-```
-
-
-
-*Updates the govenance address.*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _governance | address | The new governance address. |
 
 ### swap
 
@@ -246,6 +274,22 @@ function wETH() external view returns (contract IWETH)
 
 ```solidity
 event GovernanceModified(address governance)
+```
+
+
+
+*This event is emitted when the governance is modified.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| governance  | address | is the new value of the governance. |
+
+### GovernanceProposed
+
+```solidity
+event GovernanceProposed(address governance)
 ```
 
 

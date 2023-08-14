@@ -10,6 +10,17 @@ ERC20 token used by the StableSwap pool
 
 ## Methods
 
+### acceptGovernance
+
+```solidity
+function acceptGovernance() external nonpayable
+```
+
+
+
+*Accept the govenance address.*
+
+
 ### allowance
 
 ```solidity
@@ -264,15 +275,32 @@ function name() external view returns (string)
 |---|---|---|
 | _0 | string | undefined |
 
-### setGovernance
+### pendingGovernance
 
 ```solidity
-function setGovernance(address _governance) external nonpayable
+function pendingGovernance() external view returns (address)
 ```
 
 
 
-*Updates the govenance address.*
+*Pending governance address for the token.*
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | address | undefined |
+
+### proposeGovernance
+
+```solidity
+function proposeGovernance(address _governance) external nonpayable
+```
+
+
+
+*Propose the govenance address.*
 
 #### Parameters
 
@@ -399,6 +427,38 @@ event Approval(address indexed owner, address indexed spender, uint256 value)
 | owner `indexed` | address | undefined |
 | spender `indexed` | address | undefined |
 | value  | uint256 | undefined |
+
+### GovernanceModified
+
+```solidity
+event GovernanceModified(address governance)
+```
+
+
+
+*This event is emitted when the governance is modified.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| governance  | address | is the new value of the governance. |
+
+### GovernanceProposed
+
+```solidity
+event GovernanceProposed(address governance)
+```
+
+
+
+*This event is emitted when the governance is modified.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| governance  | address | is the new value of the governance. |
 
 ### Initialized
 

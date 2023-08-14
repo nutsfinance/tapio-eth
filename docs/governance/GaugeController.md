@@ -27,6 +27,17 @@ function WEEK() external view returns (uint256)
 |---|---|---|
 | _0 | uint256 | undefined |
 
+### acceptGovernance
+
+```solidity
+function acceptGovernance() external nonpayable
+```
+
+
+
+*Accept the govenance address.*
+
+
 ### checkpoint
 
 ```solidity
@@ -163,6 +174,23 @@ function lastCheckpoint() external view returns (uint256)
 |---|---|---|
 | _0 | uint256 | undefined |
 
+### pendingGovernance
+
+```solidity
+function pendingGovernance() external view returns (address)
+```
+
+
+
+*Pending governance address,*
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | address | undefined |
+
 ### poolToken
 
 ```solidity
@@ -179,6 +207,22 @@ function poolToken() external view returns (address)
 | Name | Type | Description |
 |---|---|---|
 | _0 | address | undefined |
+
+### proposeGovernance
+
+```solidity
+function proposeGovernance(address _governance) external nonpayable
+```
+
+
+
+*Propose the govenance address.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _governance | address | Address of the new governance. |
 
 ### rewardController
 
@@ -230,22 +274,6 @@ function rewardToken() external view returns (address)
 | Name | Type | Description |
 |---|---|---|
 | _0 | address | undefined |
-
-### setGovernance
-
-```solidity
-function setGovernance(address _governance) external nonpayable
-```
-
-
-
-*Updates the govenance address.*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _governance | address | The new governance address. |
 
 ### updateRewardRate
 
@@ -306,6 +334,22 @@ event Claimed(address indexed poolAddress, uint256 amount)
 
 ```solidity
 event GovernanceModified(address governance)
+```
+
+
+
+*This event is emitted when the governance is modified.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| governance  | address | is the new value of the governance. |
+
+### GovernanceProposed
+
+```solidity
+event GovernanceProposed(address governance)
 ```
 
 

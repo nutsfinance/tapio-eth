@@ -37,6 +37,11 @@ contract StableAssetApplication is Initializable, ReentrancyGuardUpgradeable {
   mapping(address => bool) public allowedPoolAddress;
 
   /**
+   * @dev Pending governance address,
+   */
+  address public pendingGovernance;
+
+  /**
    * @dev This event is emitted when the governance is modified.
    * @param governance is the new value of the governance.
    */
@@ -48,6 +53,12 @@ contract StableAssetApplication is Initializable, ReentrancyGuardUpgradeable {
    * @param enabled pool enabled or disabled.
    */
   event PoolModified(address swap, bool enabled);
+
+  /**
+   * @dev This event is emitted when the governance is modified.
+   * @param governance is the new value of the governance.
+   */
+  event GovernanceProposed(address governance);
 
   /**
    * @dev Initializes the StableSwap Application contract.
@@ -316,13 +327,23 @@ contract StableAssetApplication is Initializable, ReentrancyGuardUpgradeable {
   }
 
   /**
-   * @dev Updates the govenance address.
-   * @param _governance The new governance address.
+   * @dev Propose the govenance address.
+   * @param _governance Address of the new governance.
    */
-  function setGovernance(address _governance) external {
+  function proposeGovernance(address _governance) public {
     require(msg.sender == governance, "not governance");
-    governance = _governance;
-    emit GovernanceModified(_governance);
+    pendingGovernance = _governance;
+    emit GovernanceProposed(_governance);
+  }
+
+  /**
+   * @dev Accept the govenance address.
+   */
+  function acceptGovernance() public {
+    require(msg.sender == pendingGovernance, "not pending governance");
+    governance = pendingGovernance;
+    pendingGovernance = address(0);
+    emit GovernanceModified(governance);
   }
 
   /**

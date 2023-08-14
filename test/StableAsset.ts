@@ -1336,9 +1336,10 @@ describe("StableAsset", function () {
     const { swap, token1, token2, poolToken } = await loadFixture(deploySwapAndTokens);
     const [owner, feeRecipient, user, admin] = await ethers.getSigners();
     /// Check can't update governance if not governance
-    await expect(swap.connect(admin).setGovernance(user.address)).to.be.revertedWith("not governance");
+    await expect(swap.connect(admin).proposeGovernance(user.address)).to.be.revertedWith("not governance");
     /// Update governance to user
-    await swap.setGovernance(user.address);
+    await swap.proposeGovernance(user.address);
+    await swap.connect(user).acceptGovernance();
     /// Check governance is user
     expect(await swap.governance()).to.equals(user.address);
   });

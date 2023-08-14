@@ -32,7 +32,8 @@ describe("GaugeController", function () {
     const { controller, rewardToken, poolToken } = await loadFixture(deployTokensAndController);
     const [owner, other] = await ethers.getSigners();
 
-    await controller.setGovernance(other.address);
+    await controller.proposeGovernance(other.address);
+    await controller.connect(other).acceptGovernance();
     expect(await controller.governance()).to.equals(other.address);
   });
 
@@ -40,7 +41,7 @@ describe("GaugeController", function () {
     const { controller, rewardToken, poolToken } = await loadFixture(deployTokensAndController);
     const [owner, other] = await ethers.getSigners();
 
-    await expect(controller.connect(other).setGovernance(other.address)).to.be.revertedWith("not governance");
+    await expect(controller.connect(other).proposeGovernance(other.address)).to.be.revertedWith("not governance");
   });
 
   it('should update reward rate', async () => {

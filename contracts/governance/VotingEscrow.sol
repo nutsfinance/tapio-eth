@@ -28,8 +28,8 @@ contract VotingEscrow is Initializable, ReentrancyGuardUpgradeable, IVotes {
   using SafeERC20Upgradeable for IERC20Upgradeable;
 
   struct Point {
-    uint128 bias;
-    uint128 slope; // - dweight / dt
+    uint256 bias;
+    uint256 slope; // - dweight / dt
     uint256 ts;
     uint256 blk; // block
   }
@@ -38,14 +38,14 @@ contract VotingEscrow is Initializable, ReentrancyGuardUpgradeable, IVotes {
   // What we can do is to extrapolate ***At functions
 
   struct LockedBalance {
-    uint128 amount;
+    uint256 amount;
     uint256 end;
   }
 
-  uint128 public constant DEPOSIT_FOR_TYPE = 0;
-  uint128 public constant CREATE_LOCK_TYPE = 1;
-  uint128 public constant INCREASE_LOCK_AMOUNT = 2;
-  uint128 public constant INCREASE_unlockTime = 3;
+  uint256 public constant DEPOSIT_FOR_TYPE = 0;
+  uint256 public constant CREATE_LOCK_TYPE = 1;
+  uint256 public constant INCREASE_LOCK_AMOUNT = 2;
+  uint256 public constant INCREASE_unlockTime = 3;
   address public constant ZERO_ADDRESS = address(0);
 
   event CommitOwnership(address admin);
@@ -54,7 +54,7 @@ contract VotingEscrow is Initializable, ReentrancyGuardUpgradeable, IVotes {
     address indexed provider,
     uint256 value,
     uint256 indexed locktime,
-    uint128 type_,
+    uint256 type_,
     uint256 ts
   );
   event Withdraw(address indexed provider, uint256 value, uint256 ts);
@@ -73,7 +73,7 @@ contract VotingEscrow is Initializable, ReentrancyGuardUpgradeable, IVotes {
   Point[100000000000000000000000000000] public pointHistory; // epoch -> unsigned point
   mapping(address => Point[1000000000]) public userPointHistory; // user -> Point[user_epoch]
   mapping(address => uint256) public userPointEpoch;
-  mapping(uint256 => uint128) public slopeChanges; // time -> signed slope change
+  mapping(uint256 => uint256) public slopeChanges; // time -> signed slope change
 
   // Aragon's view methods for compatibility
   address public controller;
@@ -150,7 +150,7 @@ contract VotingEscrow is Initializable, ReentrancyGuardUpgradeable, IVotes {
     }
   }
 
-  function getLastUserSlope(address addr) external view returns (uint128) {
+  function getLastUserSlope(address addr) external view returns (uint256) {
     uint256 uepoch = userPointEpoch[addr];
     return userPointHistory[addr][uepoch].slope;
   }
@@ -173,20 +173,20 @@ contract VotingEscrow is Initializable, ReentrancyGuardUpgradeable, IVotes {
   ) internal {
     Point memory uOld;
     Point memory uNew;
-    uint128 oldDslope = 0;
-    uint128 newDslope = 0;
+    uint256 oldDslope = 0;
+    uint256 newDslope = 0;
     uint256 _epoch = epoch;
 
     if (addr != ZERO_ADDRESS) {
       // Calculate slopes and biases
       // Kept at zero when they have to
       if (oldLocked.end > block.timestamp && oldLocked.amount > 0) {
-        uOld.slope = oldLocked.amount / uint128(MAXTIME);
-        uOld.bias = uOld.slope * uint128((oldLocked.end - block.timestamp));
+        uOld.slope = oldLocked.amount / MAXTIME;
+        uOld.bias = uOld.slope * (oldLocked.end - block.timestamp);
       }
       if (newLocked.end > block.timestamp && newLocked.amount > 0) {
-        uNew.slope = newLocked.amount / uint128(MAXTIME);
-        uNew.bias = uNew.slope * uint128(newLocked.end - block.timestamp);
+        uNew.slope = newLocked.amount / MAXTIME;
+        uNew.bias = uNew.slope * (newLocked.end - block.timestamp);
       }
 
       // Read values of scheduled changes in the slope
@@ -231,13 +231,13 @@ contract VotingEscrow is Initializable, ReentrancyGuardUpgradeable, IVotes {
       // Hopefully it won't happen that this won't get used in 5 years!
       // If it does, users will be able to withdraw but vote weight will be broken
       tI += WEEK;
-      uint128 dSlope = 0;
+      uint256 dSlope = 0;
       if (tI > block.timestamp) {
         tI = block.timestamp;
       } else {
         dSlope = slopeChanges[tI];
       }
-      lastPoint.bias -= lastPoint.slope * uint128(tI - lastCheckpoint);
+      lastPoint.bias -= lastPoint.slope * (tI - lastCheckpoint);
       lastPoint.slope += dSlope;
       if (lastPoint.bias < 0) {
         // This can happen
@@ -317,7 +317,7 @@ contract VotingEscrow is Initializable, ReentrancyGuardUpgradeable, IVotes {
     uint256 _value,
     uint256 unlockTime,
     LockedBalance memory lockedBalance,
-    uint128 _type
+    uint256 _type
   ) internal {
     LockedBalance memory _locked = lockedBalance;
     uint256 supplyBefore = supply;
@@ -325,7 +325,7 @@ contract VotingEscrow is Initializable, ReentrancyGuardUpgradeable, IVotes {
     supply = supplyBefore + _value;
     LockedBalance memory oldLocked = _locked;
     // Adding to existing lock, or if a lock is expired - creating a new one
-    _locked.amount += uint128(_value);
+    _locked.amount += _value;
     if (unlockTime != 0) {
       _locked.end = unlockTime;
     }
@@ -466,7 +466,7 @@ contract VotingEscrow is Initializable, ReentrancyGuardUpgradeable, IVotes {
       return 0;
     } else {
       Point memory lastPoint = userPointHistory[addr][_epoch];
-      lastPoint.bias -= lastPoint.slope * uint128(_t - lastPoint.ts);
+      lastPoint.bias -= lastPoint.slope * (_t - lastPoint.ts);
       if (lastPoint.bias < 0) {
         lastPoint.bias = 0;
       }
@@ -522,7 +522,7 @@ contract VotingEscrow is Initializable, ReentrancyGuardUpgradeable, IVotes {
       blockTime += (dT * (_block - pointZero.blk)) / dBlock;
     }
 
-    upoint.bias -= upoint.slope * uint128(blockTime - upoint.ts);
+    upoint.bias -= upoint.slope * (blockTime - upoint.ts);
     if (upoint.bias >= 0) {
       return upoint.bias;
     } else {
@@ -538,13 +538,13 @@ contract VotingEscrow is Initializable, ReentrancyGuardUpgradeable, IVotes {
     uint256 tI = (lastPoint.ts / WEEK) * WEEK;
     for (uint256 i = 0; i < 255; i++) {
       tI += WEEK;
-      uint128 dSlope = 0;
+      uint256 dSlope = 0;
       if (tI > t) {
         tI = t;
       } else {
         dSlope = slopeChanges[tI];
       }
-      lastPoint.bias -= lastPoint.slope * uint128(tI - lastPoint.ts);
+      lastPoint.bias -= lastPoint.slope * (tI - lastPoint.ts);
       if (tI == t) {
         break;
       }

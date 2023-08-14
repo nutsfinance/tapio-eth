@@ -44,6 +44,17 @@ function MAX_A() external view returns (uint256)
 |---|---|---|
 | _0 | uint256 | undefined |
 
+### acceptGovernance
+
+```solidity
+function acceptGovernance() external nonpayable
+```
+
+
+
+*Accept the govenance address.*
+
+
 ### admins
 
 ```solidity
@@ -502,6 +513,23 @@ function paused() external view returns (bool)
 |---|---|---|
 | _0 | bool | undefined |
 
+### pendingGovernance
+
+```solidity
+function pendingGovernance() external view returns (address)
+```
+
+
+
+*Pending governance address,*
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | address | undefined |
+
 ### poolToken
 
 ```solidity
@@ -540,6 +568,22 @@ function precisions(uint256) external view returns (uint256)
 | Name | Type | Description |
 |---|---|---|
 | _0 | uint256 | undefined |
+
+### proposeGovernance
+
+```solidity
+function proposeGovernance(address _governance) external nonpayable
+```
+
+
+
+*Propose the govenance address.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _governance | address | Address of the new governance. |
 
 ### redeemFee
 
@@ -660,22 +704,6 @@ function setFeeRecipient(address _feeRecipient) external nonpayable
 | Name | Type | Description |
 |---|---|---|
 | _feeRecipient | address | The new recipient of mint/swap/redeem fees. |
-
-### setGovernance
-
-```solidity
-function setGovernance(address _governance) external nonpayable
-```
-
-
-
-*Updates the govenance address.*
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _governance | address | The new governance address. |
 
 ### setMintFee
 
@@ -1007,6 +1035,22 @@ event FeeRecipientModified(address recipient)
 
 ```solidity
 event GovernanceModified(address governance)
+```
+
+
+
+*This event is emitted when the governance is modified.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| governance  | address | is the new value of the governance. |
+
+### GovernanceProposed
+
+```solidity
+event GovernanceProposed(address governance)
 ```
 
 

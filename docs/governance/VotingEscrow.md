@@ -13,7 +13,7 @@
 ### CREATE_LOCK_TYPE
 
 ```solidity
-function CREATE_LOCK_TYPE() external view returns (uint128)
+function CREATE_LOCK_TYPE() external view returns (uint256)
 ```
 
 
@@ -25,12 +25,12 @@ function CREATE_LOCK_TYPE() external view returns (uint128)
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint128 | undefined |
+| _0 | uint256 | undefined |
 
 ### DEPOSIT_FOR_TYPE
 
 ```solidity
-function DEPOSIT_FOR_TYPE() external view returns (uint128)
+function DEPOSIT_FOR_TYPE() external view returns (uint256)
 ```
 
 
@@ -42,12 +42,12 @@ function DEPOSIT_FOR_TYPE() external view returns (uint128)
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint128 | undefined |
+| _0 | uint256 | undefined |
 
 ### INCREASE_LOCK_AMOUNT
 
 ```solidity
-function INCREASE_LOCK_AMOUNT() external view returns (uint128)
+function INCREASE_LOCK_AMOUNT() external view returns (uint256)
 ```
 
 
@@ -59,12 +59,12 @@ function INCREASE_LOCK_AMOUNT() external view returns (uint128)
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint128 | undefined |
+| _0 | uint256 | undefined |
 
 ### INCREASE_unlockTime
 
 ```solidity
-function INCREASE_unlockTime() external view returns (uint128)
+function INCREASE_unlockTime() external view returns (uint256)
 ```
 
 
@@ -76,7 +76,7 @@ function INCREASE_unlockTime() external view returns (uint128)
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint128 | undefined |
+| _0 | uint256 | undefined |
 
 ### MAXTIME
 
@@ -493,7 +493,7 @@ function futureSmartWalletChecker() external view returns (address)
 ### getLastUserSlope
 
 ```solidity
-function getLastUserSlope(address addr) external view returns (uint128)
+function getLastUserSlope(address addr) external view returns (uint256)
 ```
 
 
@@ -510,7 +510,7 @@ function getLastUserSlope(address addr) external view returns (uint128)
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint128 | undefined |
+| _0 | uint256 | undefined |
 
 ### getPastTotalSupply
 
@@ -633,7 +633,7 @@ function initialize(address tokenAddr, string _name, string _symbol, string _ver
 ### locked
 
 ```solidity
-function locked(address) external view returns (uint128 amount, uint256 end)
+function locked(address) external view returns (uint256 amount, uint256 end)
 ```
 
 
@@ -650,7 +650,7 @@ function locked(address) external view returns (uint128 amount, uint256 end)
 
 | Name | Type | Description |
 |---|---|---|
-| amount | uint128 | undefined |
+| amount | uint256 | undefined |
 | end | uint256 | undefined |
 
 ### lockedEnd
@@ -695,7 +695,7 @@ function name() external view returns (string)
 ### pointHistory
 
 ```solidity
-function pointHistory(uint256) external view returns (uint128 bias, uint128 slope, uint256 ts, uint256 blk)
+function pointHistory(uint256) external view returns (uint256 bias, uint256 slope, uint256 ts, uint256 blk)
 ```
 
 
@@ -712,15 +712,15 @@ function pointHistory(uint256) external view returns (uint128 bias, uint128 slop
 
 | Name | Type | Description |
 |---|---|---|
-| bias | uint128 | undefined |
-| slope | uint128 | undefined |
+| bias | uint256 | undefined |
+| slope | uint256 | undefined |
 | ts | uint256 | undefined |
 | blk | uint256 | undefined |
 
 ### slopeChanges
 
 ```solidity
-function slopeChanges(uint256) external view returns (uint128)
+function slopeChanges(uint256) external view returns (uint256)
 ```
 
 
@@ -737,7 +737,7 @@ function slopeChanges(uint256) external view returns (uint128)
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint128 | undefined |
+| _0 | uint256 | undefined |
 
 ### smartWalletChecker
 
@@ -910,7 +910,7 @@ function userPointEpoch(address) external view returns (uint256)
 ### userPointHistory
 
 ```solidity
-function userPointHistory(address, uint256) external view returns (uint128 bias, uint128 slope, uint256 ts, uint256 blk)
+function userPointHistory(address, uint256) external view returns (uint256 bias, uint256 slope, uint256 ts, uint256 blk)
 ```
 
 
@@ -928,8 +928,8 @@ function userPointHistory(address, uint256) external view returns (uint128 bias,
 
 | Name | Type | Description |
 |---|---|---|
-| bias | uint128 | undefined |
-| slope | uint128 | undefined |
+| bias | uint256 | undefined |
+| slope | uint256 | undefined |
 | ts | uint256 | undefined |
 | blk | uint256 | undefined |
 
@@ -1059,7 +1059,7 @@ event DelegateVotesChanged(address indexed delegate, uint256 previousBalance, ui
 ### Deposit
 
 ```solidity
-event Deposit(address indexed provider, uint256 value, uint256 indexed locktime, uint128 type_, uint256 ts)
+event Deposit(address indexed provider, uint256 value, uint256 indexed locktime, uint256 type_, uint256 ts)
 ```
 
 
@@ -1073,7 +1073,7 @@ event Deposit(address indexed provider, uint256 value, uint256 indexed locktime,
 | provider `indexed` | address | undefined |
 | value  | uint256 | undefined |
 | locktime `indexed` | uint256 | undefined |
-| type_  | uint128 | undefined |
+| type_  | uint256 | undefined |
 | ts  | uint256 | undefined |
 
 ### Initialized
