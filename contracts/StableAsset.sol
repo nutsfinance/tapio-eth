@@ -1273,9 +1273,12 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     function getTokens() public view returns (address[] memory) {
         return tokens;
     }
-
+    
+    /**
+     * @notice This function allows to rebase TapETH by increasing his total supply
+     * from the current stableSwap pool by the staking rewards and the swap fee.
+     */
     function rebase() external returns (uint256) {
-        uint256[] memory oldBalances = balances;
         uint256[] memory _balances = balances;
         uint256 A = getA();
         uint256 oldD = totalSupply;

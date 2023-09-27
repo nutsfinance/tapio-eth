@@ -3,13 +3,14 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 interface ITapETH is IERC20 {
+    
     function proposeGovernance(address _governance) external;
 
     function acceptGovernance() external;
 
-    function addMinter(address _pool) external;
+    function addPool(address _pool) external;
 
-    function removeMinter(address _pool) external;
+    function removePool(address _pool) external;
 
     function getTotalPooledEther() external view returns (uint256);
 
