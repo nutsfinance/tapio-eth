@@ -56,7 +56,7 @@ contract TapETH is ITapETH {
     }
 
     function proposeGovernance(address _governance) public {
-        require(msg.sender == governance, "TapETH: not governance");
+        require(msg.sender == governance, "TapETH: no governance");
         pendingGovernance = _governance;
         emit GovernanceProposed(_governance);
     }
@@ -64,7 +64,7 @@ contract TapETH is ITapETH {
     function acceptGovernance() public {
         require(
             msg.sender == pendingGovernance,
-            "TapETH: not pending governance"
+            "TapETH: no pending governance"
         );
         governance = pendingGovernance;
         pendingGovernance = address(0);
@@ -72,7 +72,7 @@ contract TapETH is ITapETH {
     }
 
     function addPool(address _pool) public {
-        require(msg.sender == governance, "TapETH: not governance");
+        require(msg.sender == governance, "TapETH: no governance");
         require(_pool != address(0), "TapETH: zero address");
         require(!isPool[_pool], "TapETH: pool is already added");
         isPool[_pool] = true;
@@ -81,7 +81,7 @@ contract TapETH is ITapETH {
     }
 
     function removePool(address _pool) public {
-        require(msg.sender == governance, "TapETH: not governance");
+        require(msg.sender == governance, "TapETH: no governance");
         require(isPool[_pool], "TapETH: pool doesn't exist");
         isPool[_pool] = false;
         emit PoolRemoved(_pool);
@@ -357,12 +357,10 @@ contract TapETH is ITapETH {
     }
 
     function burnShares(uint256 _sharesAmount) external {
-        require(isPool[msg.sender], "TapETH: no pool");
         _burnShares(msg.sender, _sharesAmount);
     }
 
     function burnSharesFrom(address _account, uint256 _sharesAmount) external {
-        require(isPool[msg.sender], "TapETH: no pool");
         _spendAllowance(_account, msg.sender, _sharesAmount);
         _burnShares(_account, _sharesAmount);
     }
@@ -431,18 +429,17 @@ contract TapETH is ITapETH {
      * @return the total amount of shares in existence.
      */
     function _getTotalShares() internal view returns (uint256) {
-
         return totalShares;
     }
- 
-      /**
+
+    /**
      * @return the amount of shares owned by `_account`.
      */
     function _sharesOf(address _account) internal view returns (uint256) {
         return shares[_account];
     }
 
-     /**
+    /**
      * @notice Moves `_sharesAmount` shares from `_sender` to `_recipient`.
      */
     function _transferShares(
@@ -452,10 +449,16 @@ contract TapETH is ITapETH {
     ) internal {
         require(_sender != address(0), "TapETH: zero address");
         require(_recipient != address(0), "TapETH: zero address");
-        require(_recipient != address(this), "TapETH: TRANSFER_TO_tapETH_CONTRACT");
+        require(
+            _recipient != address(this),
+            "TapETH: TRANSFER_TO_tapETH_CONTRACT"
+        );
 
         uint256 currentSenderShares = shares[_sender];
-        require(_sharesAmount <= currentSenderShares, "TapETH: BALANCE_EXCEEDED");
+        require(
+            _sharesAmount <= currentSenderShares,
+            "TapETH: BALANCE_EXCEEDED"
+        );
 
         shares[_sender] = currentSenderShares + _sharesAmount;
         shares[_recipient] += _sharesAmount;
