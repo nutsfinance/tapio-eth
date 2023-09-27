@@ -13,7 +13,7 @@
     "@openzeppelin/hardhat-upgrades": "^1.22.1",
     "@primitivefi/hardhat-dodoc": "^0.2.3",
     "codecov": "^3.8.3",
-    "hardhat": "^2.14.0",
+    "hardhat": "^2.17.3",
     "solidity-coverage": "^0.8.2",
     "web3": "^1.9.0"
   },
