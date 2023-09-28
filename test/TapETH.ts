@@ -310,4 +310,198 @@ describe("TapETH", function () {
       );
     });
   });
+
+  describe("burnSharesFrom", function () {
+    it("it Should burn shares and update allowances", async function () {
+      const { tapETH, accounts, governance, owner, pool1, pool2 } =
+        await deployeFixture();
+      let user = accounts[4];
+      let spender = accounts[5];
+      await tapETH.connect(governance).addPool(pool1.address);
+      let amount1 = 1_000_000_000_000_000_000_000n;
+      let amount2 = 500_000_000_000_000_000_000n;
+      let deltaAmount = amount1 - amount2;
+      await tapETH.connect(pool1).mintShares(user.address, amount1);
+      await tapETH.connect(user).approve(spender.address, amount1);
+      await tapETH.connect(spender).burnSharesFrom(user.address, amount2);
+      expect(await tapETH.totalSupply()).to.equal(amount1);
+      expect(await tapETH.getTotalShares()).to.equal(deltaAmount);
+      expect(await tapETH.sharesOf(user.address)).to.equal(deltaAmount);
+      expect(await tapETH.balanceOf(user.address)).to.equal(amount1);
+      expect(await tapETH.allowance(user.address, spender.address)).to.equal(
+        deltaAmount
+      );
+    });
+    it("it Should revert when amount exceeds allowances", async function () {
+      const { tapETH, accounts, governance, owner, pool1, pool2 } =
+        await deployeFixture();
+      let user = accounts[4];
+      let spender = accounts[5];
+      await tapETH.connect(governance).addPool(pool1.address);
+      let amount1 = 1_000_000_000_000_000_000_000n;
+      let amount2 = 500_000_000_000_000_000_000n;
+      let amount3 = 500_000_000_000_000_000_001n;
+      let deltaAmount = amount1 - amount2;
+      await tapETH.connect(pool1).mintShares(user.address, amount1);
+      await tapETH.connect(user).approve(spender.address, amount2);
+      await expect(
+        tapETH.connect(spender).burnSharesFrom(user.address, amount3)
+      ).to.be.revertedWith("TapETH: ALLOWANCE_EXCEEDED");
+    });
+  });
+
+  describe("transfer", function () {
+    it("it Should updates shares", async function () {
+      const { tapETH, accounts, governance, owner, pool1, pool2 } =
+        await deployeFixture();
+      let user1 = accounts[4];
+      let user2 = accounts[5];
+      await tapETH.connect(governance).addPool(pool1.address);
+      let amount1 = 1_000_000_000_000_000_000_000n;
+      let amount2 = 500_000_000_000_000_000_000n;
+      let deltaAmount = amount1 - amount2;
+      await tapETH.connect(pool1).mintShares(user1.address, amount1);
+      await tapETH.connect(user1).transfer(user2.address, amount2);
+      expect(await tapETH.totalSupply()).to.equal(amount1);
+      expect(await tapETH.getTotalShares()).to.equal(amount1);
+      expect(await tapETH.sharesOf(user1.address)).to.equal(deltaAmount);
+      expect(await tapETH.sharesOf(user2.address)).to.equal(amount2);
+      expect(await tapETH.balanceOf(user1.address)).to.equal(deltaAmount);
+      expect(await tapETH.balanceOf(user2.address)).to.equal(amount2);
+    });
+  });
+
+  describe("transferFrom", function () {
+    it("it Should updates shares and update allowances", async function () {
+      const { tapETH, accounts, governance, owner, pool1, pool2 } =
+        await deployeFixture();
+      let user1 = accounts[4];
+      let user2 = accounts[5];
+      let spender = accounts[6];
+      await tapETH.connect(governance).addPool(pool1.address);
+      let amount1 = 1_000_000_000_000_000_000_000n;
+      let amount2 = 500_000_000_000_000_000_000n;
+      let deltaAmount = amount1 - amount2;
+      await tapETH.connect(pool1).mintShares(user1.address, amount1);
+      await tapETH.connect(user1).approve(spender.address, amount1);
+      await tapETH
+        .connect(spender)
+        .transferFrom(user1.address, user2.address, amount2);
+      expect(await tapETH.totalSupply()).to.equal(amount1);
+      expect(await tapETH.getTotalShares()).to.equal(amount1);
+      expect(await tapETH.sharesOf(user1.address)).to.equal(deltaAmount);
+      expect(await tapETH.sharesOf(user2.address)).to.equal(amount2);
+      expect(await tapETH.balanceOf(user1.address)).to.equal(deltaAmount);
+      expect(await tapETH.balanceOf(user2.address)).to.equal(amount2);
+      expect(await tapETH.allowance(user1.address, spender.address)).to.equal(
+        deltaAmount
+      );
+    });
+
+    it("it Should updates shares and update allowances", async function () {
+      const { tapETH, accounts, governance, owner, pool1, pool2 } =
+        await deployeFixture();
+      let user1 = accounts[4];
+      let user2 = accounts[5];
+      let spender = accounts[6];
+      await tapETH.connect(governance).addPool(pool1.address);
+      let amount1 = 1_000_000_000_000_000_000_000n;
+      let amount2 = 500_000_000_000_000_000_000n;
+      let amount3 = 500_000_000_000_000_000_001n;
+      let deltaAmount = amount1 - amount2;
+      await tapETH.connect(pool1).mintShares(user1.address, amount1);
+      await tapETH.connect(user1).approve(spender.address, amount2);
+      await expect(
+        tapETH
+          .connect(spender)
+          .transferFrom(user1.address, user2.address, amount3)
+      ).to.be.revertedWith("TapETH: ALLOWANCE_EXCEEDED");
+    });
+  });
+  describe("transferShares", function () {
+    it("it Should updates shares", async function () {
+      const { tapETH, accounts, governance, owner, pool1, pool2 } =
+        await deployeFixture();
+      let user1 = accounts[4];
+      let user2 = accounts[5];
+      await tapETH.connect(governance).addPool(pool1.address);
+      let amount1 = 1_000_000_000_000_000_000_000n;
+      let amount2 = 500_000_000_000_000_000_000n;
+      let deltaAmount = amount1 - amount2;
+      await tapETH.connect(pool1).mintShares(user1.address, amount1);
+      await tapETH.connect(user1).transferShares(user2.address, amount2);
+      expect(await tapETH.totalSupply()).to.equal(amount1);
+      expect(await tapETH.getTotalShares()).to.equal(amount1);
+      expect(await tapETH.sharesOf(user1.address)).to.equal(deltaAmount);
+      expect(await tapETH.sharesOf(user2.address)).to.equal(amount2);
+      expect(await tapETH.balanceOf(user1.address)).to.equal(deltaAmount);
+      expect(await tapETH.balanceOf(user2.address)).to.equal(amount2);
+    });
+  });
+
+  describe("transferSharesFrom", function () {
+    it("it Should updates shares and update allowances", async function () {
+      const { tapETH, accounts, governance, owner, pool1, pool2 } =
+        await deployeFixture();
+      let user1 = accounts[4];
+      let user2 = accounts[5];
+      let spender = accounts[6];
+      await tapETH.connect(governance).addPool(pool1.address);
+      let amount1 = 1_000_000_000_000_000_000_000n;
+      let amount2 = 500_000_000_000_000_000_000n;
+      let deltaAmount = amount1 - amount2;
+      await tapETH.connect(pool1).mintShares(user1.address, amount1);
+      await tapETH.connect(user1).approve(spender.address, amount1);
+      await tapETH
+        .connect(spender)
+        .transferSharesFrom(user1.address, user2.address, amount2);
+      expect(await tapETH.totalSupply()).to.equal(amount1);
+      expect(await tapETH.getTotalShares()).to.equal(amount1);
+      expect(await tapETH.sharesOf(user1.address)).to.equal(deltaAmount);
+      expect(await tapETH.sharesOf(user2.address)).to.equal(amount2);
+      expect(await tapETH.balanceOf(user1.address)).to.equal(deltaAmount);
+      expect(await tapETH.balanceOf(user2.address)).to.equal(amount2);
+      expect(await tapETH.allowance(user1.address, spender.address)).to.equal(
+        deltaAmount
+      );
+    });
+
+    it("it Should updates shares and update allowances", async function () {
+      const { tapETH, accounts, governance, owner, pool1, pool2 } =
+        await deployeFixture();
+      let user1 = accounts[4];
+      let user2 = accounts[5];
+      let spender = accounts[6];
+      await tapETH.connect(governance).addPool(pool1.address);
+      let amount1 = 1_000_000_000_000_000_000_000n;
+      let amount2 = 500_000_000_000_000_000_000n;
+      let amount3 = 500_000_000_000_000_000_001n;
+      let deltaAmount = amount1 - amount2;
+      await tapETH.connect(pool1).mintShares(user1.address, amount1);
+      await tapETH.connect(user1).approve(spender.address, amount2);
+      await expect(
+        tapETH
+          .connect(spender)
+          .transferSharesFrom(user1.address, user2.address, amount3)
+      ).to.be.revertedWith("TapETH: ALLOWANCE_EXCEEDED");
+    });
+  });
+
+  describe("setTotalSupply", function () {
+    it("it Should increase totalSupply", async function () {
+      const { tapETH, accounts, governance, owner, pool1, pool2 } =
+        await deployeFixture();
+      let user = accounts[4];
+      await tapETH.connect(governance).addPool(pool1.address);
+      let amount1 = 1_000_000_000_000_000_000_000n;
+      let amount2 = 500_000_000_000_000_000_000n;
+      let totalAmount = amount1 + amount2;
+      await tapETH.connect(pool1).mintShares(user.address, amount1);
+      await tapETH.connect(pool1).setTotalSupply(amount2);
+      expect(await tapETH.totalSupply()).to.equal(totalAmount);
+      expect(await tapETH.getTotalShares()).to.equal(amount1);
+      expect(await tapETH.sharesOf(user.address)).to.equal(amount1);
+      expect(await tapETH.balanceOf(user.address)).to.equal(totalAmount);
+    });
+  });
 });
