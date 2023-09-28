@@ -460,7 +460,7 @@ contract TapETH is ITapETH {
             "TapETH: BALANCE_EXCEEDED"
         );
 
-        shares[_sender] = currentSenderShares + _sharesAmount;
+        shares[_sender] -= _sharesAmount;
         shares[_recipient] += _sharesAmount;
     }
 
