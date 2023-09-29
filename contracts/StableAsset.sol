@@ -311,7 +311,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
         }
         require(_feeRecipient != address(0x0), "fee recipient not set");
         require(_yieldRecipient != address(0x0), "yield recipient not set");
-        // require(_poolToken != address(0x0), "pool token not set");
+        require(address(_poolToken) != address(0x0), "pool token not set");
         require(_A > 0 && _A < MAX_A, "A not set");
         require(
             address(_exchangeRateProvider) != address(0x0),
@@ -1273,7 +1273,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     function getTokens() public view returns (address[] memory) {
         return tokens;
     }
-    
+
     /**
      * @notice This function allows to rebase TapETH by increasing his total supply
      * from the current stableSwap pool by the staking rewards and the swap fee.
