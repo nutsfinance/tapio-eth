@@ -303,7 +303,11 @@ contract TapETH is ITapETH {
     function getPooledEthByShares(
         uint256 _sharesAmount
     ) public view returns (uint256) {
-        return (_sharesAmount * _getTotalPooledEther()) / (totalShares);
+        if (totalShares == 0) {
+            return 0;
+        } else {
+            return (_sharesAmount * _getTotalPooledEther()) / (totalShares);
+        }
     }
 
     /**
