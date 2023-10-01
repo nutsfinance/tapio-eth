@@ -3,7 +3,6 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 interface ITapETH is IERC20 {
-    
     function proposeGovernance(address _governance) external;
 
     function acceptGovernance() external;
@@ -34,7 +33,9 @@ interface ITapETH is IERC20 {
 
     function setTotalSupply(uint256 _amount) external;
 
-    function rebase() external;
+    function setBuffer(uint256 _amount) external;
+
+    function rebase() external returns (uint256);
 
     function getPooledEthByShares(
         uint256 _sharesAmount

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
+import "@openzeppelin/contracts/utils/math/Math.sol";
 import "./interfaces/ITapETH.sol";
 
 interface Ipool {
@@ -21,10 +22,13 @@ interface Ipool {
  */
 
 contract TapETH is ITapETH {
+    using Math for uint256;
     uint256 internal constant INFINITE_ALLOWANCE = ~uint256(0);
 
     uint256 private totalShares;
     uint256 private _totalSupply;
+    uint256 private totalRewards;
+    uint256 public buffer;
     address public governance;
     address public pendingGovernance;
     mapping(address => uint256) private shares;
@@ -49,6 +53,7 @@ contract TapETH is ITapETH {
     event GovernanceProposed(address indexed governance);
     event PoolAdded(address indexed pool);
     event PoolRemoved(address indexed pool);
+    event SetBuffer(uint256);
 
     constructor(address _governance) {
         require(_governance != address(0), "TapETH: zero address");
@@ -263,20 +268,33 @@ contract TapETH is ITapETH {
      * @notice This function is called only by a stableSwap pool to increase
      * the total supply of TapETH by the staking rewards and the swap fee.
      */
+    function setBuffer(uint256 _amount) external {
+        require(msg.sender == governance, "TapETH: no governance");
+        buffer = _amount;
+        emit SetBuffer(_amount);
+    }
+
+    /**
+     * @notice This function is called only by a stableSwap pool to increase
+     * the total supply of TapETH by the staking rewards and the swap fee.
+     */
     function setTotalSupply(uint256 _amount) external {
         require(isPool[msg.sender], "TapETH: no pool");
-        _totalSupply += _amount;
+        uint256 _deltaBuffer = Math.min(buffer, _amount);
+        _totalSupply += _amount - _deltaBuffer;
+        totalRewards += _amount;
+        buffer -= _deltaBuffer;
     }
 
     /**
      * @notice This function allows to rebase TapETH by increasing his total supply
      * from all stableSwap pools by the staking rewards and the swap fee.
      */
-    function rebase() external {
+    function rebase() external returns (uint256 _amount) {
         for (uint256 i = 0; i < pools.length; i++) {
             address _pool = pools[i];
             if (isPool[_pool]) {
-                Ipool(_pool).rebase();
+                _amount += Ipool(_pool).rebase();
             }
         }
     }
