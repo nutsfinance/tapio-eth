@@ -259,7 +259,7 @@ contract TapETH is ITapETH {
   }
 
   /**
-   * @notice This function is called  by the governance to set  the buffer.
+   * @notice This function is called by the governance to set  the buffer.
    */
   function setBuffer(uint256 _amount) external {
     require(msg.sender == governance, "TapETH: no governance");
