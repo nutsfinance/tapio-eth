@@ -273,6 +273,7 @@ contract TapETH is ITapETH {
    */
   function setTotalSupply(uint256 _amount) external {
     require(isPool[msg.sender], "TapETH: no pool");
+    require(_amount != 0, "TapETH: zero amount");
     uint256 _deltaBuffer = Math.min(buffer, _amount);
     _totalSupply += _amount - _deltaBuffer;
     totalRewards += _amount;
