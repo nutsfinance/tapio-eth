@@ -559,10 +559,11 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
             );
         }
         totalSupply = newD;
-        poolToken.mintShares(feeRecipient, feeAmount);
         poolToken.mintShares(msg.sender, mintAmount);
-
-        feeAmount = collectFeeOrYield(true);
+        if (feeAmount != 0) {
+            poolToken.setTotalSupply(feeAmount);
+        }
+        collectFeeOrYield(true);
         emit Minted(msg.sender, mintAmount, _amounts, feeAmount);
         return mintAmount;
     }
@@ -910,7 +911,6 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
         }
         amounts[_i] = transferAmount;
         IERC20Upgradeable(tokens[_i]).safeTransfer(msg.sender, transferAmount);
-
         totalSupply = D - _amount;
         uint256 _sharesAmount = poolToken.getPooledEthByShares(_amount);
         poolToken.burnSharesFrom(msg.sender, _sharesAmount);
