@@ -10,6 +10,10 @@ import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "./interfaces/IWETH.sol";
 import "./StableAsset.sol";
 
+interface Ipool {
+    function rebase() external returns (uint256);
+}
+
 /**
  * @title StableAsset Application
  * @author Nuts Finance Developer
@@ -35,6 +39,8 @@ contract StableAssetApplication is Initializable, ReentrancyGuardUpgradeable {
      * @dev Allowed pool address.
      */
     mapping(address => bool) public allowedPoolAddress;
+
+    address[] public pools;
 
     /**
      * @dev Pending governance address,
@@ -369,7 +375,24 @@ contract StableAssetApplication is Initializable, ReentrancyGuardUpgradeable {
      */
     function updatePool(address _swap, bool _enabled) external {
         require(msg.sender == governance, "not governance");
+        if (_enabled && !allowedPoolAddress[_swap]) {
+            pools.push(_swap);
+        }
         allowedPoolAddress[_swap] = _enabled;
+
         emit PoolModified(_swap, _enabled);
+    }
+
+    /**
+     * @notice This function allows to rebase TapETH by increasing his total supply
+     * from all stableSwap pools by the staking rewards and the swap fee.
+     */
+    function rebase() external returns (uint256 _amount) {
+        for (uint256 i = 0; i < pools.length; i++) {
+            address _pool = pools[i];
+            if (allowedPoolAddress[_pool]) {
+                _amount += Ipool(_pool).rebase();
+            }
+        }
     }
 }
