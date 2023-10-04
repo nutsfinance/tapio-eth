@@ -3,9 +3,8 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "./interfaces/ITapETH.sol";
 
-interface Ipool {
-    function rebase() external returns (uint256);
-}
+error InsufficientAllowance(uint256 currentAllowance, uint256 amount);
+error InsufficientBalance(uint256 currentBalance, uint256 amount);
 
 /**
  * @title Interest-bearing ERC20-like token for Tapio protocol
@@ -427,7 +426,10 @@ contract TapETH is ITapETH {
     ) internal {
         uint256 currentAllowance = allowances[_owner][_spender];
         if (currentAllowance != INFINITE_ALLOWANCE) {
-            require(currentAllowance >= _amount, "TapETH: ALLOWANCE_EXCEEDED");
+            if (currentAllowance < _amount) {
+                revert InsufficientAllowance(currentAllowance, _amount);
+            }
+
             _approve(_owner, _spender, currentAllowance - _amount);
         }
     }
@@ -462,10 +464,10 @@ contract TapETH is ITapETH {
         );
 
         uint256 currentSenderShares = shares[_sender];
-        require(
-            _sharesAmount <= currentSenderShares,
-            "TapETH: BALANCE_EXCEEDED"
-        );
+
+        if (_sharesAmount > currentSenderShares) {
+            revert InsufficientBalance(currentSenderShares, _sharesAmount);
+        }
 
         shares[_sender] -= _sharesAmount;
         shares[_recipient] += _sharesAmount;
@@ -496,7 +498,9 @@ contract TapETH is ITapETH {
         require(_account != address(0), "TapETH: BURN_FROM_ZERO_ADDR");
 
         uint256 accountShares = shares[_account];
-        require(_sharesAmount <= accountShares, "TapETH: BALANCE_EXCEEDED");
+        if (_sharesAmount > accountShares) {
+            revert InsufficientBalance(accountShares, _sharesAmount);
+        }
 
         uint256 preRebaseTokenAmount = getPooledEthByShares(_sharesAmount);
 
