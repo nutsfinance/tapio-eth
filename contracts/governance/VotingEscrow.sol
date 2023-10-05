@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.9;
+pragma solidity ^0.8.18;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
@@ -617,9 +617,7 @@ contract VotingEscrow is Initializable, ReentrancyGuardUpgradeable, IVotes {
     return this.totalSupplyAt(blockNumber);
   }
 
-  function delegates(
-    address account
-  ) external view override returns (address) {
+  function delegates(address account) external view override returns (address) {
     revert("unimplemented");
   }
 

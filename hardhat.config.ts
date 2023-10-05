@@ -47,8 +47,8 @@ const config: HardhatUserConfig = {
       "contracts/reth",
       "contracts/StableAsset.sol",
       "contracts/StableAssetApplication.sol",
-      "contracts/StableAssetToken.sol"
-    ]
+      "contracts/StableAssetToken.sol",
+    ],
   },
 };
 

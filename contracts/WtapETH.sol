@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.9;
+pragma solidity ^0.8.18;
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
 import "./interfaces/ITapETH.sol";
 
@@ -50,7 +50,7 @@ contract WtapETH is ERC20Permit {
      * @return Amount of tapETH user receives after unwrap
      */
     function unwrap(uint256 _wtapETHAmount) external returns (uint256) {
-        require(_wtapETHAmount > 0, "wstETH: zero amount unwrap not allowed");
+        require(_wtapETHAmount > 0, "wtapETH: zero amount unwrap not allowed");
         uint256 _tapETHAmount = tapETH.getPooledEthByShares(_wtapETHAmount);
         _burn(msg.sender, _wtapETHAmount);
         tapETH.transfer(msg.sender, _tapETHAmount);

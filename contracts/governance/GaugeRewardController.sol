@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.9;
+pragma solidity ^0.8.18;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
@@ -12,16 +12,19 @@ import "./VotingEscrow.sol";
 
 interface IGaugeRewardController {
   function nGauges() external view returns (uint128);
+
   function getGauge(uint128 index) external view returns (address);
-  function gaugeRelativeWeightWrite(
-    address addr
-  ) external returns (uint256);
-  function gaugeRelativeWeight(
-    address addr
-  ) external view returns (uint256);
+
+  function gaugeRelativeWeightWrite(address addr) external returns (uint256);
+
+  function gaugeRelativeWeight(address addr) external view returns (uint256);
 }
 
-contract GaugeRewardController is Initializable, ReentrancyGuardUpgradeable, IGaugeRewardController {
+contract GaugeRewardController is
+  Initializable,
+  ReentrancyGuardUpgradeable,
+  IGaugeRewardController
+{
   using SafeERC20Upgradeable for IERC20Upgradeable;
 
   uint256 public constant WEEK = 604800;
