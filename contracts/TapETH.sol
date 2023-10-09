@@ -356,7 +356,8 @@ contract TapETH is ITapETH {
   }
 
   function burnSharesFrom(address _account, uint256 _sharesAmount) external {
-    _spendAllowance(_account, msg.sender, _sharesAmount);
+    _tokensAmount = getPooledEthByShares(_sharesAmount);
+    _spendAllowance(_account, msg.sender, _tokensAmount);
     _burnShares(_account, _sharesAmount);
   }
 
