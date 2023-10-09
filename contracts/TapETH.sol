@@ -491,7 +491,7 @@ contract TapETH is ITapETH {
     uint256 preRebaseTokenAmount = getPooledEthByShares(_sharesAmount);
     shares[_account] -= _sharesAmount;
     totalShares -= _sharesAmount;
-    _totalSupply -= _sharesAmount;
+    _totalSupply -= preRebaseTokenAmount;
     newTotalShares = totalShares;
 
     uint256 postRebaseTokenAmount = getPooledEthByShares(_sharesAmount);
