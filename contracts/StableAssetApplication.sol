@@ -8,11 +8,8 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeab
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "./interfaces/IWETH.sol";
+import "./interfaces/Ipool.sol";
 import "./StableAsset.sol";
-
-interface Ipool {
-  function rebase() external returns (uint256);
-}
 
 error NotAllowedPool(address pool);
 error EthAmount(uint256 requiredAmount, uint256 sentAmount);

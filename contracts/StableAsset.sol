@@ -568,7 +568,8 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
       );
     }
     totalSupply = newD;
-    poolToken.mintShares(msg.sender, mintAmount);
+    uint256 _sharesAmount = poolToken.getSharesByPooledEth(mintAmount);
+    poolToken.mintShares(msg.sender, _sharesAmount);
 
     collectFeeOrYield(true);
     emit Minted(msg.sender, mintAmount, _amounts, feeAmount);
