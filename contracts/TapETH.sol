@@ -468,11 +468,11 @@ contract TapETH is ITapETH {
     uint256 _sharesAmount
   ) internal returns (uint256 newTotalShares) {
     require(_recipient != address(0), "TapETH: MINT_TO_ZERO_ADDR");
-
-    totalShares += _sharesAmount;
-    _totalSupply += _sharesAmount;
-    newTotalShares = totalShares;
+    uint256 _tokenAmount = getPooledEthByShares(_sharesAmount);
     shares[_recipient] += _sharesAmount;
+    totalShares += _sharesAmount;
+    newTotalShares = totalShares;
+    _totalSupply += _tokenAmount;
   }
 
   /**
@@ -492,8 +492,8 @@ contract TapETH is ITapETH {
     uint256 preRebaseTokenAmount = getPooledEthByShares(_sharesAmount);
     shares[_account] -= _sharesAmount;
     totalShares -= _sharesAmount;
-    _totalSupply -= preRebaseTokenAmount;
     newTotalShares = totalShares;
+    _totalSupply -= preRebaseTokenAmount;
 
     uint256 postRebaseTokenAmount = getPooledEthByShares(_sharesAmount);
 
