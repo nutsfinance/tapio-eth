@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
-import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20PermitUpgradeable.sol";
 import "./interfaces/ITapETH.sol";
 
 /**
@@ -19,12 +19,14 @@ import "./interfaces/ITapETH.sol";
  *
  */
 
-contract WtapETH is ERC20Permit {
+contract WtapETH is ERC20PermitUpgradeable {
   ITapETH public tapETH;
 
-  constructor(
+  function initialize(
     ITapETH _tapETH
-  ) ERC20Permit("Wrapped tapETH") ERC20("Wrapped tapETH", "wtapETH") {
+  )  public initializer{
+    __ERC20Permit_init("Wrapped tapETH");
+    __ERC20_init("Wrapped tapETH", "wtapETH");
     tapETH = _tapETH;
   }
 

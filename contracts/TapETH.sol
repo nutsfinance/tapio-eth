@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "./interfaces/ITapETH.sol";
 
@@ -20,7 +21,7 @@ error InsufficientBalance(uint256 currentBalance, uint256 amount);
  * where the _getTotalPooledEther() returns the total supply of tapETH controlled by the protocol.
  */
 
-contract TapETH is ITapETH {
+contract TapETH is Initializable, ITapETH {
     using Math for uint256;
     uint256 internal constant INFINITE_ALLOWANCE = ~uint256(0);
 
@@ -53,7 +54,7 @@ contract TapETH is ITapETH {
     event PoolRemoved(address indexed pool);
     event SetBuffer(uint256);
 
-    constructor(address _governance) {
+    function initialize(address _governance) public initializer {
         require(_governance != address(0), "TapETH: zero address");
         governance = _governance;
     }
