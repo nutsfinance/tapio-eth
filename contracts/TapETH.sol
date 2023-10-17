@@ -43,8 +43,7 @@ contract TapETH is Initializable, ITapETH {
 
     event SharesBurnt(
         address indexed account,
-        uint256 preRebaseTokenAmount,
-        uint256 postRebaseTokenAmount,
+        uint256 tokenAmount,
         uint256 sharesAmount
     );
 
@@ -297,7 +296,16 @@ contract TapETH is Initializable, ITapETH {
     function getSharesByPooledEth(
         uint256 _tapETHAmount
     ) public view returns (uint256) {
+        uint256 _totalPooledEther = _getTotalPooledEther();
+        uint256 _totalShares = _getTotalShares();
+        if (_totalPooledEther == 0){
+            return 0;
+        } else if(_totalShares == 0){
+            return _tapETHAmount;
+
+        } else {
         return (_tapETHAmount * _getTotalShares()) / _getTotalPooledEther();
+        }
     }
 
     /**
@@ -308,8 +316,10 @@ contract TapETH is Initializable, ITapETH {
     ) public view returns (uint256) {
         if (totalShares == 0) {
             return 0;
+        } else if (_totalSupply == 0){
+            return _sharesAmount;
         } else {
-            return (_sharesAmount * _getTotalPooledEther()) / (totalShares);
+            return (_sharesAmount * _totalSupply) / (totalShares);
         }
     }
 
@@ -358,19 +368,18 @@ contract TapETH is Initializable, ITapETH {
         return tokensAmount;
     }
 
-    function mintShares(address _account, uint256 _sharesAmount) external {
+    function mintShares(address _account, uint256 _tokenAmount) external {
         require(pools[msg.sender], "TapETH: no pool");
-        _mintShares(_account, _sharesAmount);
+        _mintShares(_account, _tokenAmount);
     }
 
-    function burnShares(uint256 _sharesAmount) external {
-        _burnShares(msg.sender, _sharesAmount);
+    function burnShares(uint256 _tokenAmount) external {
+        _burnShares(msg.sender, _tokenAmount);
     }
 
-    function burnSharesFrom(address _account, uint256 _sharesAmount) external {
-        uint256 _tokensAmount = getPooledEthByShares(_sharesAmount);
-        _spendAllowance(_account, msg.sender, _tokensAmount);
-        _burnShares(_account, _sharesAmount);
+    function burnSharesFrom(address _account, uint256 _tokenAmount) external {
+        _spendAllowance(_account, msg.sender, _tokenAmount);
+        _burnShares(_account, _tokenAmount);
     }
 
     /**
@@ -480,10 +489,15 @@ contract TapETH is Initializable, ITapETH {
      */
     function _mintShares(
         address _recipient,
-        uint256 _sharesAmount
+        uint256 _tokenAmount
     ) internal returns (uint256 newTotalShares) {
         require(_recipient != address(0), "TapETH: MINT_TO_ZERO_ADDR");
-        uint256 _tokenAmount = getPooledEthByShares(_sharesAmount);
+        uint256 _sharesAmount;
+        if(_totalSupply!=0 && totalShares!=0){
+            _sharesAmount = getSharesByPooledEth(_tokenAmount);
+        } else{
+            _sharesAmount = _tokenAmount;
+        }
         shares[_recipient] += _sharesAmount;
         totalShares += _sharesAmount;
         newTotalShares = totalShares;
@@ -495,27 +509,25 @@ contract TapETH is Initializable, ITapETH {
      */
     function _burnShares(
         address _account,
-        uint256 _sharesAmount
+        uint256 _tokenAmount
     ) internal returns (uint256 newTotalShares) {
         require(_account != address(0), "TapETH: BURN_FROM_ZERO_ADDR");
 
-        uint256 accountShares = shares[_account];
-        if (_sharesAmount > accountShares) {
-            revert InsufficientBalance(accountShares, _sharesAmount);
+        uint256 _balance = getPooledEthByShares(_sharesOf(_account));
+        if (_tokenAmount > _balance) {
+            revert InsufficientBalance(_balance, _tokenAmount);
         }
 
-        uint256 preRebaseTokenAmount = getPooledEthByShares(_sharesAmount);
+        uint256 _sharesAmount = getSharesByPooledEth(_tokenAmount);
         shares[_account] -= _sharesAmount;
         totalShares -= _sharesAmount;
         newTotalShares = totalShares;
-        _totalSupply -= preRebaseTokenAmount;
+        _totalSupply -= _tokenAmount;
 
-        uint256 postRebaseTokenAmount = getPooledEthByShares(_sharesAmount);
 
         emit SharesBurnt(
             _account,
-            preRebaseTokenAmount,
-            postRebaseTokenAmount,
+            _tokenAmount,
             _sharesAmount
         );
     }

@@ -568,8 +568,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
       );
     }
     totalSupply = newD;
-    uint256 _sharesAmount = poolToken.getSharesByPooledEth(mintAmount);
-    poolToken.mintShares(msg.sender, _sharesAmount);
+    poolToken.mintShares(msg.sender, mintAmount);
 
     collectFeeOrYield(true);
     emit Minted(msg.sender, mintAmount, _amounts, feeAmount);
@@ -924,8 +923,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     amounts[_i] = transferAmount;
     IERC20Upgradeable(tokens[_i]).safeTransfer(msg.sender, transferAmount);
     totalSupply = D - _amount;
-    uint256 _sharesAmount = poolToken.getPooledEthByShares(_amount);
-    poolToken.burnSharesFrom(msg.sender, _sharesAmount);
+    poolToken.burnSharesFrom(msg.sender, _amount);
     feeAmount = collectFeeOrYield(true);
     emit Redeemed(msg.sender, _amount, amounts, feeAmount);
     return transferAmount;
@@ -1021,8 +1019,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     // Updates token balances in storage.
     balances = _balances;
     totalSupply = oldD - redeemAmount;
-    uint256 _sharesAmount = poolToken.getPooledEthByShares(redeemAmount);
-    poolToken.burnSharesFrom(msg.sender, _sharesAmount);
+    poolToken.burnSharesFrom(msg.sender, redeemAmount);
     uint256[] memory amounts = _amounts;
     for (i = 0; i < _balances.length; i++) {
       if (_amounts[i] == 0) continue;
