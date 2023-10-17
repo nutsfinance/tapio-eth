@@ -297,14 +297,10 @@ contract TapETH is Initializable, ITapETH {
         uint256 _tapETHAmount
     ) public view returns (uint256) {
         uint256 _totalPooledEther = _getTotalPooledEther();
-        uint256 _totalShares = _getTotalShares();
-        if (_totalPooledEther == 0){
+        if (_totalPooledEther == 0) {
             return 0;
-        } else if(_totalShares == 0){
-            return _tapETHAmount;
-
         } else {
-        return (_tapETHAmount * _getTotalShares()) / _getTotalPooledEther();
+            return (_tapETHAmount * _getTotalShares()) / _totalPooledEther;
         }
     }
 
@@ -316,8 +312,6 @@ contract TapETH is Initializable, ITapETH {
     ) public view returns (uint256) {
         if (totalShares == 0) {
             return 0;
-        } else if (_totalSupply == 0){
-            return _sharesAmount;
         } else {
             return (_sharesAmount * _totalSupply) / (totalShares);
         }
@@ -493,9 +487,9 @@ contract TapETH is Initializable, ITapETH {
     ) internal returns (uint256 newTotalShares) {
         require(_recipient != address(0), "TapETH: MINT_TO_ZERO_ADDR");
         uint256 _sharesAmount;
-        if(_totalSupply!=0 && totalShares!=0){
+        if (_totalSupply != 0 && totalShares != 0) {
             _sharesAmount = getSharesByPooledEth(_tokenAmount);
-        } else{
+        } else {
             _sharesAmount = _tokenAmount;
         }
         shares[_recipient] += _sharesAmount;
@@ -524,12 +518,7 @@ contract TapETH is Initializable, ITapETH {
         newTotalShares = totalShares;
         _totalSupply -= _tokenAmount;
 
-
-        emit SharesBurnt(
-            _account,
-            _tokenAmount,
-            _sharesAmount
-        );
+        emit SharesBurnt(_account, _tokenAmount, _sharesAmount);
     }
 
     function _emitTransferEvents(
