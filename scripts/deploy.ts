@@ -21,7 +21,7 @@ async function main() {
   const constantAddress = '0x07e70721C1737a9D410bcd038BA7e82e8BC19e2a';
   const rocketRateAddress = '0xf2dD62922B5f0cb2a72dAeda711018d6F56EEb17';
 
-  const poolToken = await upgrades.deployProxy(TapETH, [], {timeout: 600000});
+  const poolToken = await upgrades.deployProxy(TapETH, [deployer.address], {timeout: 600000});
   console.log("poolToken deployed");
   console.log(`poolToken: ${poolToken.address}`);
 
