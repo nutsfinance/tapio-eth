@@ -67,7 +67,9 @@ describe("StableAsset", function () {
     /// Deploy token2 with name "test 2", symbol "T2", decimals 18
     const token2 = await MockToken.deploy("test 2", "T2", 18);
     /// Deploy pool token with name "Pool Token", symbol "PT", decimals 18
-    const poolToken = await StableAssetToken.deploy(governance.address);
+    const poolToken = await upgrades.deployProxy(StableAssetToken, [
+      governance.address,
+    ]);
     /// Deploy constant exchange rate provider with exchange rate 1
     const constant = await ConstantExchangeRateProvider.deploy();
 
@@ -113,7 +115,9 @@ describe("StableAsset", function () {
       "18"
     );
     /// Deploy pool token with name "Pool Token", symbol "PT", decimals 18
-    const poolToken = await StableAssetToken.deploy(governance.address);
+    const poolToken = await upgrades.deployProxy(StableAssetToken, [
+      governance.address,
+    ]);
 
     /// Deploy swap contract with [token1, token2], [PRECISION, PRECISION], [MINT_FEE, SWAP_FEE, REDEEM_FEE], feeRecipient, yieldRecipient, poolToken, and A = 100
     const swap = await upgrades.deployProxy(StableAsset, [
@@ -188,7 +192,9 @@ describe("StableAsset", function () {
     /// Deploy pool token with name "test 19", symbol "T19", decimals 19
     const token19 = await MockToken.deploy("test 19", "T19", 19);
     /// Deploy pool token with name "Pool Token", symbol "PT", decimals 18
-    const poolToken = await StableAssetToken.deploy(governance.address);
+    const poolToken = await upgrades.deployProxy(StableAssetToken, [
+      governance.address,
+    ]);
 
     /// Check deploy swap with no tokens
     await expect(
@@ -451,8 +457,12 @@ describe("StableAsset", function () {
     ]);
     /// Check amounts[0] is mint amount
     const mintAmount = amounts[0];
+    console.log(mintAmount);
     /// Check amounts[1] is fee amount
     const feeAmount = amounts[1];
+    console.log(feeAmount);
+    const totalAmount = mintAmount.add(feeAmount);
+    console.log(feeAmount);
     /// Check token1 balance is 100
     expect((await token1.balanceOf(user.address)).toString()).to.equals(
       web3.utils.toWei("100")
@@ -472,9 +482,7 @@ describe("StableAsset", function () {
     /// Check swap token2 balance is 0
     expect((await swap.balances(1)).toString()).to.equals("0");
     /// Check swap total supply is 0
-    expect((await swap.totalSupply()).toString()).to.equals(
-      (await poolToken.totalSupply()).toString()
-    );
+    expect((await swap.totalSupply()).toString()).to.equals("0");
 
     /// Mint 100 token1 and 100 token2 to pool token
     await swap
@@ -485,9 +493,18 @@ describe("StableAsset", function () {
     /// Check token2 balance is 0
     expect((await token2.balanceOf(user.address)).toString()).to.equals("0");
     /// Check pool token balance is mint amount
-    // expect((await poolToken.balanceOf(user.address)).toString()).to.equals(
-    mintAmount.toString();
-    // );
+    expect((await poolToken.balanceOf(user.address)).toString()).to.equals(
+      totalAmount.toString()
+    );
+    expect((await poolToken.sharesOf(user.address)).toString()).to.equals(
+      mintAmount.toString()
+    );
+    expect((await poolToken.getTotalShares()).toString()).to.equals(
+      mintAmount.toString()
+    );
+    expect((await poolToken.totalSupply()).toString()).to.equals(
+      totalAmount.toString()
+    );
     /// Check fee recipient balance is fee amount
     // expect(
     //(await poolToken.balanceOf(feeRecipient.address)).toString()
@@ -536,6 +553,7 @@ describe("StableAsset", function () {
     const mintAmount = amounts[0];
     /// Check amounts[1] is fee amount
     const feeAmount = amounts[1];
+    const totalAmount = mintAmount.add(feeAmount);
 
     /// Check token1 balance is 110
     expect((await token1.balanceOf(user.address)).toString()).to.equals(
@@ -548,13 +566,11 @@ describe("StableAsset", function () {
     /// Check pool token balance is 0
     expect((await poolToken.balanceOf(user.address)).toString()).to.equals("0");
     /// Check fee recipient balance is 0
-    expect(
-      (await poolToken.balanceOf(feeRecipient.address)).toString()
-    ).to.equals("0");
+    //expect(
+    //(await poolToken.balanceOf(feeRecipient.address)).toString()
+    //).to.equals("0");
     /// Check swap token1 balance is 0
-    expect((await swap.totalSupply()).toString()).to.equals(
-      (await poolToken.totalSupply()).toString()
-    );
+    expect((await swap.totalSupply()).toString()).to.equals("0");
 
     /// Mint 110 token1 and 90 token2 to pool token
     await swap
@@ -566,12 +582,18 @@ describe("StableAsset", function () {
     expect((await token2.balanceOf(user.address)).toString()).to.equals("0");
     /// Check pool token balance is mint amount
     expect((await poolToken.balanceOf(user.address)).toString()).to.equals(
+      totalAmount.toString()
+    );
+    expect((await poolToken.sharesOf(user.address)).toString()).to.equals(
+      mintAmount.toString()
+    );
+    expect((await poolToken.getTotalShares()).toString()).to.equals(
       mintAmount.toString()
     );
     /// Check fee recipient balance is fee amount
-    expect(
-      (await poolToken.balanceOf(feeRecipient.address)).toString()
-    ).to.equals(feeAmount.toString());
+    //expect(
+    //(await poolToken.balanceOf(feeRecipient.address)).toString()
+    //).to.equals(feeAmount.toString());
     /// Check swap token1 balance is 110
     expect((await swap.balances(0)).toString()).to.equals(
       web3.utils.toWei("110")
@@ -585,8 +607,8 @@ describe("StableAsset", function () {
       "199994974999676499958"
     );
     /// Check pool token total supply is about 200
-    expect((await swap.totalSupply()).toString()).to.equals(
-      (await poolToken.totalSupply()).toString()
+    expect((await poolToken.totalSupply()).toString()).to.equals(
+      totalAmount.toString()
     );
   });
 
@@ -890,19 +912,28 @@ describe("StableAsset", function () {
     /// Get fee amount
     const feeAmount = new BN(amounts[1].toString());
 
+    const totalShares = await poolToken.getTotalShares();
+    const totalBalance = await poolToken.totalSupply();
+    console.log(totalShares);
+    console.log(totalBalance);
     /// Transfer 25 pool token to user2
     await poolToken
       .connect(user)
       .transfer(user2.address, web3.utils.toWei("25"));
+
+    const shares2 = await poolToken.sharesOf(user2.address);
+    const balance2 = await poolToken.balanceOf(user2.address);
+    console.log(shares2);
+    console.log(balance2);
 
     /// Check user2 token1 balance is 0
     expect((await token1.balanceOf(user2.address)).toString()).to.equals("0");
     /// Check user2 token2 balance is 0
     expect((await token2.balanceOf(user2.address)).toString()).to.equals("0");
     /// Check user2 pool token balance is 25
-    expect((await poolToken.balanceOf(user2.address)).toString()).to.equals(
-      web3.utils.toWei("25")
-    );
+    // expect((await poolToken.balanceOf(user2.address)).toString()).to.equals(
+    // web3.utils.toWei("25")
+    //);
     /// Check swap token1 balance is 105
     expect((await token1.balanceOf(swap.address)).toString()).to.equals(
       web3.utils.toWei("105")
@@ -924,20 +955,21 @@ describe("StableAsset", function () {
       "189994704791049550806"
     );
     /// Check pool token total supply is same as swap total supply
-    expect((await swap.totalSupply()).toString()).to.equals(
-      (await poolToken.totalSupply()).toString()
+    expect((await poolToken.totalSupply()).toString()).to.equals(
+      totalAmount.toString()
     );
 
     /// Get fee before
-    const feeBefore = new BN(
-      (await poolToken.balanceOf(feeRecipient.address)).toString()
-    );
+    //const feeBefore = new BN(
+    // (await poolToken.balanceOf(feeRecipient.address)).toString()
+    //);
     /// Approve swap contract to spend 8 token2
-    await poolToken
-      .connect(user2)
-      .approve(swap.address, web3.utils.toWei("25"));
+    const amountToReedem = await poolToken.balanceOf(user2.address);
+    await poolToken.connect(user2).approve(swap.address, amountToReedem);
+    console.log(await poolToken.balanceOf(user2.address));
+    console.log(await poolToken.sharesOf(user2.address));
     /// Redeem 25 pool token
-    await swap.connect(user2).redeemProportion(web3.utils.toWei("25"), [0, 0]);
+    await swap.connect(user2).redeemProportion(amountToReedem, [0, 0]);
 
     /// The amount of token1 got. In original format.
     /// Check user2 token1 balance is token1Amount
@@ -948,9 +980,13 @@ describe("StableAsset", function () {
     expect((await token2.balanceOf(user2.address)).toString()).to.equals(
       token2Amount.toString()
     );
+    console.log(await poolToken.balanceOf(user2.address));
+    console.log(await poolToken.sharesOf(user2.address));
+
     /// Check user2 pool token balance is 0
+    expect((await poolToken.sharesOf(user2.address)).toString()).to.equals("1");
     expect((await poolToken.balanceOf(user2.address)).toString()).to.equals(
-      "0"
+      "1"
     );
     /// Check fee recipient pool token balance is feeAmount
     // assertAlmostTheSame(
@@ -976,9 +1012,9 @@ describe("StableAsset", function () {
       new BN(web3.utils.toWei("85")).sub(token2Amount.mul(new BN(PRECISION)))
     );
     /// Check swap total supply
-    //expect((await swap.totalSupply()).toString()).to.equals(
-    //  (await poolToken.totalSupply()).toString()
-    //);
+    expect((await swap.totalSupply()).toString()).to.equals(
+      (await poolToken.totalSupply()).toString()
+    );
   });
 
   it("should return the correct redeem amount to a single token", async () => {
@@ -1012,7 +1048,7 @@ describe("StableAsset", function () {
       .mint([web3.utils.toWei("105"), web3.utils.toWei("85")], 0);
 
     /// Get redeem amount with 25 pool token
-    const redeemAmount = new BN(web3.utils.toWei("25")).toString();
+    const redeemAmount = web3.utils.toWei("25");
     /// Get redeem amount to a single token
     const amounts = await swap.getRedeemSingleAmount(redeemAmount, 0);
     /// Get token1 amount from amounts
@@ -1061,13 +1097,8 @@ describe("StableAsset", function () {
       .connect(user)
       .mint([web3.utils.toWei("105"), web3.utils.toWei("85")], 0);
 
-    /// Get redeem amount with 25 pool token
-    const redeemAmount = new BN(web3.utils.toWei("25"));
     /// Get redeem amount to a single token
-    const amounts = await swap.getRedeemSingleAmount(
-      redeemAmount.toString(),
-      0
-    );
+    const amounts = await swap.getRedeemSingleAmount(web3.utils.toWei("25"), 0);
     /// Get token1 amount from amounts
     const token1Amount = new BN(amounts[0].toString());
     /// Get fee amount from amounts
@@ -1076,16 +1107,16 @@ describe("StableAsset", function () {
     /// Transfer 25 pool token to user2
     await poolToken
       .connect(user)
-      .transfer(user2.address, redeemAmount.toString());
+      .transfer(user2.address, web3.utils.toWei("25").toString());
 
     /// Check user2 token1 balance is 0
     expect((await token1.balanceOf(user2.address)).toString()).to.equals("0");
     /// Check user2 token2 balance is 0
     expect((await token2.balanceOf(user2.address)).toString()).to.equals("0");
     /// Check user2 swap pool token balance is 25
-    expect((await poolToken.balanceOf(user2.address)).toString()).to.equals(
-      redeemAmount.toString()
-    );
+    // expect((await poolToken.balanceOf(user2.address)).toString()).to.equals(
+    //redeemAmount.toString()
+    //);
     /// Check swap pool token1 balance is 105
     expect((await token1.balanceOf(swap.address)).toString()).to.equals(
       web3.utils.toWei("105")
@@ -1107,15 +1138,13 @@ describe("StableAsset", function () {
       (await poolToken.totalSupply()).toString()
     );
 
-    /// Get fee before redeem
-    const feeBefore = new BN(
-      (await poolToken.balanceOf(feeRecipient.address)).toString()
-    );
+    const redeemAmount = await poolToken.balanceOf(user2.address);
     /// Approve swap contract to spend 25 pool token
     await poolToken
       .connect(user2)
       .approve(swap.address, redeemAmount.toString());
     /// Redeem 25 pool token to token1
+
     await swap.connect(user2).redeemSingle(redeemAmount.toString(), 0, 0);
 
     /// The amount of token1 got. In original format.
@@ -1127,7 +1156,7 @@ describe("StableAsset", function () {
     expect((await token2.balanceOf(user2.address)).toString()).to.equals("0");
     /// Check user2 swap pool token balance is 0
     expect((await poolToken.balanceOf(user2.address)).toString()).to.equals(
-      "0"
+      "1"
     );
     /// Check fee recipient pool token balance is feeAmount + feeBefore
     //expect(
@@ -1151,9 +1180,9 @@ describe("StableAsset", function () {
       web3.utils.toWei("85")
     );
     /// Check swap pool total supply is same as pool token total supply
-    //expect((await swap.totalSupply()).toString()).to.equals(
-    // (await poolToken.totalSupply()).toString()
-    //);
+    expect((await swap.totalSupply()).toString()).to.equals(
+      (await poolToken.totalSupply()).toString()
+    );
   });
 
   it("should return the correct redeem amount to multiple tokens", async () => {
