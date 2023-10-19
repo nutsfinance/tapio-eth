@@ -334,7 +334,6 @@ contract TapETH is Initializable, ITapETH {
             msg.sender,
             _recipient,
             tokensAmount,
-
             _sharesAmount
         );
         return tokensAmount;

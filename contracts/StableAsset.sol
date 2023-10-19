@@ -829,9 +829,6 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
         totalSupply = D - _amount;
         // After reducing the redeem fee, the remaining pool tokens are burned!
         poolToken.burnSharesFrom(msg.sender, _amount);
-        if (redeemAmount > 0) {
-            poolToken.setTotalSupply(redeemAmount);
-        }
         feeAmount = collectFeeOrYield(true);
         emit Redeemed(msg.sender, _amount, amounts, feeAmount);
         return amounts;
