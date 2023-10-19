@@ -1,7 +1,7 @@
 import { time, loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
 import { expect } from "chai";
-import { ethers } from "hardhat";
+import { ethers, upgrades } from "hardhat";
 
 describe("TapETH", function () {
   // We define a fixture to reuse the same setup in every test.
@@ -16,8 +16,8 @@ describe("TapETH", function () {
     const pool2 = accounts[3];
 
     const TapETH = await ethers.getContractFactory("TapETH");
-    const tapETH = await TapETH.deploy(governance.address);
 
+    const tapETH = await upgrades.deployProxy(TapETH, [governance.address]);
     return { tapETH, accounts, governance, owner, pool1, pool2 };
   }
 
@@ -28,8 +28,7 @@ describe("TapETH", function () {
       await expect(tapETH.connect(governance).addPool(pool1.address))
         .to.emit(tapETH, "PoolAdded")
         .withArgs(pool1.address);
-      expect(await tapETH.isPool(pool1.address)).to.equal(true);
-      expect(await tapETH.pools(0)).to.equal(pool1.address);
+      expect(await tapETH.pools(pool1.address)).to.equal(true);
     });
     it("It Should revert when the caller is not the governance ", async function () {
       const { tapETH, accounts, governance, owner, pool1, pool2 } =
@@ -56,7 +55,7 @@ describe("TapETH", function () {
       await expect(tapETH.connect(governance).removePool(pool1.address))
         .to.emit(tapETH, "PoolRemoved")
         .withArgs(pool1.address);
-      expect(await tapETH.isPool(pool1.address)).to.equal(false);
+      expect(await tapETH.pools(pool1.address)).to.equal(false);
     });
     it("It Should revert when the caller is not the governance ", async function () {
       const { tapETH, accounts, governance, owner, pool1, pool2 } =
@@ -258,10 +257,10 @@ describe("TapETH", function () {
       let deltaAmount = amount1 - amount2;
       await tapETH.connect(pool1).mintShares(user.address, amount1);
       await tapETH.connect(user).burnShares(amount2);
-      expect(await tapETH.totalSupply()).to.equal(amount1);
+      expect(await tapETH.totalSupply()).to.equal(deltaAmount);
       expect(await tapETH.getTotalShares()).to.equal(deltaAmount);
       expect(await tapETH.sharesOf(user.address)).to.equal(deltaAmount);
-      expect(await tapETH.balanceOf(user.address)).to.equal(amount1);
+      expect(await tapETH.balanceOf(user.address)).to.equal(deltaAmount);
     });
 
     it("it Should burn shares for many users", async function () {
@@ -288,25 +287,25 @@ describe("TapETH", function () {
       await tapETH.connect(user1).burnShares(amountToBurn);
       await tapETH.connect(user2).burnShares(amountToBurn);
       await tapETH.connect(user3).burnShares(amountToBurn);
-      expect(await tapETH.totalSupply()).to.equal(amount1 + amount2 + amount3);
+      expect(await tapETH.totalSupply()).to.equal(deltaAmount);
       expect(await tapETH.getTotalShares()).to.equal(deltaAmount);
       expect(await tapETH.sharesOf(user1.address)).to.equal(
         amount1 - amountToBurn
       );
       expect(await tapETH.balanceOf(user1.address)).to.equal(
-        ((amount1 - amountToBurn) * (amount1 + amount2 + amount3)) / deltaAmount
+        amount1 - amountToBurn
       );
       expect(await tapETH.sharesOf(user2.address)).to.equal(
         amount2 - amountToBurn
       );
       expect(await tapETH.balanceOf(user2.address)).to.equal(
-        ((amount2 - amountToBurn) * (amount1 + amount2 + amount3)) / deltaAmount
+        amount2 - amountToBurn
       );
       expect(await tapETH.sharesOf(user3.address)).to.equal(
         amount3 - amountToBurn
       );
       expect(await tapETH.balanceOf(user3.address)).to.equal(
-        ((amount3 - amountToBurn) * (amount1 + amount2 + amount3)) / deltaAmount
+        amount3 - amountToBurn
       );
     });
   });
@@ -324,10 +323,10 @@ describe("TapETH", function () {
       await tapETH.connect(pool1).mintShares(user.address, amount1);
       await tapETH.connect(user).approve(spender.address, amount1);
       await tapETH.connect(spender).burnSharesFrom(user.address, amount2);
-      expect(await tapETH.totalSupply()).to.equal(amount1);
+      expect(await tapETH.totalSupply()).to.equal(deltaAmount);
       expect(await tapETH.getTotalShares()).to.equal(deltaAmount);
       expect(await tapETH.sharesOf(user.address)).to.equal(deltaAmount);
-      expect(await tapETH.balanceOf(user.address)).to.equal(amount1);
+      expect(await tapETH.balanceOf(user.address)).to.equal(deltaAmount);
       expect(await tapETH.allowance(user.address, spender.address)).to.equal(
         deltaAmount
       );
@@ -346,7 +345,7 @@ describe("TapETH", function () {
       await tapETH.connect(user).approve(spender.address, amount2);
       await expect(
         tapETH.connect(spender).burnSharesFrom(user.address, amount3)
-      ).to.be.revertedWith("TapETH: ALLOWANCE_EXCEEDED");
+      ).to.be.revertedWithCustomError(tapETH, "InsufficientAllowance");
     });
   });
 
@@ -415,7 +414,7 @@ describe("TapETH", function () {
         tapETH
           .connect(spender)
           .transferFrom(user1.address, user2.address, amount3)
-      ).to.be.revertedWith("TapETH: ALLOWANCE_EXCEEDED");
+      ).to.be.revertedWithCustomError(tapETH, "InsufficientAllowance");
     });
   });
   describe("transferShares", function () {
@@ -483,7 +482,7 @@ describe("TapETH", function () {
         tapETH
           .connect(spender)
           .transferSharesFrom(user1.address, user2.address, amount3)
-      ).to.be.revertedWith("TapETH: ALLOWANCE_EXCEEDED");
+      ).to.be.revertedWithCustomError(tapETH, "InsufficientAllowance");
     });
   });
 

@@ -1,7 +1,7 @@
 import { time, loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
 import { expect } from "chai";
-import { ethers } from "hardhat";
+import { ethers, upgrades } from "hardhat";
 
 describe("wtapETH", function () {
   // We define a fixture to reuse the same setup in every test.
@@ -16,9 +16,9 @@ describe("wtapETH", function () {
     const pool2 = accounts[3];
 
     const TapETH = await ethers.getContractFactory("TapETH");
-    const tapETH = await TapETH.deploy(governance.address);
+    const tapETH = await upgrades.deployProxy(TapETH, [governance.address]);
     const WtapETH = await ethers.getContractFactory("WtapETH");
-    const wtapETH = await WtapETH.deploy(tapETH.address);
+    const wtapETH = await upgrades.deployProxy(WtapETH, [tapETH.address]);
 
     return { tapETH, wtapETH, accounts, governance, owner, pool1, pool2 };
   }
