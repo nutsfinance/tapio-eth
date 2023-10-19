@@ -520,7 +520,7 @@ function getPastTotalSupply(uint256 blockNumber) external view returns (uint256)
 
 
 
-*Returns the total supply of votes available at the end of a past block (`blockNumber`). NOTE: This value is the sum of all available votes, which is not necessarily the sum of all delegated votes. Votes that have not been delegated are still part of total supply, even though they would not participate in a vote.*
+
 
 #### Parameters
 
@@ -542,7 +542,7 @@ function getPastVotes(address account, uint256 blockNumber) external view return
 
 
 
-*Returns the amount of votes that `account` had at the end of a past block (`blockNumber`).*
+
 
 #### Parameters
 

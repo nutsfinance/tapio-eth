@@ -138,6 +138,28 @@ function pendingGovernance() external view returns (address)
 |---|---|---|
 | _0 | address | undefined |
 
+### pools
+
+```solidity
+function pools(uint256) external view returns (address)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | address | undefined |
+
 ### proposeGovernance
 
 ```solidity
@@ -153,6 +175,23 @@ function proposeGovernance(address _governance) external nonpayable
 | Name | Type | Description |
 |---|---|---|
 | _governance | address | Address of the new governance. |
+
+### rebase
+
+```solidity
+function rebase() external nonpayable returns (uint256 _amount)
+```
+
+This function allows to rebase TapETH by increasing his total supply from all stableSwap pools by the staking rewards and the swap fee.
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _amount | uint256 | undefined |
 
 ### redeemProportion
 
@@ -335,5 +374,52 @@ event PoolModified(address swap, bool enabled)
 | swap  | address | is the new value of the swap. |
 | enabled  | bool | pool enabled or disabled. |
 
+
+
+## Errors
+
+### EthAmount
+
+```solidity
+error EthAmount(uint256 requiredAmount, uint256 sentAmount)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| requiredAmount | uint256 | undefined |
+| sentAmount | uint256 | undefined |
+
+### FailedEtherTransfer
+
+```solidity
+error FailedEtherTransfer()
+```
+
+
+
+
+
+
+### NotAllowedPool
+
+```solidity
+error NotAllowedPool(address pool)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| pool | address | undefined |
 
 

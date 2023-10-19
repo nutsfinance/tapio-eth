@@ -407,7 +407,7 @@ function initialABlock() external view returns (uint256)
 ### initialize
 
 ```solidity
-function initialize(address[] _tokens, uint256[] _precisions, uint256[] _fees, address _feeRecipient, address _yieldRecipient, address _poolToken, uint256 _A, contract IExchangeRateProvider _exchangeRateProvider, uint256 _exchangeRateTokenIndex) external nonpayable
+function initialize(address[] _tokens, uint256[] _precisions, uint256[] _fees, address _feeRecipient, address _yieldRecipient, contract ITapETH _poolToken, uint256 _A, contract IExchangeRateProvider _exchangeRateProvider, uint256 _exchangeRateTokenIndex) external nonpayable
 ```
 
 
@@ -423,7 +423,7 @@ function initialize(address[] _tokens, uint256[] _precisions, uint256[] _fees, a
 | _fees | uint256[] | The fees for minting, swapping, and redeeming. |
 | _feeRecipient | address | The address that collects the fees. |
 | _yieldRecipient | address | The address that receives yield farming rewards. |
-| _poolToken | address | The address of the pool token. |
+| _poolToken | contract ITapETH | The address of the pool token. |
 | _A | uint256 | The initial value of the amplification coefficient A for the pool. |
 | _exchangeRateProvider | contract IExchangeRateProvider | undefined |
 | _exchangeRateTokenIndex | uint256 | undefined |
@@ -533,7 +533,7 @@ function pendingGovernance() external view returns (address)
 ### poolToken
 
 ```solidity
-function poolToken() external view returns (address)
+function poolToken() external view returns (contract ITapETH)
 ```
 
 
@@ -545,7 +545,7 @@ function poolToken() external view returns (address)
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | address | undefined |
+| _0 | contract ITapETH | undefined |
 
 ### precisions
 
@@ -584,6 +584,23 @@ function proposeGovernance(address _governance) external nonpayable
 | Name | Type | Description |
 |---|---|---|
 | _governance | address | Address of the new governance. |
+
+### rebase
+
+```solidity
+function rebase() external nonpayable returns (uint256)
+```
+
+This function allows to rebase TapETH by increasing his total supply from the current stableSwap pool by the staking rewards and the swap fee.
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined |
 
 ### redeemFee
 
@@ -984,7 +1001,7 @@ event AModified(uint256 futureA, uint256 futureABlock)
 ### FeeCollected
 
 ```solidity
-event FeeCollected(address indexed recipient, uint256 feeAmount, uint256 totalSupply)
+event FeeCollected(uint256 feeAmount, uint256 totalSupply)
 ```
 
 
@@ -995,7 +1012,6 @@ event FeeCollected(address indexed recipient, uint256 feeAmount, uint256 totalSu
 
 | Name | Type | Description |
 |---|---|---|
-| recipient `indexed` | address | is the address of the fee recipient. |
 | feeAmount  | uint256 | is the amount of fee collected. |
 | totalSupply  | uint256 | is the total supply of LP token. |
 
@@ -1204,7 +1220,7 @@ This event is emitted when a token swap occurs.
 ### YieldCollected
 
 ```solidity
-event YieldCollected(address indexed recipient, uint256[] amounts, uint256 feeAmount, uint256 totalSupply)
+event YieldCollected(uint256[] amounts, uint256 feeAmount, uint256 totalSupply)
 ```
 
 
@@ -1215,7 +1231,6 @@ event YieldCollected(address indexed recipient, uint256[] amounts, uint256 feeAm
 
 | Name | Type | Description |
 |---|---|---|
-| recipient `indexed` | address | is the address of the yield recipient. |
 | amounts  | uint256[] | is an array containing the amounts of each token the yield receives. |
 | feeAmount  | uint256 | is the amount of yield collected. |
 | totalSupply  | uint256 | is the total supply of LP token. |
@@ -1252,5 +1267,110 @@ event YieldRecipientModified(address recipient)
 |---|---|---|
 | recipient  | address | is the new value of the recipient. |
 
+
+
+## Errors
+
+### ImbalancedPool
+
+```solidity
+error ImbalancedPool(uint256 oldD, uint256 newD)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| oldD | uint256 | undefined |
+| newD | uint256 | undefined |
+
+### InsufficientMintAmount
+
+```solidity
+error InsufficientMintAmount(uint256 mintAmount, uint256 minMintAmount)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| mintAmount | uint256 | undefined |
+| minMintAmount | uint256 | undefined |
+
+### InsufficientRedeemAmount
+
+```solidity
+error InsufficientRedeemAmount(uint256 redeemAmount, uint256 minRedeemAmount)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| redeemAmount | uint256 | undefined |
+| minRedeemAmount | uint256 | undefined |
+
+### InsufficientSwapOutAmount
+
+```solidity
+error InsufficientSwapOutAmount(uint256 outAmount, uint256 minOutAmount)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| outAmount | uint256 | undefined |
+| minOutAmount | uint256 | undefined |
+
+### MaxRedeemAmount
+
+```solidity
+error MaxRedeemAmount(uint256 redeemAmount, uint256 maxRedeemAmount)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| redeemAmount | uint256 | undefined |
+| maxRedeemAmount | uint256 | undefined |
+
+### SameTokenInTokenOut
+
+```solidity
+error SameTokenInTokenOut(uint256 tokenInIndex, uint256 tokenOutIndex)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| tokenInIndex | uint256 | undefined |
+| tokenOutIndex | uint256 | undefined |
 
 

@@ -10,10 +10,27 @@
 
 ## Methods
 
+### CLOCK_MODE
+
+```solidity
+function CLOCK_MODE() external view returns (string)
+```
+
+module:core
+
+*See EIP-6372.*
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | string | undefined |
+
 ### COUNTING_MODE
 
 ```solidity
-function COUNTING_MODE() external pure returns (string)
+function COUNTING_MODE() external view returns (string)
 ```
 
 module:voting
@@ -26,6 +43,31 @@ module:voting
 | Name | Type | Description |
 |---|---|---|
 | _0 | string | undefined |
+
+### cancel
+
+```solidity
+function cancel(address[] targets, uint256[] values, bytes[] calldatas, bytes32 descriptionHash) external nonpayable returns (uint256 proposalId)
+```
+
+
+
+*Cancel a proposal. A proposal is cancellable by the proposer, but only while it is Pending state, i.e. before the vote starts. Emits a {ProposalCanceled} event.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| targets | address[] | undefined |
+| values | uint256[] | undefined |
+| calldatas | bytes[] | undefined |
+| descriptionHash | bytes32 | undefined |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| proposalId | uint256 | undefined |
 
 ### castVote
 
@@ -153,6 +195,23 @@ function castVoteWithReasonAndParamsBySig(uint256 proposalId, uint8 support, str
 |---|---|---|
 | balance | uint256 | undefined |
 
+### clock
+
+```solidity
+function clock() external view returns (uint48)
+```
+
+module:core
+
+*See {IERC6372}*
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint48 | undefined |
+
 ### execute
 
 ```solidity
@@ -181,19 +240,19 @@ function execute(address[] targets, uint256[] values, bytes[] calldatas, bytes32
 ### getVotes
 
 ```solidity
-function getVotes(address account, uint256 blockNumber) external view returns (uint256)
+function getVotes(address account, uint256 timepoint) external view returns (uint256)
 ```
 
 module:reputation
 
-*Voting power of an `account` at a specific `blockNumber`. Note: this can be implemented in a number of ways, for example by reading the delegated balance from one (or multiple), {ERC20Votes} tokens.*
+*Voting power of an `account` at a specific `timepoint`. Note: this can be implemented in a number of ways, for example by reading the delegated balance from one (or multiple), {ERC20Votes} tokens.*
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
 | account | address | undefined |
-| blockNumber | uint256 | undefined |
+| timepoint | uint256 | undefined |
 
 #### Returns
 
@@ -204,19 +263,19 @@ module:reputation
 ### getVotesWithParams
 
 ```solidity
-function getVotesWithParams(address account, uint256 blockNumber, bytes params) external view returns (uint256)
+function getVotesWithParams(address account, uint256 timepoint, bytes params) external view returns (uint256)
 ```
 
 module:reputation
 
-*Voting power of an `account` at a specific `blockNumber` given additional encoded parameters.*
+*Voting power of an `account` at a specific `timepoint` given additional encoded parameters.*
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
 | account | address | undefined |
-| blockNumber | uint256 | undefined |
+| timepoint | uint256 | undefined |
 | params | bytes | undefined |
 
 #### Returns
@@ -298,7 +357,7 @@ function proposalDeadline(uint256 proposalId) external view returns (uint256)
 
 module:core
 
-*Block number at which votes close. Votes close at the end of this block, so it is possible to cast a vote during this block.*
+*Timepoint at which votes close. If using block number, votes close at the end of this block, so it is possible to cast a vote during this block.*
 
 #### Parameters
 
@@ -334,6 +393,28 @@ function proposalEta(uint256 proposalId) external view returns (uint256)
 |---|---|---|
 | _0 | uint256 | undefined |
 
+### proposalProposer
+
+```solidity
+function proposalProposer(uint256 proposalId) external view returns (address)
+```
+
+module:core
+
+*The account that created a proposal.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| proposalId | uint256 | undefined |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | address | undefined |
+
 ### proposalSnapshot
 
 ```solidity
@@ -342,7 +423,7 @@ function proposalSnapshot(uint256 proposalId) external view returns (uint256)
 
 module:core
 
-*Block number used to retrieve user&#39;s votes and quorum. As per Compound&#39;s Comp and OpenZeppelin&#39;s ERC20Votes, the snapshot is performed at the end of this block. Hence, voting for this proposal starts at the beginning of the following block.*
+*Timepoint used to retrieve user&#39;s votes and quorum. If using block number (as per Compound&#39;s Comp), the snapshot is performed at the end of this block. Hence, voting for this proposal starts at the beginning of the following block.*
 
 #### Parameters
 
@@ -364,7 +445,7 @@ function propose(address[] targets, uint256[] values, bytes[] calldatas, string 
 
 
 
-*Create a new proposal. Vote start {IGovernor-votingDelay} blocks after the proposal is created and ends {IGovernor-votingPeriod} blocks after the voting starts. Emits a {ProposalCreated} event.*
+*Create a new proposal. Vote start after a delay specified by {IGovernor-votingDelay} and lasts for a duration specified by {IGovernor-votingPeriod}. Emits a {ProposalCreated} event.*
 
 #### Parameters
 
@@ -409,18 +490,18 @@ function queue(address[] targets, uint256[] values, bytes[] calldatas, bytes32 d
 ### quorum
 
 ```solidity
-function quorum(uint256 blockNumber) external view returns (uint256)
+function quorum(uint256 timepoint) external view returns (uint256)
 ```
 
 module:user-config
 
-*Minimum number of cast voted required for a proposal to be successful. Note: The `blockNumber` parameter corresponds to the snapshot used for counting vote. This allows to scale the quorum depending on values such as the totalSupply of a token at this block (see {ERC20Votes}).*
+*Minimum number of cast voted required for a proposal to be successful. NOTE: The `timepoint` parameter corresponds to the snapshot used for counting vote. This allows to scale the quorum depending on values such as the totalSupply of a token at this timepoint (see {ERC20Votes}).*
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| blockNumber | uint256 | undefined |
+| timepoint | uint256 | undefined |
 
 #### Returns
 
@@ -514,7 +595,7 @@ function votingDelay() external view returns (uint256)
 
 module:user-config
 
-*Delay, in number of block, between the proposal is created and the vote starts. This can be increassed to leave time for users to buy voting power, or delegate it, before the voting of a proposal starts.*
+*Delay, between the proposal is created and the vote starts. The unit this duration is expressed in depends on the clock (see EIP-6372) this contract uses. This can be increased to leave time for users to buy voting power, or delegate it, before the voting of a proposal starts.*
 
 
 #### Returns
@@ -531,7 +612,7 @@ function votingPeriod() external view returns (uint256)
 
 module:user-config
 
-*Delay, in number of blocks, between the vote start and vote ends. NOTE: The {votingDelay} can delay the start of the vote. This must be considered when setting the voting duration compared to the voting delay.*
+*Delay between the vote start and vote end. The unit this duration is expressed in depends on the clock (see EIP-6372) this contract uses. NOTE: The {votingDelay} can delay the start of the vote. This must be considered when setting the voting duration compared to the voting delay.*
 
 
 #### Returns
@@ -563,7 +644,7 @@ event ProposalCanceled(uint256 proposalId)
 ### ProposalCreated
 
 ```solidity
-event ProposalCreated(uint256 proposalId, address proposer, address[] targets, uint256[] values, string[] signatures, bytes[] calldatas, uint256 startBlock, uint256 endBlock, string description)
+event ProposalCreated(uint256 proposalId, address proposer, address[] targets, uint256[] values, string[] signatures, bytes[] calldatas, uint256 voteStart, uint256 voteEnd, string description)
 ```
 
 
@@ -580,8 +661,8 @@ event ProposalCreated(uint256 proposalId, address proposer, address[] targets, u
 | values  | uint256[] | undefined |
 | signatures  | string[] | undefined |
 | calldatas  | bytes[] | undefined |
-| startBlock  | uint256 | undefined |
-| endBlock  | uint256 | undefined |
+| voteStart  | uint256 | undefined |
+| voteEnd  | uint256 | undefined |
 | description  | string | undefined |
 
 ### ProposalExecuted
@@ -645,7 +726,7 @@ event VoteCastWithParams(address indexed voter, uint256 proposalId, uint8 suppor
 
 
 
-*Emitted when a vote is cast with params. Note: `support` values should be seen as buckets. Their interpretation depends on the voting module used. `params` are additional encoded parameters. Their intepepretation also depends on the voting module used.*
+*Emitted when a vote is cast with params. Note: `support` values should be seen as buckets. Their interpretation depends on the voting module used. `params` are additional encoded parameters. Their interpepretation also depends on the voting module used.*
 
 #### Parameters
 

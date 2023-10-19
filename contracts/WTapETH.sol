@@ -19,12 +19,10 @@ import "./interfaces/ITapETH.sol";
  *
  */
 
-contract WtapETH is ERC20PermitUpgradeable {
+contract WTapETH is ERC20PermitUpgradeable {
   ITapETH public tapETH;
 
-  function initialize(
-    ITapETH _tapETH
-  )  public initializer{
+  function initialize(ITapETH _tapETH) public initializer {
     __ERC20Permit_init("Wrapped tapETH");
     __ERC20_init("Wrapped tapETH", "wtapETH");
     tapETH = _tapETH;

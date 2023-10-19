@@ -6,7 +6,7 @@
 
 
 
-*Compatibility layer that implements GovernorBravo compatibility on to of {Governor}. This compatibility layer includes a voting system and requires a {IGovernorTimelock} compatible module to be added through inheritance. It does not include token bindings, not does it include any variable upgrade patterns. NOTE: When using this module, you may need to enable the Solidity optimizer to avoid hitting the contract size limit. _Available since v4.3._*
+*Compatibility layer that implements GovernorBravo compatibility on top of {Governor}. This compatibility layer includes a voting system and requires a {IGovernorTimelock} compatible module to be added through inheritance. It does not include token bindings, nor does it include any variable upgrade patterns. NOTE: When using this module, you may need to enable the Solidity optimizer to avoid hitting the contract size limit. _Available since v4.3._*
 
 ## Methods
 
@@ -26,6 +26,23 @@ function BALLOT_TYPEHASH() external view returns (bytes32)
 | Name | Type | Description |
 |---|---|---|
 | _0 | bytes32 | undefined |
+
+### CLOCK_MODE
+
+```solidity
+function CLOCK_MODE() external view returns (string)
+```
+
+module:core
+
+*See EIP-6372.*
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | string | undefined |
 
 ### COUNTING_MODE
 
@@ -69,13 +86,38 @@ function cancel(uint256 proposalId) external nonpayable
 
 
 
-*Cancels a proposal only if sender is the proposer, or proposer delegates dropped below proposal threshold.*
+*Cancel a proposal with GovernorBravo logic.*
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
 | proposalId | uint256 | undefined |
+
+### cancel
+
+```solidity
+function cancel(address[] targets, uint256[] values, bytes[] calldatas, bytes32 descriptionHash) external nonpayable returns (uint256)
+```
+
+
+
+*Cancel a proposal with GovernorBravo logic. At any moment a proposal can be cancelled, either by the proposer, or by third parties if the proposer&#39;s voting power has dropped below the proposal threshold.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| targets | address[] | undefined |
+| values | uint256[] | undefined |
+| calldatas | bytes[] | undefined |
+| descriptionHash | bytes32 | undefined |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined |
 
 ### castVote
 
@@ -203,6 +245,46 @@ function castVoteWithReasonAndParamsBySig(uint256 proposalId, uint8 support, str
 |---|---|---|
 | _0 | uint256 | undefined |
 
+### clock
+
+```solidity
+function clock() external view returns (uint48)
+```
+
+module:core
+
+*See {IERC6372}*
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint48 | undefined |
+
+### eip712Domain
+
+```solidity
+function eip712Domain() external view returns (bytes1 fields, string name, string version, uint256 chainId, address verifyingContract, bytes32 salt, uint256[] extensions)
+```
+
+
+
+*See {EIP-5267}. _Available since v4.9._*
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| fields | bytes1 | undefined |
+| name | string | undefined |
+| version | string | undefined |
+| chainId | uint256 | undefined |
+| verifyingContract | address | undefined |
+| salt | bytes32 | undefined |
+| extensions | uint256[] | undefined |
+
 ### execute
 
 ```solidity
@@ -295,7 +377,7 @@ function getReceipt(uint256 proposalId, address voter) external view returns (st
 ### getVotes
 
 ```solidity
-function getVotes(address account, uint256 blockNumber) external view returns (uint256)
+function getVotes(address account, uint256 timepoint) external view returns (uint256)
 ```
 
 
@@ -307,7 +389,7 @@ function getVotes(address account, uint256 blockNumber) external view returns (u
 | Name | Type | Description |
 |---|---|---|
 | account | address | undefined |
-| blockNumber | uint256 | undefined |
+| timepoint | uint256 | undefined |
 
 #### Returns
 
@@ -318,7 +400,7 @@ function getVotes(address account, uint256 blockNumber) external view returns (u
 ### getVotesWithParams
 
 ```solidity
-function getVotesWithParams(address account, uint256 blockNumber, bytes params) external view returns (uint256)
+function getVotesWithParams(address account, uint256 timepoint, bytes params) external view returns (uint256)
 ```
 
 
@@ -330,7 +412,7 @@ function getVotesWithParams(address account, uint256 blockNumber, bytes params) 
 | Name | Type | Description |
 |---|---|---|
 | account | address | undefined |
-| blockNumber | uint256 | undefined |
+| timepoint | uint256 | undefined |
 | params | bytes | undefined |
 
 #### Returns
@@ -525,6 +607,28 @@ function proposalEta(uint256 proposalId) external view returns (uint256)
 |---|---|---|
 | _0 | uint256 | undefined |
 
+### proposalProposer
+
+```solidity
+function proposalProposer(uint256 proposalId) external view returns (address)
+```
+
+
+
+*Returns the account that created a given proposal.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| proposalId | uint256 | undefined |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | address | undefined |
+
 ### proposalSnapshot
 
 ```solidity
@@ -690,18 +794,18 @@ function queue(uint256 proposalId) external nonpayable
 ### quorum
 
 ```solidity
-function quorum(uint256 blockNumber) external view returns (uint256)
+function quorum(uint256 timepoint) external view returns (uint256)
 ```
 
 module:user-config
 
-*Minimum number of cast voted required for a proposal to be successful. Note: The `blockNumber` parameter corresponds to the snapshot used for counting vote. This allows to scale the quorum depending on values such as the totalSupply of a token at this block (see {ERC20Votes}).*
+*Minimum number of cast voted required for a proposal to be successful. NOTE: The `timepoint` parameter corresponds to the snapshot used for counting vote. This allows to scale the quorum depending on values such as the totalSupply of a token at this timepoint (see {ERC20Votes}).*
 
 #### Parameters
 
 | Name | Type | Description |
 |---|---|---|
-| blockNumber | uint256 | undefined |
+| timepoint | uint256 | undefined |
 
 #### Returns
 
@@ -830,7 +934,7 @@ function votingDelay() external view returns (uint256)
 
 module:user-config
 
-*Delay, in number of block, between the proposal is created and the vote starts. This can be increassed to leave time for users to buy voting power, or delegate it, before the voting of a proposal starts.*
+*Delay, between the proposal is created and the vote starts. The unit this duration is expressed in depends on the clock (see EIP-6372) this contract uses. This can be increased to leave time for users to buy voting power, or delegate it, before the voting of a proposal starts.*
 
 
 #### Returns
@@ -847,7 +951,7 @@ function votingPeriod() external view returns (uint256)
 
 module:user-config
 
-*Delay, in number of blocks, between the vote start and vote ends. NOTE: The {votingDelay} can delay the start of the vote. This must be considered when setting the voting duration compared to the voting delay.*
+*Delay between the vote start and vote end. The unit this duration is expressed in depends on the clock (see EIP-6372) this contract uses. NOTE: The {votingDelay} can delay the start of the vote. This must be considered when setting the voting duration compared to the voting delay.*
 
 
 #### Returns
@@ -859,6 +963,17 @@ module:user-config
 
 
 ## Events
+
+### EIP712DomainChanged
+
+```solidity
+event EIP712DomainChanged()
+```
+
+
+
+*MAY be emitted to signal that the domain could have changed.*
+
 
 ### ProposalCanceled
 
@@ -879,7 +994,7 @@ event ProposalCanceled(uint256 proposalId)
 ### ProposalCreated
 
 ```solidity
-event ProposalCreated(uint256 proposalId, address proposer, address[] targets, uint256[] values, string[] signatures, bytes[] calldatas, uint256 startBlock, uint256 endBlock, string description)
+event ProposalCreated(uint256 proposalId, address proposer, address[] targets, uint256[] values, string[] signatures, bytes[] calldatas, uint256 voteStart, uint256 voteEnd, string description)
 ```
 
 
@@ -896,8 +1011,8 @@ event ProposalCreated(uint256 proposalId, address proposer, address[] targets, u
 | values  | uint256[] | undefined |
 | signatures  | string[] | undefined |
 | calldatas  | bytes[] | undefined |
-| startBlock  | uint256 | undefined |
-| endBlock  | uint256 | undefined |
+| voteStart  | uint256 | undefined |
+| voteEnd  | uint256 | undefined |
 | description  | string | undefined |
 
 ### ProposalExecuted
@@ -961,7 +1076,7 @@ event VoteCastWithParams(address indexed voter, uint256 proposalId, uint8 suppor
 
 
 
-*Emitted when a vote is cast with params. Note: `support` values should be seen as buckets. Their interpretation depends on the voting module used. `params` are additional encoded parameters. Their intepepretation also depends on the voting module used.*
+*Emitted when a vote is cast with params. Note: `support` values should be seen as buckets. Their interpretation depends on the voting module used. `params` are additional encoded parameters. Their interpepretation also depends on the voting module used.*
 
 #### Parameters
 
@@ -988,5 +1103,32 @@ error Empty()
 
 *An operation (e.g. {front}) couldn&#39;t be completed due to the queue being empty.*
 
+
+### InvalidShortString
+
+```solidity
+error InvalidShortString()
+```
+
+
+
+
+
+
+### StringTooLong
+
+```solidity
+error StringTooLong(string str)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| str | string | undefined |
 
 
