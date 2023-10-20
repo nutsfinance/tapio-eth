@@ -28,12 +28,12 @@ contract TapETH is Initializable, ITapETH {
   uint256 private totalShares;
   uint256 private _totalSupply;
   uint256 private totalRewards;
-  uint256 public buffer;
   address public governance;
   address public pendingGovernance;
   mapping(address => uint256) private shares;
   mapping(address => mapping(address => uint256)) private allowances;
   mapping(address => bool) public pools;
+  uint256 public buffer;
 
   event TransferShares(
     address indexed from,
