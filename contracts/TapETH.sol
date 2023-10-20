@@ -33,6 +33,7 @@ contract TapETH is Initializable, ITapETH {
   mapping(address => uint256) private shares;
   mapping(address => mapping(address => uint256)) private allowances;
   mapping(address => bool) public pools;
+  uint256 public buffer;
 
   event TransferShares(
     address indexed from,
@@ -50,6 +51,7 @@ contract TapETH is Initializable, ITapETH {
   event GovernanceProposed(address indexed governance);
   event PoolAdded(address indexed pool);
   event PoolRemoved(address indexed pool);
+  event SetBuffer(uint256);
 
   function initialize(address _governance) public initializer {
     require(_governance != address(0), "TapETH: zero address");
@@ -254,14 +256,25 @@ contract TapETH is Initializable, ITapETH {
   }
 
   /**
+   * @notice This function is called by the governance to set the buffer.
+   */
+  function setBuffer(uint256 _amount) external {
+    require(msg.sender == governance, "TapETH: no governance");
+    buffer = _amount;
+    emit SetBuffer(_amount);
+  }
+
+  /**
    * @notice This function is called only by a stableSwap pool to increase
    * the total supply of TapETH by the staking rewards and the swap fee.
    */
   function setTotalSupply(uint256 _amount) external {
     require(pools[msg.sender], "TapETH: no pool");
     require(_amount != 0, "TapETH: no pool");
-    _totalSupply += _amount;
+    uint256 _deltaBuffer = Math.min(buffer, _amount);
+    _totalSupply += _amount - _deltaBuffer;
     totalRewards += _amount;
+    buffer -= _deltaBuffer;
   }
 
   /**

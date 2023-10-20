@@ -4157,6 +4157,134 @@
           }
         }
       }
+    },
+    "4e6e19866f9068de271fbfeff77aee378d8de066fa42ce8f2f68599ad7f50ed6": {
+      "address": "0x05c4A7302830338bc8AFc7FD567954C409C87Cd8",
+      "txHash": "0x0dd958dbcb592f8473615dab00332712b91c34be64bc6781a282be93b1ed494a",
+      "layout": {
+        "solcVersion": "0.8.18",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:68"
+          },
+          {
+            "label": "totalShares",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_uint256",
+            "contract": "TapETH",
+            "src": "contracts/TapETH.sol:28"
+          },
+          {
+            "label": "_totalSupply",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_uint256",
+            "contract": "TapETH",
+            "src": "contracts/TapETH.sol:29"
+          },
+          {
+            "label": "totalRewards",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_uint256",
+            "contract": "TapETH",
+            "src": "contracts/TapETH.sol:30"
+          },
+          {
+            "label": "governance",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_address",
+            "contract": "TapETH",
+            "src": "contracts/TapETH.sol:31"
+          },
+          {
+            "label": "pendingGovernance",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_address",
+            "contract": "TapETH",
+            "src": "contracts/TapETH.sol:32"
+          },
+          {
+            "label": "shares",
+            "offset": 0,
+            "slot": "6",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "TapETH",
+            "src": "contracts/TapETH.sol:33"
+          },
+          {
+            "label": "allowances",
+            "offset": 0,
+            "slot": "7",
+            "type": "t_mapping(t_address,t_mapping(t_address,t_uint256))",
+            "contract": "TapETH",
+            "src": "contracts/TapETH.sol:34"
+          },
+          {
+            "label": "pools",
+            "offset": 0,
+            "slot": "8",
+            "type": "t_mapping(t_address,t_bool)",
+            "contract": "TapETH",
+            "src": "contracts/TapETH.sol:35"
+          },
+          {
+            "label": "buffer",
+            "offset": 0,
+            "slot": "9",
+            "type": "t_uint256",
+            "contract": "TapETH",
+            "src": "contracts/TapETH.sol:36"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_mapping(t_address,t_uint256))": {
+            "label": "mapping(address => mapping(address => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
     }
   }
 }
