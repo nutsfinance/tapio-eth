@@ -19,126 +19,17 @@ Goerli Testnet Address:
 constant: 0x07e70721C1737a9D410bcd038BA7e82e8BC19e2a
 rETHRate: 0xf2dD62922B5f0cb2a72dAeda711018d6F56EEb17
 
-poolToken: 0xA33a79c5Efadac7c07693c3ce32Acf9a1Fc5A387
+tapETH: 0x0C68f684324551b4B6Ff6DFc6314655f8e7d761a
+WTapETH: 0x31CcC35cbed56B6e8f01E8207B1302f009ABC27c
 
-stETHSwap: 0x52543FE4597230ef59fC8C38D3a682Fa2F0fc026
-rETHSwap: 0x8589F6Dedae785634f47132193680149d43cfaF3
+stETHSwap: 0x79106c599A6A320DFB0686513631a92fF8343b44
+rETHSwap: 0x9719443a2BBb5AB61744C1B3C71C2E3527101a91
 
-application: 0x019270711FF6774a14732F850f9A15008F15c05f
+application: 0x44A54f1cc211cfCFfE8b83C22f44728F3Fa5004C
 
 wETHAddress: '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6'
 stETHAddress: '0x1643E812aE58766192Cf7D2Cf9567dF2C37e9B7F'
 rETHAddress: '0x178e141a0e3b34152f73ff610437a7bf9b83267a'
-feeAddress: '0x3a4ABb0eE1dE2aCcDFE14b80B4DEe78F983b3dcF'
-yieldAddress: '0xDeEc86988C66618e574ed1eFF2C5CA5745d2916d'
 ```
 
 rETH staking website: https://testnet.rocketpool.net/
-
-
-Public Api for StableAssetApplication: 
-```
-  /**
-   * @dev Mints new pool token and wrap ETH.
-   * @param _swap Underlying stable asset address.
-   * @param _amounts Unconverted token balances used to mint pool token.
-   * @param _minMintAmount Minimum amount of pool token to mint.
-   */
-  function mint(
-      StableAsset _swap,
-      uint256[] calldata _amounts,
-      uint256 _minMintAmount
-    ) external payable nonReentrant
-
-  /**
-   * @dev Exchange between two underlying tokens with wrap/unwrap ETH.
-   * @param _swap Underlying stable asset address.
-   * @param _i Token index to swap in.
-   * @param _j Token index to swap out.
-   * @param _dx Unconverted amount of token _i to swap in.
-   * @param _minDy Minimum token _j to swap out in converted balance.
-   */
-  function swap(
-      StableAsset _swap,
-      uint256 _i,
-      uint256 _j,
-      uint256 _dx,
-      uint256 _minDy
-    ) external payable nonReentrant
-
-  /**
-   * @dev Redeems pool token to underlying tokens proportionally with unwrap ETH.
-   * @param _swap Underlying stable asset address. 
-   * @param _amount Amount of pool token to redeem.
-   * @param _minRedeemAmounts Minimum amount of underlying tokens to get.
-   */
-  function redeemProportion(
-      StableAsset _swap,
-      uint256 _amount,
-      uint256[] calldata _minRedeemAmounts
-    ) external nonReentrant
-```
-
-Public Api for StableAsset:
-```
-  /**
-   * @dev Mints new pool token.
-   * @param _amounts Unconverted token balances used to mint pool token.
-   * @param _minMintAmount Minimum amount of pool token to mint.
-   * @return Amount minted
-   */
-  function mint(
-    uint256[] calldata _amounts,
-    uint256 _minMintAmount
-  ) external nonReentrant returns (uint256)
-
-  /**
-   * @dev Exchange between two underlying tokens.
-   * @param _i Token index to swap in.
-   * @param _j Token index to swap out.
-   * @param _dx Unconverted amount of token _i to swap in.
-   * @param _minDy Minimum token _j to swap out in converted balance.
-   * @return Amount of swap out
-   */
-  function swap(
-    uint256 _i,
-    uint256 _j,
-    uint256 _dx,
-    uint256 _minDy
-  ) external nonReentrant returns (uint256)
-
-  /**
-   * @dev Redeems pool token to underlying tokens proportionally.
-   * @param _amount Amount of pool token to redeem.
-   * @param _minRedeemAmounts Minimum amount of underlying tokens to get.
-   * @return Amounts received
-   */
-  function redeemProportion(
-    uint256 _amount,
-    uint256[] calldata _minRedeemAmounts
-  ) external nonReentrant returns (uint256[] memory)
-
-  /**
-   * @dev Redeem pool token to one specific underlying token.
-   * @param _amount Amount of pool token to redeem.
-   * @param _i Index of the token to redeem to.
-   * @param _minRedeemAmount Minimum amount of the underlying token to redeem to.
-   * @return Amount received
-   */
-  function redeemSingle(
-    uint256 _amount,
-    uint256 _i,
-    uint256 _minRedeemAmount
-  ) external nonReentrant returns (uint256)
-
-  /**
-   * @dev Redeems underlying tokens.
-   * @param _amounts Amounts of underlying tokens to redeem to.
-   * @param _maxRedeemAmount Maximum of pool token to redeem.
-   * @return Amounts received
-   */
-  function redeemMulti(
-    uint256[] calldata _amounts,
-    uint256 _maxRedeemAmount
-  ) external nonReentrant returns (uint256[] memory)
-``` 

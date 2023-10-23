@@ -311,22 +311,6 @@ function removePool(address _pool) external nonpayable
 |---|---|---|
 | _pool | address | undefined |
 
-### setBuffer
-
-```solidity
-function setBuffer(uint256 _amount) external nonpayable
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _amount | uint256 | undefined |
-
 ### setTotalSupply
 
 ```solidity
