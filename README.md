@@ -197,7 +197,7 @@ The contract StableAsset is upgradable and inherits from the contract Reentrancy
    5) increase the totalSupply of tapETH by feeAmount
 
 
-- function redeemSingle(uint256 _amount, uint256 _i, uint256 _minRedeemAmount)
+- redeemSingle(uint256 _amount, uint256 _i, uint256 _minRedeemAmount)
 
  This function allows the user to redeem `_amount `of tapETH in order to receive at least `_minRedeemAmount` of token index i.
  The Logic of the function consists of:
