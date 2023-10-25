@@ -289,3 +289,30 @@ This function returns (uint256 amount, uint256 fee) where amount is the output a
 This function returns (uint256 amount, uint256 fee) where amount is the amount of tapETH to redeem and fee is the redeem fee. 
 
 
+## Contract StableAssetApplication
+
+The contract **StableAssetApplication** is upgradable and inherits from the contract ReentrancyGuard.
+
+### Write Methodes 
+
+- **mint(StableAsset _pool, uint256[] calldata _amounts, uint256 _minMintAmount )**
+
+This function allows the user to provide liquidity in the different tokens of the pool `_pool` to mint at least `_wtapETHAmount` of tapETH. 
+
+- **swap(StableAsset _pool, uint256 _i, uint256 _j, uint256 _dx, uint256 _minDy)**
+
+This function allows the user to swap `_dx ` amount of token index `i` to at least `_minDy` amount of token index `j` using the pool `_pool`.
+
+- **redeemProportion(StableAsset _pool, uint256 _amount, uint256[] calldata _minRedeemAmounts)**
+
+This function allows the user to redeem `_amount `of tapETH from the pool `_pool` in order to receive at least `_minRedeemAmounts[i]` of each token index i .
+
+- **redeemSingle(StableAsset _pool, uint256 _amount, uint256 _i, uint256 _minRedeemAmount)**
+
+This function allows the user to redeem `_amount `of tapETH from the pool `_pool` in order to receive at least `_minRedeemAmount` of token index i.
+
+- **swapCrossPool(StableAsset _sourcePool, StableAsset _destPool, address _sourceToken,  address _destToken, uint256 _amount, uint256 _minSwapAmount)**
+
+This function allows the user to swap `_dx ` amount of token  `_sourceToken`  from the pool `_sourcePool` to at least `_minSwapAmount` amount of token  `_destToken` from the pool `_destPool`.
+
+ 
