@@ -313,6 +313,6 @@ This function allows the user to redeem `_amount `of tapETH from the pool `_pool
 
 - **swapCrossPool(StableAsset _sourcePool, StableAsset _destPool, address _sourceToken,  address _destToken, uint256 _amount, uint256 _minSwapAmount)**
 
-This function allows the user to swap `_dx ` amount of token  `_sourceToken`  from the pool `_sourcePool` to at least `_minSwapAmount` amount of token  `_destToken` from the pool `_destPool`.
+This function allows the user to swap `_amount ` amount of token  `_sourceToken`  from the pool `_sourcePool` to at least `_minSwapAmount` amount of token  `_destToken` from the pool `_destPool`.
 
  
