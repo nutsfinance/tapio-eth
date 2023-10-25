@@ -253,7 +253,7 @@ functions to be executed only by the governance:
 
  This function allows the governance to unpause the mint, swap and redeem function. 
 
- -setAdmin(address _account, bool _allowed)
+ - setAdmin(address _account, bool _allowed)
 
 This function allows the governance to  add an admin if `_allowed ` is true or to remove an admin if `_allowed ` is false.
 
