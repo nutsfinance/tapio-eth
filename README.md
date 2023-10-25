@@ -39,54 +39,54 @@ rETH staking website: https://testnet.rocketpool.net/
 
 The main contracts of Tapio V1.5 are the following: 
 
-  TapEth : contract of rebase token tapETH
+  **TapEth** : contract of rebase token tapETH
   
-  WtapETH: contract of wrapped tapETH
+  **WtapETH**: contract of wrapped tapETH
   
-  StableAsset: contract of stableswap pool
+  **StableAsset**: contract of stableswap pool
   
-  StableAssetApplication: user contract interface for different stableSwap pools
+  **StableAssetApplication**: user contract interface for different stableSwap pools
 
 
 ## Contract TapETH
 
-The contract TapETH is upgradable and uses the interface IERC20.
+The contract **TapETH** is upgradable and uses the interface IERC20.
 
 ### Write Methodes 
 
- - proposeGovernance(address _governance)
+ - **proposeGovernance(address _governance)**
 
    This function allows the current governance to set a new governance address.
 
-- acceptGovernance(address _governance)
+- **acceptGovernance(address _governance)**
   
   This function allows the pending governance to be activated: to update the governance to the pending governance.
 
-- addPool(address _pool)
+- **addPool(address _pool)**
  
-  This function is executed only by the governance to whitelist a stableSwap pool.
+  This function can be executed only by the governance to whitelist a stableSwap pool.
 
-- removePool(address _pool)
+- **removePool(address _pool)**
 
-  This function is executed only by the governance to remove a whitelisted stableSwap pool.
+  This function can be executed only by the governance to remove a whitelisted stableSwap pool.
   
-- transferShares(address _recipient, uint256 _sharesAmount)
+- **transferShares(address _recipient, uint256 _sharesAmount)**
 
   This function allows the caller to transfer `_sharesAmount` shares of tapETH from his address to `_recipient`.
 
-- transferSharesFrom(address _sender, address _recipient, uint256 _sharesAmount)
+- **transferSharesFrom(address _sender, address _recipient, uint256 _sharesAmount)**
 
  This function allows the spender to transfer `_sharesAmount`  shares of tapETH from  to `_sender`  to `_recipient`.
 
-- mintShares(address _account, uint256 _tokenAmount)
+- **mintShares(address _account, uint256 _tokenAmount)**
 
  This function can be executed by a whitelisted stableSwap pool to mint `_tokenAmount` of tapETH for `_account`.
 
-- burnShares(uint256 _tokenAmount)
+- **burnShares(uint256 _tokenAmount)**
 
  This function allows the caller to burn `_tokenAmount` of tapETH.
 
-- burnSharesFrom(address _account, uint256 _tokenAmount)
+- **burnSharesFrom(address _account, uint256 _tokenAmount)**
 
  This function allows the spender to burn `_tokenAmount` of tapETH from the addresss  `_account`.
 
