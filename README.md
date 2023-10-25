@@ -86,7 +86,7 @@ The contract TapETH is upgradable and uses the interface IERC20.
 
  This function allows the caller to burn `_tokenAmount` of tapETH.
 
--`burnSharesFrom(address _account, uint256 _tokenAmount)
+- burnSharesFrom(address _account, uint256 _tokenAmount)
 
  This function allows the spender to burn `_tokenAmount` of tapETH from the addresss  `_account`.
 
