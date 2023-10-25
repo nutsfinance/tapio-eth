@@ -93,70 +93,70 @@ The contract **TapETH** is upgradable and uses the interface IERC20.
 
 ### View Methodes 
 
-- getTotalPooledEther()
+- **getTotalPooledEther()**
 
   This function returns the total supply of tapETH (uint256).
 
-- getTotalShares()
+- **getTotalShares()**
 
   This function returns the total shares of tapETH (uint256).
 
--  getSharesByPooledEth(uint256_tapETHAmount)
+-  **getSharesByPooledEth(uint256_tapETHAmount)**
 
   This function returns the shares of tapETH (uint256) corresponding to `_tapETHAmount` of tapETH.
 
-- getPooledEthByShares(uint256 _sharesAmount)
+- **getPooledEthByShares(uint256 _sharesAmount)**
 
   This function returns the amount of tapETH (uint256) corresponding to `sharesAmount' shares of tapETH.
 
-- setTotalSupply(uint256 _amount)
+- **setTotalSupply(uint256 _amount)**
 
   This function can be only called by a whitelist stableSwap pool contract to increase the total supply of tapETH by `_amount`.
 
 
 ## Contract WTapETH
 
-The contract WTapETH is upgradable and inherits from the contract ERC20Permit.
+The contract **WTapETH** is upgradable and inherits from the contract ERC20Permit.
 
 ### Write Methodes 
 
-- wrap(uint256 _tapETHAmount)
+- **wrap(uint256 _tapETHAmount)**
 
  This function allows the user to wrap `_
 tapETHAmount` of tapETH  that consisting in transferring `_tapETHAmount` of tapETH  to the smart contract WTapETH 
   and minting the corresponding shares amount in wtapETH.
 
- - unwrap(uint256 _wtapETHAmount)
+ - **unwrap(uint256 _wtapETHAmount)**
 
  This function allows the user to unwrap `_wtapETHAmount` of wtapETH  that consisting in burning `wtapETHAmount` of wtapETH  and sending from the smart contract WTapETH 
   to the caller the corresponding  amount of tapETH.
 
 ### View Methodes 
 
-- getWtapETHByTapETH(uint256 _tapETHAmount) 
+- **getWtapETHByTapETH(uint256 _tapETHAmount)**
 
  This function returns  the amount of wtapETH that corresponds to `_tapETHAmount` of tapETH.
 
-- getTapETHByWtapETH(uint256 _wtapETHAmount)
+- **getTapETHByWtapETH(uint256 _wtapETHAmount)**
 
  This function returns  the amount of tapETH that corresponds to `_wtapETHAmount` of wtapETH.
 
-- tapETHPerToken()
+- **tapETHPerToken()**
 
  This function returns  the amount of tapETH that corresponds to 1 wtapETH.
 
-- tokensPerTapETH()
+- **tokensPerTapETH()**
 
 This function returns  the amount of wtapETH that corresponds to 1 tapETH.
 
 
 ## Contract StableAsset
 
-The contract StableAsset is upgradable and inherits from the contract ReentrancyGuard.
+The contract **StableAsset** is upgradable and inherits from the contract ReentrancyGuard.
 
 ### Write Methodes 
 
-- mint(uint256[] calldata _amounts, uint256 _minMintAmount)
+- **mint(uint256[] calldata _amounts, uint256 _minMintAmount)**
  
  This function allows the user to provide liquidity in the different tokens of the pool to mint at least `_wtapETHAmount` of tapETH. 
  The Logic of the function consists of :
@@ -169,7 +169,7 @@ The contract StableAsset is upgradable and inherits from the contract Reentrancy
    6) mint mintAmount of tapETH for the caller 
    7) increase the total supply of tapETH by feeAmount
 
-- swap(uint256 _i, uint256 _j, uint256 _dx, uint256 _minDy)
+- **swap(uint256 _i, uint256 _j, uint256 _dx, uint256 _minDy)**
 
  This function allows the user to swap `_dx ` amount of token index `i` to at least `_minDy` amount of token index `j`.
  The Logic of the function consists of:
@@ -182,7 +182,7 @@ The contract StableAsset is upgradable and inherits from the contract Reentrancy
    6) send outputAmount  of  token index `j` to the caller 
    7) increase the total supply of tapETH by feeAmount
 
-- redeemProportion(uint256 _amount, uint256[] calldata _minRedeemAmounts)
+- **redeemProportion(uint256 _amount, uint256[] calldata _minRedeemAmounts)**
 
  This function allows the user to redeem `_amount `of tapETH in order to receive at least `_minRedeemAmounts[i]` of each token index i.
  The Logic of the function consists of:
@@ -197,7 +197,7 @@ The contract StableAsset is upgradable and inherits from the contract Reentrancy
    5) increase the totalSupply of tapETH by feeAmount
 
 
-- redeemSingle(uint256 _amount, uint256 _i, uint256 _minRedeemAmount)
+- **redeemSingle(uint256 _amount, uint256 _i, uint256 _minRedeemAmount)**
 
  This function allows the user to redeem `_amount `of tapETH in order to receive at least `_minRedeemAmount` of token index i.
  The Logic of the function consists of:
@@ -209,7 +209,7 @@ The contract StableAsset is upgradable and inherits from the contract Reentrancy
    5) send delta y  of  token index `i` to the caller 
    6) increase the total supply of tapETH by feeAmount
 
-- redeemMulti(uint256[] calldata _amounts, uint256 _maxRedeemAmount)
+- **redeemMulti(uint256[] calldata _amounts, uint256 _maxRedeemAmount)**
 
  This function allows the user to redeem  at most `_maxRedeemAmount ` of tapETH to receive `_amouns[i] `of each token index i.
  The Logic of the function consists of:
@@ -225,55 +225,55 @@ The contract StableAsset is upgradable and inherits from the contract Reentrancy
 
 functions to be executed only by the governance:
 
- - proposeGovernance(address _governance)
+ - **proposeGovernance(address _governance)**
 
    This function allows the current governance to set a new governance address.
 
-- acceptGovernance(address _governance)
+- **acceptGovernance(address _governance)**
   
   This function allows the pending governance to be activated: to update the governance to the pending governance.
 
- - setMintFee(uint256 _mintFee)
+ - **setMintFee(uint256 _mintFee)**
 
   This function allows the governance to update the mintFee.
  
- - setSwapFee(uint256 _swapFee)
+ - **setSwapFee(uint256 _swapFee)**
 
  This function allows the governance to update the swapFee.
  
- - setRedeemFee(uint256 _redeemFee)
+ - **setRedeemFee(uint256 _redeemFee)**
  
  This function allows the governance to update the redeemFee.
 
- - pause() 
+ - **pause()**
 
  This function allows the governance to pause the mint, swap and redeem function.
 
- - unpause()
+ - **unpause()**
 
  This function allows the governance to unpause the mint, swap and redeem function. 
 
- - setAdmin(address _account, bool _allowed)
+ - **setAdmin(address _account, bool _allowed)**
 
 This function allows the governance to  add an admin if `_allowed ` is true or to remove an admin if `_allowed ` is false.
 
-- updateA(uint256 _futureA, uint256 _futureABlock)
+- **updateA(uint256 _futureA, uint256 _futureABlock)**
 
 This function allows the governance to update the value of A to `_futureA ` from the block `_futureABlock`.
 
 
 ### Write Methodes 
 
-- getA()
+- **getA()**
 
-- getMintAmount(uint256[] calldata _amounts)
+- **getMintAmount(uint256[] calldata _amounts)**
 
-- getSwapAmount(uint256 _i, uint256 _j, uint256 _dx)
+- **getSwapAmount(uint256 _i, uint256 _j, uint256 _dx)**
 
-- getRedeemProportionAmount( uint256 _amount)
+- **getRedeemProportionAmount( uint256 _amount)**
 
-- getRedeemSingleAmount(uint256 _amount, uint256 _i)
+- **getRedeemSingleAmount(uint256 _amount, uint256 _i)**
 
-- getRedeemMultiAmount(uint256[] calldata _amounts)
+- **getRedeemMultiAmount(uint256[] calldata _amounts)**
 
 
