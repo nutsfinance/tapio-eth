@@ -266,14 +266,26 @@ This function allows the governance to update the value of A to `_futureA ` from
 
 - **getA()**
 
+ This function returns the current value of A.
+
 - **getMintAmount(uint256[] calldata _amounts)**
+
+ This function returns (uint256 mintAmount, uint256 fee) where mintAmount is the amount of tapETH to mint for the user, and fee is the mint fee.
 
 - **getSwapAmount(uint256 _i, uint256 _j, uint256 _dx)**
 
+ This function returns (uint256 amount, uint256 fee) where amount is the output amount in token of index j  to send to the user, and fee is the swap fee. 
+
 - **getRedeemProportionAmount( uint256 _amount)**
+
+This function returns (uint256[] amounts, uint256 fee) where amounts[i] is the output amount in token of index i  to send to the user, and fee is the redeem fee. 
 
 - **getRedeemSingleAmount(uint256 _amount, uint256 _i)**
 
+This function returns (uint256 amount, uint256 fee) where amount is the output amount in token of index i  to send to the user, and fee is the redeem fee. 
+
 - **getRedeemMultiAmount(uint256[] calldata _amounts)**
+
+This function returns (uint256 amount, uint256 fee) where amount is the amount of tapETH to redeem and fee is the redeem fee. 
 
 
