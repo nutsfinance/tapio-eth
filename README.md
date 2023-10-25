@@ -1,4 +1,4 @@
-# Stable Asset Project
+# Tapio Project
 
 [![codecov](https://codecov.io/gh/nutsfinance/tapio-eth/branch/main/graph/badge.svg?token=OKBSB0PQTK)](https://codecov.io/gh/nutsfinance/tapio-eth)
 
