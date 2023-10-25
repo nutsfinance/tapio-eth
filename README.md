@@ -39,7 +39,7 @@ rETH staking website: https://testnet.rocketpool.net/
 
 The main contracts of Tapio V1.5 are the following: 
 
-  TapEth : contract of rebase token tapETH\\
+  TapEth : contract of rebase token tapETH
   
   WtapETH: contract of wrapped tapETH
   
