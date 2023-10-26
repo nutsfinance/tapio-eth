@@ -541,7 +541,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     }
     totalSupply = newD;
     poolToken.mintShares(msg.sender, mintAmount);
-    if (mintFee > 0) {
+    if (feeAmount > 0) {
       poolToken.setTotalSupply(feeAmount);
     }
 
@@ -799,6 +799,9 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     totalSupply = D - _amount;
     // After reducing the redeem fee, the remaining pool tokens are burned!
     poolToken.burnSharesFrom(msg.sender, _amount);
+    if (feeAmount > 0) {
+      poolToken.setTotalSupply(feeAmount);
+    }
     collectFeeOrYield(true);
     emit FeeCollected(feeAmount, totalSupply);
     emit Redeemed(msg.sender, _amount, amounts, feeAmount);
@@ -899,6 +902,10 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     IERC20Upgradeable(tokens[_i]).safeTransfer(msg.sender, transferAmount);
     totalSupply = D - _amount;
     poolToken.burnSharesFrom(msg.sender, _amount);
+    if (feeAmount > 0) {
+      poolToken.setTotalSupply(feeAmount);
+    }
+
     collectFeeOrYield(true);
     emit FeeCollected(feeAmount, totalSupply);
     emit Redeemed(msg.sender, _amount, amounts, feeAmount);
@@ -996,6 +1003,10 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     balances = _balances;
     totalSupply = oldD - redeemAmount;
     poolToken.burnSharesFrom(msg.sender, redeemAmount);
+    if (feeAmount > 0) {
+      poolToken.setTotalSupply(feeAmount);
+    }
+
     uint256[] memory amounts = _amounts;
     for (i = 0; i < _balances.length; i++) {
       if (_amounts[i] == 0) continue;
