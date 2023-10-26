@@ -546,7 +546,6 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     }
 
     collectFeeOrYield(true);
-    emit FeeCollected(feeAmount, totalSupply);
     emit Minted(msg.sender, mintAmount, _amounts, feeAmount);
     return mintAmount;
   }
@@ -803,7 +802,6 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
       poolToken.setTotalSupply(feeAmount);
     }
     collectFeeOrYield(true);
-    emit FeeCollected(feeAmount, totalSupply);
     emit Redeemed(msg.sender, _amount, amounts, feeAmount);
     return amounts;
   }
@@ -907,7 +905,6 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     }
 
     collectFeeOrYield(true);
-    emit FeeCollected(feeAmount, totalSupply);
     emit Redeemed(msg.sender, _amount, amounts, feeAmount);
     return transferAmount;
   }
@@ -1014,7 +1011,6 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     }
 
     collectFeeOrYield(true);
-    emit FeeCollected(feeAmount, totalSupply);
     emit Redeemed(msg.sender, redeemAmount, amounts, feeAmount);
     return amounts;
   }
