@@ -41,6 +41,12 @@ contract TapETH is Initializable, ITapETH {
     uint256 sharesValue
   );
 
+  event SharesMinted(
+    address indexed account,
+    uint256 tokenAmount,
+    uint256 sharesAmount
+  );
+
   event SharesBurnt(
     address indexed account,
     uint256 tokenAmount,
@@ -482,6 +488,8 @@ contract TapETH is Initializable, ITapETH {
     totalShares += _sharesAmount;
     newTotalShares = totalShares;
     _totalSupply += _tokenAmount;
+
+    emit SharesMinted(_recipient, _tokenAmount, _sharesAmount);
   }
 
   /**
