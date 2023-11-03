@@ -78,8 +78,6 @@ describe("StableAsset", function () {
       [token1.address, token2.address],
       [PRECISION, PRECISION],
       [MINT_FEE, SWAP_FEE, REDEEM_FEE],
-      feeRecipient.address,
-      yieldRecipient.address,
       poolToken.address,
       100,
       constant.address,
@@ -98,9 +96,7 @@ describe("StableAsset", function () {
 
     const StableAsset = await ethers.getContractFactory("StableAsset");
     const MockToken = await ethers.getContractFactory("MockToken");
-    const StableAssetToken = await ethers.getContractFactory(
-      "StableAssetToken"
-    );
+    const StableAssetToken = await ethers.getContractFactory("TapETH");
     const MockTokenWithExchangeRate = await ethers.getContractFactory(
       "MockExchangeRateProvider"
     );
@@ -124,8 +120,6 @@ describe("StableAsset", function () {
       [token1.address, token2.address],
       [PRECISION, PRECISION],
       [MINT_FEE, SWAP_FEE, REDEEM_FEE],
-      feeRecipient.address,
-      yieldRecipient.address,
       poolToken.address,
       100,
       exchangeRate.address,
@@ -160,8 +154,6 @@ describe("StableAsset", function () {
     expect((await swap.redeemFee()).toString()).to.equal(REDEEM_FEE);
     /// Check swap poolToken is poolToken
     expect(await swap.poolToken()).to.equal(poolToken.address);
-    /// Check swap feeRecipient is feeRecipient
-    expect(await swap.feeRecipient()).to.equal(feeRecipient.address);
     /// Check swap governance is owner
     expect(await swap.governance()).to.equal(owner.address);
     /// Check swap paused is true
@@ -202,8 +194,6 @@ describe("StableAsset", function () {
         [],
         [],
         [MINT_FEE, SWAP_FEE, REDEEM_FEE],
-        feeRecipient.address,
-        yieldRecipient.address,
         poolToken.address,
         100,
         constant.address,
@@ -217,8 +207,6 @@ describe("StableAsset", function () {
         [],
         [PRECISION, PRECISION],
         [MINT_FEE, SWAP_FEE, REDEEM_FEE],
-        feeRecipient.address,
-        yieldRecipient.address,
         poolToken.address,
         100,
         constant.address,
@@ -232,8 +220,6 @@ describe("StableAsset", function () {
         [token1.address, token2.address],
         [PRECISION, PRECISION],
         [MINT_FEE, SWAP_FEE],
-        feeRecipient.address,
-        yieldRecipient.address,
         poolToken.address,
         0,
         constant.address,
@@ -247,8 +233,6 @@ describe("StableAsset", function () {
         [token1.address, ethers.constants.AddressZero],
         [PRECISION, PRECISION],
         [MINT_FEE, SWAP_FEE, REDEEM_FEE],
-        feeRecipient.address,
-        yieldRecipient.address,
         poolToken.address,
         0,
         constant.address,
@@ -261,8 +245,6 @@ describe("StableAsset", function () {
         [token1.address, token2.address],
         [PRECISION, 10],
         [MINT_FEE, SWAP_FEE, REDEEM_FEE],
-        feeRecipient.address,
-        yieldRecipient.address,
         poolToken.address,
         0,
         constant.address,
@@ -275,8 +257,6 @@ describe("StableAsset", function () {
         [token1.address, token17.address],
         [PRECISION, "10000000000000000"],
         [MINT_FEE, SWAP_FEE, REDEEM_FEE],
-        feeRecipient.address,
-        yieldRecipient.address,
         poolToken.address,
         0,
         constant.address,
@@ -289,8 +269,6 @@ describe("StableAsset", function () {
         [token1.address, token19.address],
         [1, "1000000000000000000"],
         [MINT_FEE, SWAP_FEE, REDEEM_FEE],
-        feeRecipient.address,
-        yieldRecipient.address,
         poolToken.address,
         0,
         constant.address,
@@ -298,44 +276,12 @@ describe("StableAsset", function () {
       ])
     ).to.be.revertedWithPanic(0x11);
 
-    /// Check deploy swap with fee recipient not set
-    await expect(
-      upgrades.deployProxy(StableAsset, [
-        [token1.address, token2.address],
-        [PRECISION, PRECISION],
-        [MINT_FEE, SWAP_FEE, REDEEM_FEE],
-        ethers.constants.AddressZero,
-        yieldRecipient.address,
-        poolToken.address,
-        0,
-        constant.address,
-        1,
-      ])
-    ).to.be.revertedWith("fee recipient not set");
-
-    /// Check deploy swap with yield recipient not set
-    await expect(
-      upgrades.deployProxy(StableAsset, [
-        [token1.address, token2.address],
-        [PRECISION, PRECISION],
-        [MINT_FEE, SWAP_FEE, REDEEM_FEE],
-        feeRecipient.address,
-        ethers.constants.AddressZero,
-        poolToken.address,
-        0,
-        constant.address,
-        1,
-      ])
-    ).to.be.revertedWith("yield recipient not set");
-
     /// Check deploy swap with pool token not set
     await expect(
       upgrades.deployProxy(StableAsset, [
         [token1.address, token2.address],
         [PRECISION, PRECISION],
         [MINT_FEE, SWAP_FEE, REDEEM_FEE],
-        feeRecipient.address,
-        yieldRecipient.address,
         ethers.constants.AddressZero,
         0,
         constant.address,
@@ -349,8 +295,6 @@ describe("StableAsset", function () {
         [token1.address, token2.address],
         [PRECISION, PRECISION],
         [MINT_FEE, SWAP_FEE, REDEEM_FEE],
-        feeRecipient.address,
-        yieldRecipient.address,
         poolToken.address,
         0,
         constant.address,
@@ -364,8 +308,6 @@ describe("StableAsset", function () {
         [token1.address, token2.address],
         [PRECISION, PRECISION],
         [MINT_FEE, SWAP_FEE, REDEEM_FEE],
-        feeRecipient.address,
-        yieldRecipient.address,
         poolToken.address,
         1000000,
         constant.address,
@@ -1234,5 +1176,605 @@ describe("StableAsset", function () {
       100,
       totalAmount.sub(redeemAmount.sub(feeAmount)).toString()
     );
+  });
+  it("should redeem the correct amount to multiple tokens", async () => {
+    /// Deploy swap and tokens
+    const { swap, token1, token2, poolToken } = await loadFixture(
+      deploySwapAndTokens
+    );
+    const [owner, feeRecipient, user, user2] = await ethers.getSigners();
+
+    /// Unpause swap contract
+    await swap.unpause();
+    /// We use total amount to approximate D!
+    /// Get mint amount with 105 token1 and 85 token2
+    const mintAmounts = await swap.getMintAmount([
+      web3.utils.toWei("105"),
+      web3.utils.toWei("85"),
+    ]);
+    /// Get total amount
+    const totalAmount = mintAmounts[0].add(mintAmounts[1]);
+    /// Mint 105 token1 to user
+    await token1.mint(user.address, web3.utils.toWei("105"));
+    /// Mint 85 token2 to user
+    await token2.mint(user.address, web3.utils.toWei("85"));
+    /// Approve swap contract to spend 105 token1
+    await token1.connect(user).approve(swap.address, web3.utils.toWei("105"));
+    /// Approve swap contract to spend 85 token2
+    await token2.connect(user).approve(swap.address, web3.utils.toWei("85"));
+    /// Mint 105 token1 and 85 token2 to swap contract
+    await swap
+      .connect(user)
+      .mint([web3.utils.toWei("105"), web3.utils.toWei("85")], 0);
+
+    /// Get redeem amount with 10 token1 and 5 token2
+    const amounts = await swap.getRedeemMultiAmount([
+      web3.utils.toWei("10"),
+      web3.utils.toWei("5"),
+    ]);
+    /// Get redeem amount from amounts
+    const redeemAmount = amounts[0];
+    /// Get fee amount from amounts
+    const feeAmount = amounts[1];
+
+    /// Transfer 25 pool token to user2
+    await poolToken
+      .connect(user)
+      .transfer(user2.address, web3.utils.toWei("25"));
+
+    const balance = await poolToken.balanceOf(user2.address);
+
+    /// Check user2 token1 balance is 0
+    expect((await token1.balanceOf(user2.address)).toString()).to.equals("0");
+    /// Check user2 token2 balance is 0
+    expect((await token2.balanceOf(user2.address)).toString()).to.equals("0");
+    /// Check user2 pool token balance is 25
+    expect((await poolToken.balanceOf(user2.address)).toString()).to.equals(
+      balance
+    );
+    /// Check swap pool token1 balance is 105
+    expect((await token1.balanceOf(swap.address)).toString()).to.equals(
+      web3.utils.toWei("105")
+    );
+    /// Check swap pool token2 balance is 85
+    expect((await token2.balanceOf(swap.address)).toString()).to.equals(
+      web3.utils.toWei("85")
+    );
+    /// Check swap pool token1 balance is 105
+    expect((await swap.balances(0)).toString()).to.equals(
+      web3.utils.toWei("105")
+    );
+    /// Check swap pool token2 balance is 85
+    expect((await swap.balances(1)).toString()).to.equals(
+      web3.utils.toWei("85")
+    );
+    /// Check swap total supply is same as pool token total supply
+    expect((await swap.totalSupply()).toString()).to.equals(
+      (await poolToken.totalSupply()).toString()
+    );
+
+    /// Get fee before
+    //const feeBefore = await poolToken.balanceOf(feeRecipient.address);
+    /// Approve swap contract to spend pool token
+    await poolToken.connect(user2).approve(swap.address, redeemAmount);
+    /// Redeem 10 token1 and 5 token2 to user2
+    await swap
+      .connect(user2)
+      .redeemMulti(
+        [web3.utils.toWei("10"), web3.utils.toWei("5")],
+        redeemAmount
+      );
+
+    /// The amount of token1 got. In original format.
+    /// Check user2 token1 balance is 10
+    expect((await token1.balanceOf(user2.address)).toString()).to.equals(
+      web3.utils.toWei("10")
+    );
+    /// Check user2 token2 balance is 5
+    expect((await token2.balanceOf(user2.address)).toString()).to.equals(
+      web3.utils.toWei("5")
+    );
+    /// Check user2 pool token balance is 25 - redeemAmount
+    //expect((await poolToken.balanceOf(user2.address)).toString()).to.equals(
+    //balance.sub(redeemAmount).add(feeAmount).toString()
+    //);
+    /// Check fee recipient pool token balance is feeAmount + feeBefore
+    //expect(
+    //  (await poolToken.balanceOf(feeRecipient.address)).toString()
+    //).to.equals(feeAmount.add(feeBefore).toString());
+    /// Check swap pool token1 balance is 95
+    expect((await token1.balanceOf(swap.address)).toString()).to.equals(
+      web3.utils.toWei("95")
+    );
+    /// Check swap pool token2 balance is 80
+    expect((await token2.balanceOf(swap.address)).toString()).to.equals(
+      web3.utils.toWei("80")
+    );
+    /// Check swap pool token1 balance is 95
+    expect((await swap.balances(0)).toString()).to.equals(
+      web3.utils.toWei("95")
+    );
+    /// Check swap pool token2 balance is 80
+    expect((await swap.balances(1)).toString()).to.equals(
+      web3.utils.toWei("80")
+    );
+    /// Check swap total supply is same as pool token total supply
+    expect((await swap.totalSupply()).toString()).to.equals(
+      (await poolToken.totalSupply()).toString()
+    );
+  });
+
+  it("should return the correct redeem amount to multiple tokens rebasing", async () => {
+    /// Deploy swap and tokens
+    const { swap, token1, token2, poolToken } = await loadFixture(
+      deploySwapAndTokens
+    );
+    const [owner, feeRecipient, user, user2] = await ethers.getSigners();
+
+    /// Unpause swap contract
+    await swap.unpause();
+    /// We use total amount to approximate D!
+    /// Get mint amount for 105 token1 and 85 token2
+    const mintAmounts = await swap.getMintAmount([
+      web3.utils.toWei("105"),
+      web3.utils.toWei("85"),
+    ]);
+    /// Get total amount
+    const totalAmount = mintAmounts[0].add(mintAmounts[1]);
+    /// Mint 105 token1 to user
+    await token1.mint(user.address, web3.utils.toWei("105"));
+    /// Mint 85 token2 to user
+    await token2.mint(user.address, web3.utils.toWei("85"));
+    /// Approve swap contract to spend 105 token1
+    await token1.connect(user).approve(swap.address, web3.utils.toWei("105"));
+    /// Approve swap contract to spend 85 token2
+    await token2.connect(user).approve(swap.address, web3.utils.toWei("85"));
+    /// Mint 105 token1 and 85 token2 to swap contract
+    await swap
+      .connect(user)
+      .mint([web3.utils.toWei("105"), web3.utils.toWei("85")], 0);
+
+    /// Mint 10 token1 to swap contract
+    await token1.mint(swap.address, web3.utils.toWei("10"));
+    /// Get redeem amount for 10 token1 and 5 token2
+    const amounts = await swap.getRedeemMultiAmount([
+      web3.utils.toWei("10"),
+      web3.utils.toWei("5"),
+    ]);
+    /// Get redeem amount from amounts
+    const redeemAmount = amounts[0];
+    /// Get fee amount from amounts
+    const feeAmount = amounts[1];
+
+    /// Check redeem amount
+    assertFee(redeemAmount.toString(), feeAmount.toString(), REDEEM_FEE);
+    /// Assert invariant
+    assetInvariant(
+      web3.utils.toWei("95"),
+      web3.utils.toWei("80"),
+      100,
+      totalAmount.sub(redeemAmount.sub(feeAmount)).toString()
+    );
+  });
+
+  it("should return the correct redeem amount to a single token rebasing", async () => {
+    /// Deploy swap and tokens
+    const { swap, token1, token2, poolToken } = await loadFixture(
+      deploySwapAndTokens
+    );
+    const [owner, feeRecipient, user, user2] = await ethers.getSigners();
+
+    /// Unpause swap contract
+    await swap.unpause();
+    /// We use total amount to approximate D!
+    /// Get mint amount for 105 token1 and 85 token2
+    const mintAmounts = await swap.getMintAmount([
+      web3.utils.toWei("105"),
+      web3.utils.toWei("85"),
+    ]);
+    /// Get total amount
+    const totalAmount = new BN(mintAmounts[0].add(mintAmounts[1]).toString());
+    /// Mint 105 token1 to user
+    await token1.mint(user.address, web3.utils.toWei("105"));
+    /// Mint 85 token2 to user
+    await token2.mint(user.address, web3.utils.toWei("85"));
+    /// Approve swap contract to spend 105 token1
+    await token1.connect(user).approve(swap.address, web3.utils.toWei("105"));
+    /// Approve swap contract to spend 85 token2
+    await token2.connect(user).approve(swap.address, web3.utils.toWei("85"));
+    /// Mint 105 token1 and 85 token2 to swap contract
+    await swap
+      .connect(user)
+      .mint([web3.utils.toWei("105"), web3.utils.toWei("85")], 0);
+
+    /// Mint 10 token1 to swap contract
+    await token1.mint(swap.address, web3.utils.toWei("10"));
+    /// Set redeem amount is 25 token1
+    const redeemAmount = new BN(web3.utils.toWei("25")).toString();
+    /// Get redeem amount
+    const amounts = await swap.getRedeemSingleAmount(redeemAmount, 0);
+    /// Get token1 amount from amounts
+    const token1Amount = new BN(amounts[0].toString());
+    /// Get fee amount from amounts
+    const feeAmount = new BN(amounts[1].toString());
+
+    /// Assert invariant
+    assetInvariant(
+      new BN(web3.utils.toWei("105"))
+        .sub(token1Amount.mul(new BN(PRECISION)))
+        .toString(),
+      web3.utils.toWei("85"),
+      100,
+      totalAmount.sub(new BN(redeemAmount).sub(feeAmount)).toString()
+    );
+  });
+
+  it("should return the correct redeem amount with proportional redemption rebasing", async () => {
+    /// Deploy swap and tokens
+    const { swap, token1, token2, poolToken } = await loadFixture(
+      deploySwapAndTokens
+    );
+    const [owner, feeRecipient, user, user2] = await ethers.getSigners();
+    /// Unpause swap contract
+    await swap.unpause();
+    /// We use total amount to approximate D!
+    /// Get mint amount for 105 token1 and 85 token2
+    const mintAmounts = await swap.getMintAmount([
+      web3.utils.toWei("105"),
+      web3.utils.toWei("85"),
+    ]);
+    /// Mint 105 token1 to user
+    await token1.mint(user.address, web3.utils.toWei("105"));
+    /// Mint 85 token2 to user
+    await token2.mint(user.address, web3.utils.toWei("85"));
+    /// Approve swap contract to spend 105 token1
+    await token1.connect(user).approve(swap.address, web3.utils.toWei("105"));
+    /// Approve swap contract to spend 85 token2
+    await token2.connect(user).approve(swap.address, web3.utils.toWei("85"));
+    /// Mint 105 token1 and 85 token2 to swap contract
+    await swap
+      .connect(user)
+      .mint([web3.utils.toWei("105"), web3.utils.toWei("85")], 0);
+
+    /// Mint 10 token1 to swap contract
+    await token1.mint(swap.address, web3.utils.toWei("10"));
+    /// Get redeem amounts for 25 poolToken
+    const amounts = await swap.getRedeemProportionAmount(
+      web3.utils.toWei("25")
+    );
+    /// Get token1 amount from amounts
+    const token1Amount = new BN(amounts[0][0].toString());
+    /// Get token2 amount from amounts
+    const token2Amount = new BN(amounts[0][1].toString());
+    /// Get fee amount from amounts
+    const feeAmount = new BN(amounts[1].toString());
+    expect(token1Amount.toString()).to.equals("14303943881560144839");
+    expect(token2Amount.toString()).to.equals("10572480260283585316");
+    expect(feeAmount.toString()).to.equals("125000000000000000");
+  });
+
+  it("should return the correct exchange amount rebasing", async () => {
+    /// Deploy swap and tokens
+    const { swap, token1, token2, poolToken } = await loadFixture(
+      deploySwapAndTokens
+    );
+    const [owner, feeRecipient, user, user2] = await ethers.getSigners();
+
+    /// Unpause swap contract
+    await swap.unpause();
+    /// We use total amount to approximate D!
+    /// Get mint amount for 105 token1 and 85 token2
+    const amounts = await swap.getMintAmount([
+      web3.utils.toWei("105"),
+      web3.utils.toWei("85"),
+    ]);
+    /// Get total amount
+    const totalAmount = amounts[0].add(amounts[1]);
+    /// Mint 105 token1 to user
+    await token1.mint(user.address, web3.utils.toWei("105"));
+    /// Mint 85 token2 to user
+    await token2.mint(user.address, web3.utils.toWei("85"));
+    /// Approve swap contract to spend 105 token1
+    await token1.connect(user).approve(swap.address, web3.utils.toWei("105"));
+    /// Approve swap contract to spend 85 token2
+    await token2.connect(user).approve(swap.address, web3.utils.toWei("85"));
+    /// Mint 105 token1 and 85 token2 to swap contract
+    await swap
+      .connect(user)
+      .mint([web3.utils.toWei("105"), web3.utils.toWei("85")], 0);
+
+    /// Mint 8 token2 to user2
+    await token2.mint(user2.address, web3.utils.toWei("8"));
+    /// Approve swap contract to spend 8 token2
+    await token2.connect(user2).approve(swap.address, web3.utils.toWei("8"));
+    /// Mint 8 token2 to swap contract
+    await token1.mint(swap.address, web3.utils.toWei("10"));
+    /// Get exchange amount for 8 token2
+    const exchangeAmount = await swap.getSwapAmount(
+      1,
+      0,
+      web3.utils.toWei("8")
+    );
+    expect(exchangeAmount.toString()).to.equals(
+      "7992985053666343961,16018006119571831"
+    );
+  });
+
+  it("should return the correct mint amount when two tokens are not equal rebasing", async () => {
+    /// Deploy swap and tokens
+    const { swap, token1, token2, poolToken } = await loadFixture(
+      deploySwapAndTokens
+    );
+    /// Mint 10 token1 to swap contract
+    await token1.mint(swap.address, web3.utils.toWei("10"));
+    /// Mint 10 token2 to swap contract
+    await token2.mint(swap.address, web3.utils.toWei("10"));
+    /// Get mint amount for 110 token1 and 90 token2
+    const amounts = await swap.getMintAmount([
+      web3.utils.toWei("110"),
+      web3.utils.toWei("90"),
+    ]);
+    /// Get mint amount from amounts
+    const mintAmount = amounts[0];
+    /// Get fee amount from amounts
+    const feeAmount = amounts[1];
+    /// Get total amount
+    const totalAmount = mintAmount.add(feeAmount);
+    /// Assert fee amount is correct
+    assertFee(totalAmount.toString(), feeAmount.toString(), MINT_FEE);
+    /// Assert invariant
+    assetInvariant(
+      web3.utils.toWei("100"),
+      web3.utils.toWei("100"),
+      100,
+      web3.utils.toWei("200")
+    );
+  });
+
+  it("should return the correct mint amount when two tokens are equal rebasing", async () => {
+    /// Deploy swap and tokens
+    const { swap, token1, token2, poolToken } = await loadFixture(
+      deploySwapAndTokens
+    );
+    /// Mint 10 token1 to swap contract
+    await token1.mint(swap.address, web3.utils.toWei("10"));
+    /// Mint 10 token2 to swap contract
+    await token2.mint(swap.address, web3.utils.toWei("10"));
+    /// Get mint amount for 100 token1 and 100 token2
+    const amounts = await swap.getMintAmount([
+      web3.utils.toWei("100"),
+      web3.utils.toWei("100"),
+    ]);
+    /// Get mint amount from amounts
+    const mintAmount = amounts[0];
+    /// Get fee amount from amounts
+    const feeAmount = amounts[1];
+    /// Get total amount
+    const totalAmount = mintAmount.add(feeAmount);
+    /// Check total amount is 200
+    expect(totalAmount.toString()).to.equals(web3.utils.toWei("200"));
+    /// Assert fee amount is correct
+    assertFee(totalAmount.toString(), feeAmount.toString(), MINT_FEE);
+    /// Assert invariant
+    assetInvariant(
+      web3.utils.toWei("100"),
+      web3.utils.toWei("100"),
+      100,
+      web3.utils.toWei("200")
+    );
+  });
+
+  it("should allow to update governance", async () => {
+    /// Deploy swap and tokens
+    const { swap, token1, token2, poolToken } = await loadFixture(
+      deploySwapAndTokens
+    );
+    const [owner, feeRecipient, user, admin] = await ethers.getSigners();
+    /// Check can't update governance if not governance
+    await expect(
+      swap.connect(admin).proposeGovernance(user.address)
+    ).to.be.revertedWith("not governance");
+    /// Update governance to user
+    await swap.proposeGovernance(user.address);
+    await swap.connect(user).acceptGovernance();
+    /// Check governance is user
+    expect(await swap.governance()).to.equals(user.address);
+  });
+
+  it("should allow to update mint fee", async () => {
+    /// Deploy swap and tokens
+    const { swap, token1, token2, poolToken } = await loadFixture(
+      deploySwapAndTokens
+    );
+    const [owner, feeRecipient, user, admin] = await ethers.getSigners();
+    /// Check can't update mint fee if not governance
+    await expect(swap.connect(admin).setMintFee("1000")).to.be.revertedWith(
+      "not governance"
+    );
+    /// Update mint fee to 1000
+    swap.setMintFee("1000");
+    /// Set mint fee is 1000
+    expect((await swap.mintFee()).toString()).to.equals("1000");
+  });
+
+  it("should allow to update swap fee", async () => {
+    /// Deploy swap and tokens
+    const { swap, token1, token2, poolToken } = await loadFixture(
+      deploySwapAndTokens
+    );
+    /// Set swap fee to 1000
+    swap.setSwapFee("1000");
+    /// Set swap fee is 1000
+    expect((await swap.swapFee()).toString()).to.equals("1000");
+  });
+
+  it("should allow to update redeem fee", async () => {
+    /// Deploy swap and tokens
+    const { swap, token1, token2, poolToken } = await loadFixture(
+      deploySwapAndTokens
+    );
+    /// Set redeem fee to 1000
+    swap.setRedeemFee("1000");
+    /// Set redeem fee is 1000
+    expect((await swap.redeemFee()).toString()).to.equals("1000");
+  });
+
+  it("should allow to pause and unpause", async () => {
+    /// Deploy swap and tokens
+    const { swap, token1, token2, poolToken } = await loadFixture(
+      deploySwapAndTokens
+    );
+    const [owner, feeRecipient, user, admin] = await ethers.getSigners();
+    /// Check can't pause if not governance
+    await expect(swap.connect(admin).pause()).to.be.revertedWith(
+      "not governance"
+    );
+    /// Check can't unpause when paused
+    await expect(swap.pause()).to.be.revertedWith("paused");
+    /// Pause swap
+    await swap.unpause();
+    /// Check paused is false
+    expect(await swap.paused()).to.equals(false);
+    /// Check can't unpause if not governance
+    await expect(swap.connect(admin).unpause()).to.be.revertedWith(
+      "not governance"
+    );
+    /// Check can't pause when unpaused
+    await expect(swap.unpause()).to.be.revertedWith("not paused");
+    /// Pause swap
+    await swap.pause();
+    /// Check paused is true
+    expect(await swap.paused()).to.equals(true);
+  });
+
+  it("setAdmin should work", async () => {
+    /// Deploy swap and tokens
+    const { swap, token1, token2, poolToken } = await loadFixture(
+      deploySwapAndTokens
+    );
+    const [owner, feeRecipient, user, admin] = await ethers.getSigners();
+
+    /// Check initial admin is owner
+    expect(await swap.admins(admin.address)).to.equals(false);
+
+    //// Check can't set admin if not governance
+    await expect(
+      swap.connect(user).setAdmin(ethers.constants.AddressZero, true)
+    ).to.be.revertedWith("not governance");
+    /// Check can't set admin to zero address
+    await expect(
+      swap.setAdmin(ethers.constants.AddressZero, true)
+    ).to.be.revertedWith("account not set");
+
+    /// Set admin to true
+    await swap.setAdmin(admin.address, true);
+    /// Check admin is true
+    expect(await swap.admins(admin.address)).to.equals(true);
+
+    /// Set admin to false
+    await swap.setAdmin(admin.address, false);
+    /// Check admin is false
+    expect(await swap.admins(admin.address)).to.equals(false);
+  });
+
+  it("updateA should work", async () => {
+    /// Deploy swap and tokens
+    const { swap, token1, token2, poolToken } = await loadFixture(
+      deploySwapAndTokens
+    );
+    const [owner, feeRecipient, user, admin] = await ethers.getSigners();
+    /// Check initial A is 100
+    expect(await swap.initialA()).to.equals(100);
+    /// Check future A is 100
+    expect(await swap.futureA()).to.equals(100);
+
+    /// Check updateA fails if not governance
+    await expect(swap.connect(admin).updateA(1000, 20)).to.be.revertedWith(
+      "not governance"
+    );
+    /// Check updateA fails if block in the past
+    await expect(swap.updateA(1000, 8)).to.be.revertedWith("block in the past");
+
+    /// Check updateA fails if A not set
+    await expect(swap.updateA(0, 40)).to.be.revertedWith("A not set");
+
+    /// Check updateA fails if A exceeds max
+    await expect(swap.updateA(1000000, 40)).to.be.revertedWith("A not set");
+
+    /// Update A to 1000 at block 50
+    await swap.updateA(1000, 50); // need extra block to update
+    /// Check initial A is 100
+    expect(await swap.initialA()).to.equals(100);
+    /// Check future A is 1000
+    expect(await swap.futureA()).to.equals(1000);
+  });
+
+  it("getA should work", async () => {
+    /// Deploy swap and tokens
+    const { swap, token1, token2, poolToken } = await loadFixture(
+      deploySwapAndTokens
+    );
+    const [owner, feeRecipient, user, user2] = await ethers.getSigners();
+
+    /// Check initial A is 100
+    expect(await swap.initialA()).to.equals(100);
+    /// Check future A is 100
+    expect(await swap.getA()).to.equals(100);
+
+    /// Update A to 1000 when block is 100
+    await swap.updateA(1000, (await ethers.provider.getBlockNumber()) + 39);
+    /// Check future A is 1000
+    expect(await swap.initialA()).to.equals(100);
+    /// Check future A is 1000
+    expect(await swap.futureA()).to.equals(1000);
+    /// Check getA is 100
+    expect(await swap.getA()).to.equals(100);
+
+    const hre = await import("hardhat");
+
+    /// Mine 35 blocks
+    await hre.network.provider.request({
+      method: "hardhat_mine",
+      params: [ethers.utils.hexlify(35)],
+    });
+    /// Check getA is 520
+    expect(await swap.getA()).to.greaterThan(100);
+
+    /// Mine 38 blocks
+    await hre.network.provider.request({
+      method: "hardhat_mine",
+      params: [ethers.utils.hexlify(39)],
+    });
+    /// Mine 1 block
+    await hre.network.provider.request({
+      method: "hardhat_mine",
+      params: [ethers.utils.hexStripZeros(ethers.utils.hexlify(1))],
+    });
+    /// Check getA is 1000
+    expect(await swap.getA()).to.equals(1000);
+    /// Mine 1 block
+    await hre.network.provider.request({
+      method: "hardhat_mine",
+      params: [ethers.utils.hexStripZeros(ethers.utils.hexlify(1))],
+    });
+    /// Check getA is 1000
+    expect(await swap.getA()).to.equals(1000);
+
+    /// Update A to 500 when block number is 200
+    await swap.updateA(500, 200);
+    /// Mine 40 blocks
+    await hre.network.provider.request({
+      method: "hardhat_mine",
+      params: [ethers.utils.hexStripZeros(ethers.utils.hexlify(40))],
+    });
+    /// Check getA is 796
+    expect(await swap.getA()).to.lessThan(1000);
+
+    await hre.network.provider.request({
+      method: "hardhat_mine",
+      params: [ethers.utils.hexStripZeros(ethers.utils.hexlify(100))],
+    });
+    /// Check getA is 500
+    expect(await swap.getA()).to.equals(500);
   });
 });

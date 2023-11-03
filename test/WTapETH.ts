@@ -17,7 +17,7 @@ describe("wtapETH", function () {
 
     const TapETH = await ethers.getContractFactory("TapETH");
     const tapETH = await upgrades.deployProxy(TapETH, [governance.address]);
-    const WtapETH = await ethers.getContractFactory("WTapETH");
+    const WtapETH = await ethers.getContractFactory("WtapETH");
     const wtapETH = await upgrades.deployProxy(WtapETH, [tapETH.address]);
 
     return { tapETH, wtapETH, accounts, governance, owner, pool1, pool2 };
