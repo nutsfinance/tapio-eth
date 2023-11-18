@@ -441,7 +441,7 @@ describe("StableAsset", function () {
     expect((await poolToken.sharesOf(user.address)).toString()).to.equals(
       mintAmount.toString()
     );
-    expect((await poolToken.getTotalShares()).toString()).to.equals(
+    expect((await poolToken.totalShares()).toString()).to.equals(
       mintAmount.toString()
     );
     expect((await poolToken.totalSupply()).toString()).to.equals(
@@ -529,7 +529,7 @@ describe("StableAsset", function () {
     expect((await poolToken.sharesOf(user.address)).toString()).to.equals(
       mintAmount.toString()
     );
-    expect((await poolToken.getTotalShares()).toString()).to.equals(
+    expect((await poolToken.totalShares()).toString()).to.equals(
       mintAmount.toString()
     );
     /// Check fee recipient balance is fee amount
@@ -854,7 +854,7 @@ describe("StableAsset", function () {
     /// Get fee amount
     const feeAmount = new BN(amounts[1].toString());
 
-    const totalShares = await poolToken.getTotalShares();
+    const totalShares = await poolToken.totalShares();
     const totalBalance = await poolToken.totalSupply();
     console.log(totalShares);
     console.log(totalBalance);

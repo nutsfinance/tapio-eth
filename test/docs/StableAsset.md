@@ -23,7 +23,6 @@
 - Check swap swapFee is SWAP_FEE
 - Check swap redeemFee is REDEEM_FEE
 - Check swap poolToken is poolToken
-- Check swap feeRecipient is feeRecipient
 - Check swap governance is owner
 - Check swap paused is true
 - Check swap initialA is 100
@@ -36,8 +35,6 @@
 - Check deploy swap with token length not match
 - Check deploy swap with fee length not match
 - Check deploy swap with token not set
-- Check deploy swap with fee recipient not set
-- Check deploy swap with yield recipient not set
 - Check deploy swap with pool token not set
 - Check deploy swap with A not set
 - Check deploy swap with A exceed max
@@ -272,3 +269,175 @@
 - Get fee amount from amounts
 - Check redeem amount
 - Assert invariant
+- Deploy swap and tokens
+- Unpause swap contract
+- We use total amount to approximate D!
+- Get mint amount with 105 token1 and 85 token2
+- Get total amount
+- Mint 105 token1 to user
+- Mint 85 token2 to user
+- Approve swap contract to spend 105 token1
+- Approve swap contract to spend 85 token2
+- Mint 105 token1 and 85 token2 to swap contract
+- Get redeem amount with 10 token1 and 5 token2
+- Get redeem amount from amounts
+- Get fee amount from amounts
+- Transfer 25 pool token to user2
+- Check user2 token1 balance is 0
+- Check user2 token2 balance is 0
+- Check user2 pool token balance is 25
+- Check swap pool token1 balance is 105
+- Check swap pool token2 balance is 85
+- Check swap pool token1 balance is 105
+- Check swap pool token2 balance is 85
+- Check swap total supply is same as pool token total supply
+- Get fee before
+- Approve swap contract to spend pool token
+- Redeem 10 token1 and 5 token2 to user2
+- The amount of token1 got. In original format.
+- Check user2 token1 balance is 10
+- Check user2 token2 balance is 5
+- Check user2 pool token balance is 25 - redeemAmount
+- Check fee recipient pool token balance is feeAmount + feeBefore
+- Check swap pool token1 balance is 95
+- Check swap pool token2 balance is 80
+- Check swap pool token1 balance is 95
+- Check swap pool token2 balance is 80
+- Check swap total supply is same as pool token total supply
+- Deploy swap and tokens
+- Unpause swap contract
+- We use total amount to approximate D!
+- Get mint amount for 105 token1 and 85 token2
+- Get total amount
+- Mint 105 token1 to user
+- Mint 85 token2 to user
+- Approve swap contract to spend 105 token1
+- Approve swap contract to spend 85 token2
+- Mint 105 token1 and 85 token2 to swap contract
+- Mint 10 token1 to swap contract
+- Get redeem amount for 10 token1 and 5 token2
+- Get redeem amount from amounts
+- Get fee amount from amounts
+- Check redeem amount
+- Assert invariant
+- Deploy swap and tokens
+- Unpause swap contract
+- We use total amount to approximate D!
+- Get mint amount for 105 token1 and 85 token2
+- Get total amount
+- Mint 105 token1 to user
+- Mint 85 token2 to user
+- Approve swap contract to spend 105 token1
+- Approve swap contract to spend 85 token2
+- Mint 105 token1 and 85 token2 to swap contract
+- Mint 10 token1 to swap contract
+- Set redeem amount is 25 token1
+- Get redeem amount
+- Get token1 amount from amounts
+- Get fee amount from amounts
+- Assert invariant
+- Deploy swap and tokens
+- Unpause swap contract
+- We use total amount to approximate D!
+- Get mint amount for 105 token1 and 85 token2
+- Mint 105 token1 to user
+- Mint 85 token2 to user
+- Approve swap contract to spend 105 token1
+- Approve swap contract to spend 85 token2
+- Mint 105 token1 and 85 token2 to swap contract
+- Mint 10 token1 to swap contract
+- Get redeem amounts for 25 poolToken
+- Get token1 amount from amounts
+- Get token2 amount from amounts
+- Get fee amount from amounts
+- Deploy swap and tokens
+- Unpause swap contract
+- We use total amount to approximate D!
+- Get mint amount for 105 token1 and 85 token2
+- Get total amount
+- Mint 105 token1 to user
+- Mint 85 token2 to user
+- Approve swap contract to spend 105 token1
+- Approve swap contract to spend 85 token2
+- Mint 105 token1 and 85 token2 to swap contract
+- Mint 8 token2 to user2
+- Approve swap contract to spend 8 token2
+- Mint 8 token2 to swap contract
+- Get exchange amount for 8 token2
+- Deploy swap and tokens
+- Mint 10 token1 to swap contract
+- Mint 10 token2 to swap contract
+- Get mint amount for 110 token1 and 90 token2
+- Get mint amount from amounts
+- Get fee amount from amounts
+- Get total amount
+- Assert fee amount is correct
+- Assert invariant
+- Deploy swap and tokens
+- Mint 10 token1 to swap contract
+- Mint 10 token2 to swap contract
+- Get mint amount for 100 token1 and 100 token2
+- Get mint amount from amounts
+- Get fee amount from amounts
+- Get total amount
+- Check total amount is 200
+- Assert fee amount is correct
+- Assert invariant
+- Deploy swap and tokens
+- Check can't update governance if not governance
+- Update governance to user
+- Check governance is user
+- Deploy swap and tokens
+- Check can't update mint fee if not governance
+- Update mint fee to 1000
+- Set mint fee is 1000
+- Deploy swap and tokens
+- Set swap fee to 1000
+- Set swap fee is 1000
+- Deploy swap and tokens
+- Set redeem fee to 1000
+- Set redeem fee is 1000
+- Deploy swap and tokens
+- Check can't pause if not governance
+- Check can't unpause when paused
+- Pause swap
+- Check paused is false
+- Check can't unpause if not governance
+- Check can't pause when unpaused
+- Pause swap
+- Check paused is true
+- Deploy swap and tokens
+- Check initial admin is owner
+- Check can't set admin to zero address
+- Set admin to true
+- Check admin is true
+- Set admin to false
+- Check admin is false
+- Deploy swap and tokens
+- Check initial A is 100
+- Check future A is 100
+- Check updateA fails if not governance
+- Check updateA fails if block in the past
+- Check updateA fails if A not set
+- Check updateA fails if A exceeds max
+- Update A to 1000 at block 50
+- Check initial A is 100
+- Check future A is 1000
+- Deploy swap and tokens
+- Check initial A is 100
+- Check future A is 100
+- Update A to 1000 when block is 100
+- Check future A is 1000
+- Check future A is 1000
+- Check getA is 100
+- Mine 35 blocks
+- Check getA is 520
+- Mine 38 blocks
+- Mine 1 block
+- Check getA is 1000
+- Mine 1 block
+- Check getA is 1000
+- Update A to 500 when block number is 200
+- Mine 40 blocks
+- Check getA is 796
+- Check getA is 500

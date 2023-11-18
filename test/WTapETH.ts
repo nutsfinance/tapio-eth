@@ -40,7 +40,7 @@ describe("wtapETH", function () {
       await tapETH.connect(user).approve(wtapETH.address, amountToWrap);
       await wtapETH.connect(user).wrap(amountToWrap);
       expect(await tapETH.totalSupply()).to.equal(targetTotalSupply);
-      expect(await tapETH.getTotalShares()).to.equal(amount1);
+      expect(await tapETH.totalShares()).to.equal(amount1);
       expect(await tapETH.sharesOf(user.address)).to.equal(
         amount1 - wtapETHTargetAmount
       );
@@ -72,7 +72,7 @@ describe("wtapETH", function () {
       await wtapETH.connect(user).wrap(amountToWrap);
       await wtapETH.connect(user).unwrap(wtapETHTargetAmount);
       expect(await tapETH.totalSupply()).to.equal(targetTotalSupply);
-      expect(await tapETH.getTotalShares()).to.equal(amount1);
+      expect(await tapETH.totalShares()).to.equal(amount1);
       expect(await tapETH.sharesOf(user.address)).to.equal(amount1);
       expect(await tapETH.sharesOf(wtapETH.address)).to.equal(0);
       expect(await tapETH.balanceOf(wtapETH.address)).to.equal(0);
