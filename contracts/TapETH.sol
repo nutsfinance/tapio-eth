@@ -24,10 +24,10 @@ error InsufficientBalance(uint256 currentBalance, uint256 amount);
 contract TapETH is Initializable, ITapETH {
   using Math for uint256;
   uint256 internal constant INFINITE_ALLOWANCE = ~uint256(0);
+  uint256 public constant BUFFER_DENOMINATOR = 10 ** 10;
 
   uint256 private totalShares;
   uint256 private _totalSupply;
-  uint256 private totalRewards;
   address public governance;
   address public pendingGovernance;
   mapping(address => uint256) private shares;
@@ -262,12 +262,13 @@ contract TapETH is Initializable, ITapETH {
   }
 
   /**
-   * @notice This function is called by the governance to set the buffer.
+   * @notice This function is called by the governance to set the buffer rate.
    */
-  function setBuffer(uint256 _amount) external {
+  function setBuffer(uint256 _buffer) external {
     require(msg.sender == governance, "TapETH: no governance");
-    buffer = _amount;
-    emit SetBuffer(_amount);
+    require(_buffer <= BUFFER_DENOMINATOR, "TapETH: out of range");
+    buffer = _buffer;
+    emit SetBuffer(_buffer);
   }
 
   /**
@@ -277,10 +278,8 @@ contract TapETH is Initializable, ITapETH {
   function setTotalSupply(uint256 _amount) external {
     require(pools[msg.sender], "TapETH: no pool");
     require(_amount != 0, "TapETH: no pool");
-    uint256 _deltaBuffer = Math.min(buffer, _amount);
+    uint256 _deltaBuffer = (buffer * _amount) / BUFFER_DENOMINATOR;
     _totalSupply += _amount - _deltaBuffer;
-    totalRewards += _amount;
-    buffer -= _deltaBuffer;
   }
 
   /**
