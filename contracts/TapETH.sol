@@ -17,8 +17,8 @@ error InsufficientBalance(uint256 currentBalance, uint256 amount);
  * contract also stores the sum of all shares to calculate each account's token balance
  * which equals to:
  *
- *   shares[account] * _getTotalPooledEther() / _getTotalShares()
- * where the _getTotalPooledEther() returns the total supply of tapETH controlled by the protocol.
+ *   shares[account] * _totalSupply / _totalShares
+ * where the _totalSupply is the total supply of tapETH controlled by the protocol.
  */
 
 contract TapETH is Initializable, ITapETH {
@@ -26,8 +26,9 @@ contract TapETH is Initializable, ITapETH {
   uint256 internal constant INFINITE_ALLOWANCE = ~uint256(0);
   uint256 public constant BUFFER_DENOMINATOR = 10 ** 10;
 
-  uint256 private totalShares;
+  uint256 private _totalShares;
   uint256 private _totalSupply;
+  uint256 private _totalRewards;
   address public governance;
   address public pendingGovernance;
   mapping(address => uint256) private shares;
@@ -51,6 +52,11 @@ contract TapETH is Initializable, ITapETH {
     address indexed account,
     uint256 tokenAmount,
     uint256 sharesAmount
+  );
+
+  event RewardsMinted(
+    uint256 amount,
+    uint256 actualAmount
   );
 
   event GovernanceModified(address indexed governance);
@@ -117,21 +123,10 @@ contract TapETH is Initializable, ITapETH {
   /**
    * @return the amount of tokens in existence.
    *
-   * @dev Always equals to `_getTotalPooledEther()`: the total amount of
-   * tapETH controlled by the protocol.
+   * @dev The total amount of tapETH controlled by the protocol.
    */
   function totalSupply() external view returns (uint256) {
-    return _getTotalPooledEther();
-  }
-
-  /**
-   * @return the entire amount of tapETH controlled by the protocol.
-   *
-   * @dev The sum of all tapETH balances in the protocol, equals to the total supply of tapETH.
-   */
-
-  function getTotalPooledEther() external view returns (uint256) {
-    return _getTotalPooledEther();
+    return _totalSupply;
   }
 
   /**
@@ -257,8 +252,17 @@ contract TapETH is Initializable, ITapETH {
    * @dev The sum of all accounts' shares can be an arbitrary number, therefore
    * it is necessary to store it in order to calculate each account's relative share.
    */
-  function getTotalShares() external view returns (uint256) {
-    return totalShares;
+  function totalShares() external view returns (uint256) {
+    return _totalShares;
+  }
+
+  /**
+   * @return the total amount of rewards in existence.
+   *
+   * @dev The total rewards of tapETH by the protocol.
+   */
+   function totalRewards() external view returns (uint256) {
+    return _totalRewards;
   }
 
   /**
@@ -279,7 +283,12 @@ contract TapETH is Initializable, ITapETH {
     require(pools[msg.sender], "TapETH: no pool");
     require(_amount != 0, "TapETH: no pool");
     uint256 _deltaBuffer = (buffer * _amount) / BUFFER_DENOMINATOR;
-    _totalSupply += _amount - _deltaBuffer;
+    uint256 actualAmount = _amount - _deltaBuffer;
+
+    _totalSupply += actualAmount;
+    _totalRewards += actualAmount;
+
+    emit RewardsMinted(_amount, actualAmount);
   }
 
   /**
@@ -295,11 +304,10 @@ contract TapETH is Initializable, ITapETH {
   function getSharesByPooledEth(
     uint256 _tapETHAmount
   ) public view returns (uint256) {
-    uint256 _totalPooledEther = _getTotalPooledEther();
-    if (_totalPooledEther == 0) {
+    if (_totalSupply == 0) {
       return 0;
     } else {
-      return (_tapETHAmount * _getTotalShares()) / _totalPooledEther;
+      return (_tapETHAmount * _totalShares) / _totalSupply;
     }
   }
 
@@ -309,10 +317,10 @@ contract TapETH is Initializable, ITapETH {
   function getPooledEthByShares(
     uint256 _sharesAmount
   ) public view returns (uint256) {
-    if (totalShares == 0) {
+    if (_totalShares == 0) {
       return 0;
     } else {
-      return (_sharesAmount * _totalSupply) / (totalShares);
+      return (_sharesAmount * _totalSupply) / _totalShares;
     }
   }
 
@@ -371,14 +379,6 @@ contract TapETH is Initializable, ITapETH {
   }
 
   /**
-   * @return the total amount (in wei) of tapETH controlled by the protocol.
-   * @dev This is used for calculating tokens from shares and vice versa.
-   */
-  function _getTotalPooledEther() internal view returns (uint256) {
-    return _totalSupply;
-  }
-
-  /**
    * @notice Moves `_amount` tokens from `_sender` to `_recipient`.
    * Emits a `Transfer` event.
    * Emits a `TransferShares` event.
@@ -434,13 +434,6 @@ contract TapETH is Initializable, ITapETH {
   }
 
   /**
-   * @return the total amount of shares in existence.
-   */
-  function _getTotalShares() internal view returns (uint256) {
-    return totalShares;
-  }
-
-  /**
    * @return the amount of shares owned by `_account`.
    */
   function _sharesOf(address _account) internal view returns (uint256) {
@@ -478,14 +471,14 @@ contract TapETH is Initializable, ITapETH {
   ) internal returns (uint256 newTotalShares) {
     require(_recipient != address(0), "TapETH: MINT_TO_ZERO_ADDR");
     uint256 _sharesAmount;
-    if (_totalSupply != 0 && totalShares != 0) {
+    if (_totalSupply != 0 && _totalShares != 0) {
       _sharesAmount = getSharesByPooledEth(_tokenAmount);
     } else {
       _sharesAmount = _tokenAmount;
     }
     shares[_recipient] += _sharesAmount;
-    totalShares += _sharesAmount;
-    newTotalShares = totalShares;
+    _totalShares += _sharesAmount;
+    newTotalShares = _totalShares;
     _totalSupply += _tokenAmount;
 
     emit SharesMinted(_recipient, _tokenAmount, _sharesAmount);
@@ -507,8 +500,8 @@ contract TapETH is Initializable, ITapETH {
 
     uint256 _sharesAmount = getSharesByPooledEth(_tokenAmount);
     shares[_account] -= _sharesAmount;
-    totalShares -= _sharesAmount;
-    newTotalShares = totalShares;
+    _totalShares -= _sharesAmount;
+    newTotalShares = _totalShares;
     _totalSupply -= _tokenAmount;
 
     emit SharesBurnt(_account, _tokenAmount, _sharesAmount);

@@ -205,40 +205,6 @@ function getSharesByPooledEth(uint256 _ethAmount) external view returns (uint256
 |---|---|---|
 | _0 | uint256 | undefined |
 
-### getTotalPooledEther
-
-```solidity
-function getTotalPooledEther() external view returns (uint256)
-```
-
-
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined |
-
-### getTotalShares
-
-```solidity
-function getTotalShares() external view returns (uint256)
-```
-
-
-
-
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined |
-
 ### increaseAllowance
 
 ```solidity
@@ -342,6 +308,40 @@ function sharesOf(address _account) external view returns (uint256)
 | Name | Type | Description |
 |---|---|---|
 | _account | address | undefined |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined |
+
+### totalRewards
+
+```solidity
+function totalRewards() external view returns (uint256)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined |
+
+### totalShares
+
+```solidity
+function totalShares() external view returns (uint256)
+```
+
+
+
+
+
 
 #### Returns
 
