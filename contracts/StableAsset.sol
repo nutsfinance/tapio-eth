@@ -798,9 +798,15 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
             );
         }
 
-        totalSupply = D - _amount;
+        totalSupply = D - redeemAmount;
         // After reducing the redeem fee, the remaining pool tokens are burned!
         poolToken.burnSharesFrom(msg.sender, _amount);
+
+        // Add fee to totalSupply after burning _amount
+        if (feeAmount > 0) {
+            poolToken.setTotalSupply(feeAmount);
+        }
+
         collectFeeOrYield(true);
         emit Redeemed(msg.sender, _amount, amounts, feeAmount);
         return amounts;
@@ -900,8 +906,14 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
         }
         amounts[_i] = transferAmount;
         IERC20Upgradeable(tokens[_i]).safeTransfer(msg.sender, transferAmount);
-        totalSupply = D - _amount;
+        totalSupply = D - redeemAmount;
         poolToken.burnSharesFrom(msg.sender, _amount);
+
+        // Add fee to totalSupply after burning _amount
+        if (feeAmount > 0) {
+            poolToken.setTotalSupply(feeAmount);
+        }
+
         collectFeeOrYield(true);
         emit Redeemed(msg.sender, _amount, amounts, feeAmount);
         return transferAmount;
@@ -996,8 +1008,14 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
 
         // Updates token balances in storage.
         balances = _balances;
-        totalSupply = oldD - redeemAmount;
+        totalSupply = oldD - (redeemAmount - feeAmount);
         poolToken.burnSharesFrom(msg.sender, redeemAmount);
+
+        // Add fee to totalSupply after burning _amount
+        if (feeAmount > 0) {
+            poolToken.setTotalSupply(feeAmount);
+        }
+
         uint256[] memory amounts = _amounts;
         for (i = 0; i < _balances.length; i++) {
             if (_amounts[i] == 0) continue;
