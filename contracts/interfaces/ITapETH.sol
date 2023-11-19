@@ -11,8 +11,6 @@ interface ITapETH is IERC20 {
 
     function removePool(address _pool) external;
 
-    function getTotalPooledEther() external view returns (uint256);
-
     function increaseAllowance(
         address _spender,
         uint256 _addedValue
@@ -23,7 +21,9 @@ interface ITapETH is IERC20 {
         uint256 _subtractedValue
     ) external returns (bool);
 
-    function getTotalShares() external view returns (uint256);
+    function totalShares() external view returns (uint256);
+
+    function totalRewards() external view returns (uint256);
 
     function sharesOf(address _account) external view returns (uint256);
 

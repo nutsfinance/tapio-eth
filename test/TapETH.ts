@@ -193,7 +193,7 @@ describe("TapETH", function () {
       let amount = 1_000_000_000_000_000_000_000n;
       await tapETH.connect(pool1).mintShares(user.address, amount);
       expect(await tapETH.totalSupply()).to.equal(amount);
-      expect(await tapETH.getTotalShares()).to.equal(amount);
+      expect(await tapETH.totalShares()).to.equal(amount);
       expect(await tapETH.sharesOf(user.address)).to.equal(amount);
       expect(await tapETH.balanceOf(user.address)).to.equal(amount);
     });
@@ -213,7 +213,7 @@ describe("TapETH", function () {
       await tapETH.connect(pool1).mintShares(user2.address, amount2);
       await tapETH.connect(pool1).mintShares(user3.address, amount3);
       expect(await tapETH.totalSupply()).to.equal(totalAmount);
-      expect(await tapETH.getTotalShares()).to.equal(totalAmount);
+      expect(await tapETH.totalShares()).to.equal(totalAmount);
       expect(await tapETH.sharesOf(user1.address)).to.equal(amount1);
       expect(await tapETH.balanceOf(user1.address)).to.equal(amount1);
       expect(await tapETH.sharesOf(user2.address)).to.equal(amount2);
@@ -236,7 +236,7 @@ describe("TapETH", function () {
       await tapETH.connect(pool1).mintShares(user2.address, amount2);
       await tapETH.connect(pool1).mintShares(user3.address, amount3);
       expect(await tapETH.totalSupply()).to.equal(totalAmount);
-      expect(await tapETH.getTotalShares()).to.equal(totalAmount);
+      expect(await tapETH.totalShares()).to.equal(totalAmount);
       expect(await tapETH.sharesOf(user1.address)).to.equal(amount1);
       expect(await tapETH.balanceOf(user1.address)).to.equal(amount1);
       expect(await tapETH.sharesOf(user2.address)).to.equal(amount2);
@@ -258,7 +258,7 @@ describe("TapETH", function () {
       await tapETH.connect(pool1).mintShares(user.address, amount1);
       await tapETH.connect(user).burnShares(amount2);
       expect(await tapETH.totalSupply()).to.equal(deltaAmount);
-      expect(await tapETH.getTotalShares()).to.equal(deltaAmount);
+      expect(await tapETH.totalShares()).to.equal(deltaAmount);
       expect(await tapETH.sharesOf(user.address)).to.equal(deltaAmount);
       expect(await tapETH.balanceOf(user.address)).to.equal(deltaAmount);
     });
@@ -288,7 +288,7 @@ describe("TapETH", function () {
       await tapETH.connect(user2).burnShares(amountToBurn);
       await tapETH.connect(user3).burnShares(amountToBurn);
       expect(await tapETH.totalSupply()).to.equal(deltaAmount);
-      expect(await tapETH.getTotalShares()).to.equal(deltaAmount);
+      expect(await tapETH.totalShares()).to.equal(deltaAmount);
       expect(await tapETH.sharesOf(user1.address)).to.equal(
         amount1 - amountToBurn
       );
@@ -324,7 +324,7 @@ describe("TapETH", function () {
       await tapETH.connect(user).approve(spender.address, amount1);
       await tapETH.connect(spender).burnSharesFrom(user.address, amount2);
       expect(await tapETH.totalSupply()).to.equal(deltaAmount);
-      expect(await tapETH.getTotalShares()).to.equal(deltaAmount);
+      expect(await tapETH.totalShares()).to.equal(deltaAmount);
       expect(await tapETH.sharesOf(user.address)).to.equal(deltaAmount);
       expect(await tapETH.balanceOf(user.address)).to.equal(deltaAmount);
       expect(await tapETH.allowance(user.address, spender.address)).to.equal(
@@ -362,7 +362,7 @@ describe("TapETH", function () {
       await tapETH.connect(pool1).mintShares(user1.address, amount1);
       await tapETH.connect(user1).transfer(user2.address, amount2);
       expect(await tapETH.totalSupply()).to.equal(amount1);
-      expect(await tapETH.getTotalShares()).to.equal(amount1);
+      expect(await tapETH.totalShares()).to.equal(amount1);
       expect(await tapETH.sharesOf(user1.address)).to.equal(deltaAmount);
       expect(await tapETH.sharesOf(user2.address)).to.equal(amount2);
       expect(await tapETH.balanceOf(user1.address)).to.equal(deltaAmount);
@@ -387,7 +387,7 @@ describe("TapETH", function () {
         .connect(spender)
         .transferFrom(user1.address, user2.address, amount2);
       expect(await tapETH.totalSupply()).to.equal(amount1);
-      expect(await tapETH.getTotalShares()).to.equal(amount1);
+      expect(await tapETH.totalShares()).to.equal(amount1);
       expect(await tapETH.sharesOf(user1.address)).to.equal(deltaAmount);
       expect(await tapETH.sharesOf(user2.address)).to.equal(amount2);
       expect(await tapETH.balanceOf(user1.address)).to.equal(deltaAmount);
@@ -430,7 +430,7 @@ describe("TapETH", function () {
       await tapETH.connect(pool1).mintShares(user1.address, amount1);
       await tapETH.connect(user1).transferShares(user2.address, amount2);
       expect(await tapETH.totalSupply()).to.equal(amount1);
-      expect(await tapETH.getTotalShares()).to.equal(amount1);
+      expect(await tapETH.totalShares()).to.equal(amount1);
       expect(await tapETH.sharesOf(user1.address)).to.equal(deltaAmount);
       expect(await tapETH.sharesOf(user2.address)).to.equal(amount2);
       expect(await tapETH.balanceOf(user1.address)).to.equal(deltaAmount);
@@ -455,7 +455,7 @@ describe("TapETH", function () {
         .connect(spender)
         .transferSharesFrom(user1.address, user2.address, amount2);
       expect(await tapETH.totalSupply()).to.equal(amount1);
-      expect(await tapETH.getTotalShares()).to.equal(amount1);
+      expect(await tapETH.totalShares()).to.equal(amount1);
       expect(await tapETH.sharesOf(user1.address)).to.equal(deltaAmount);
       expect(await tapETH.sharesOf(user2.address)).to.equal(amount2);
       expect(await tapETH.balanceOf(user1.address)).to.equal(deltaAmount);
@@ -498,7 +498,8 @@ describe("TapETH", function () {
       await tapETH.connect(pool1).mintShares(user.address, amount1);
       await tapETH.connect(pool1).setTotalSupply(amount2);
       expect(await tapETH.totalSupply()).to.equal(totalAmount);
-      expect(await tapETH.getTotalShares()).to.equal(amount1);
+      expect(await tapETH.totalShares()).to.equal(amount1);
+      expect(await tapETH.totalRewards()).to.equal(amount2);
       expect(await tapETH.sharesOf(user.address)).to.equal(amount1);
       expect(await tapETH.balanceOf(user.address)).to.equal(totalAmount);
     });
