@@ -16,15 +16,13 @@ describe("GaugeController", function () {
     const GaugeRewardController = await ethers.getContractFactory("GaugeRewardController");
     const VotingEscrow = await ethers.getContractFactory("VotingEscrow");
     const MockToken = await ethers.getContractFactory("MockToken");
-    const StableAssetToken = await ethers.getContractFactory("StableAssetToken");
+    const StableAssetToken = await ethers.getContractFactory("TapETH");
     const rewardToken = await MockToken.deploy("Reward", "R", 18);
-    const poolToken = await upgrades.deployProxy(StableAssetToken, ["Pool Token", "PT"]);
+    const poolToken = await upgrades.deployProxy(StableAssetToken, [owner.address]);
 
     const votingEscrow = await upgrades.deployProxy(VotingEscrow, [rewardToken.address, "Voting Reward", "vR", "1"]);
     const rewardController = await upgrades.deployProxy(GaugeRewardController, [rewardToken.address, votingEscrow.address]);
     const controller = await upgrades.deployProxy(GaugeController, [rewardToken.address, poolToken.address, "10000000000", rewardController.address]);
-    /// Set minter of pool token to be swap contract
-    await poolToken.setMinter(owner.address, true);
     return { controller, rewardToken, poolToken, votingEscrow, rewardController };
   }
 
@@ -73,8 +71,14 @@ describe("GaugeController", function () {
     await rewardController['addType(string,uint256)']("Pool", "1");
     await rewardController['addGauge(address,uint128,uint256)'](poolOne.address, 0, "1");
     await rewardController['addGauge(address,uint128,uint256)'](poolTwo.address, 0, "1");
-    await poolToken.mint(poolOne.address, "10000");
-    await poolToken.mint(poolTwo.address, "10000");
+
+    await poolToken.addPool(poolOne.address);
+    await poolToken.addPool(poolTwo.address);
+    const mockSwap1 = poolToken.connect(poolOne);
+    const mockSwap2 = poolToken.connect(poolOne);
+
+    await mockSwap1.mintShares(poolOne.address, "10000");
+    await mockSwap2.mintShares(poolTwo.address, "10000");
     await rewardToken.mint(other.address, "1000000000000000000");
     await rewardToken.connect(other).approve(votingEscrow.address, "1000000000000000000");
     await votingEscrow.connect(other).createLock("1000000000000000000", 1753675829);
@@ -97,8 +101,14 @@ describe("GaugeController", function () {
     await rewardController['addType(string,uint256)']("Pool", "1");
     await rewardController['addGauge(address,uint128,uint256)'](poolOne.address, 0, "1");
     await rewardController['addGauge(address,uint128,uint256)'](poolTwo.address, 0, "1");
-    await poolToken.mint(poolOne.address, "10000");
-    await poolToken.mint(poolTwo.address, "10000");
+
+    await poolToken.addPool(poolOne.address);
+    await poolToken.addPool(poolTwo.address);
+    const mockSwap1 = poolToken.connect(poolOne);
+    const mockSwap2 = poolToken.connect(poolOne);
+
+    await mockSwap1.mintShares(poolOne.address, "10000");
+    await mockSwap2.mintShares(poolTwo.address, "10000");
     await rewardToken.mint(other.address, "1000000000000000000");
     await rewardToken.mint(controller.address, "10000000000000000000000")
     await rewardToken.connect(other).approve(votingEscrow.address, "1000000000000000000");

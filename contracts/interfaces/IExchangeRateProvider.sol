@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.9;
+pragma solidity ^0.8.18;
 
 /**
  * @title ITokensWithExchangeRate interface
@@ -13,7 +13,7 @@ interface IExchangeRateProvider {
    */
   function exchangeRate() external view returns (uint256);
 
-    /**
+  /**
    * @dev Returns the exchange rate decimals.
    * @return The exchange rate decimals of the token.
    */

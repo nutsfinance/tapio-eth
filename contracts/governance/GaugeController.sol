@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.9;
+pragma solidity ^0.8.18;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
@@ -85,10 +85,7 @@ contract GaugeController is Initializable, ReentrancyGuardUpgradeable {
    * @param poolAddress is the pool address.
    * @param amount is the amount claimed.
    */
-  event Claimed(
-    address indexed poolAddress,
-    uint256 amount
-  );
+  event Claimed(address indexed poolAddress, uint256 amount);
 
   /**
    * @dev This event is emitted when a reward is checkpointed.
@@ -179,11 +176,7 @@ contract GaugeController is Initializable, ReentrancyGuardUpgradeable {
         share = (rewardPoolsCalc[i] * rewardAvailable) / total;
       }
       claimable[poolAddress] += share;
-      emit Checkpointed(
-        poolAddress,
-        claimable[poolAddress],
-        currentTimestamp
-      );
+      emit Checkpointed(poolAddress, claimable[poolAddress], currentTimestamp);
     }
 
     lastCheckpoint = currentTimestamp;
@@ -202,7 +195,8 @@ contract GaugeController is Initializable, ReentrancyGuardUpgradeable {
   function getRewardForPoolWrite(uint128 poolIndex) internal returns (uint256) {
     address poolAddress = rewardController.getGauge(poolIndex);
     return
-      IERC20Upgradeable(poolToken).balanceOf(poolAddress) * rewardController.gaugeRelativeWeightWrite(poolAddress);
+      IERC20Upgradeable(poolToken).balanceOf(poolAddress) *
+      rewardController.gaugeRelativeWeightWrite(poolAddress);
   }
 
   /**
@@ -211,7 +205,8 @@ contract GaugeController is Initializable, ReentrancyGuardUpgradeable {
   function getRewardForPool(uint128 poolIndex) internal view returns (uint256) {
     address poolAddress = rewardController.getGauge(poolIndex);
     return
-      IERC20Upgradeable(poolToken).balanceOf(poolAddress) * rewardController.gaugeRelativeWeight(poolAddress);
+      IERC20Upgradeable(poolToken).balanceOf(poolAddress) *
+      rewardController.gaugeRelativeWeight(poolAddress);
   }
 
   /**

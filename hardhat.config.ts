@@ -39,16 +39,17 @@ const config: HardhatUserConfig = {
     apiKey: "ZVS7QS6TGF6VNAEA267A9KP2KRCDSNRP1G",
   },
   dodoc: {
-    outputDir: "./docs",
+    outputDir: "./docs/contracts",
     include: [
       "contracts/governance",
       "contracts/interfaces",
       "contracts/misc",
       "contracts/reth",
       "contracts/StableAsset.sol",
+      "contracts/TapETH.sol",
+      "contracts/WTapETH.sol",
       "contracts/StableAssetApplication.sol",
-      "contracts/StableAssetToken.sol"
-    ]
+    ],
   },
 };
 

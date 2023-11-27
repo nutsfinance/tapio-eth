@@ -52,11 +52,17 @@ const generateMarkdown = async () => {
   fs.writeFileSync("./test/docs/StableAsset.md", markdownContent, {
     encoding: "utf-8",
   });
-
-  const markdownContent2 = await parseFile("./test/StableAssetApplication.ts");
-  fs.writeFileSync("./test/docs/StableAssetApplication.md", markdownContent2, {
+  const markdownContent2 = await parseFile("./test/TapETH.ts");
+  fs.writeFileSync("./test/docs/TapETH.md", markdownContent2, {
+    encoding: "utf-8",
+  });
+  const markdownContent3 = await parseFile("./test/WTapETH.ts");
+  fs.writeFileSync("./test/docs/WTapETH.md", markdownContent3, {
+    encoding: "utf-8",
+  });
+  const markdownContent4 = await parseFile("./test/StableAssetApplication.ts");
+  fs.writeFileSync("./test/docs/StableAssetApplication.md", markdownContent4, {
     encoding: "utf-8",
   });
 };
-
 generateMarkdown();

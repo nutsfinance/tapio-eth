@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.9;
+pragma solidity ^0.8.18;
 
 import "@openzeppelin/contracts/governance/Governor.sol";
 import "@openzeppelin/contracts/governance/compatibility/GovernorCompatibilityBravo.sol";
@@ -131,6 +131,15 @@ contract TapioGovernor is
     bytes32 descriptionHash
   ) internal override(Governor, GovernorTimelockControl) returns (uint256) {
     return super._cancel(targets, values, calldatas, descriptionHash);
+  }
+
+  function cancel(
+    address[] memory targets,
+    uint256[] memory values,
+    bytes[] memory calldatas,
+    bytes32 descriptionHash
+  ) public override(Governor, GovernorCompatibilityBravo, IGovernor) returns (uint256) {
+    return super.cancel(targets, values, calldatas, descriptionHash);
   }
 
   function _executor()
