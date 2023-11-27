@@ -539,13 +539,9 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
                 _amounts[i]
             );
         }
-        totalSupply = newD;
+        totalSupply = oldD + mintAmount;
         poolToken.mintShares(msg.sender, mintAmount);
-        if (feeAmount > 0) {
-            poolToken.setTotalSupply(feeAmount);
-        }
-
-        collectFeeOrYield(true);
+        feeAmount = collectFeeOrYield(true);
         emit Minted(msg.sender, mintAmount, _amounts, feeAmount);
         return mintAmount;
     }
@@ -801,7 +797,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
         totalSupply = D - _amount;
         // After reducing the redeem fee, the remaining pool tokens are burned!
         poolToken.burnSharesFrom(msg.sender, _amount);
-        collectFeeOrYield(true);
+        feeAmount = collectFeeOrYield(true);
         emit Redeemed(msg.sender, _amount, amounts, feeAmount);
         return amounts;
     }
@@ -902,7 +898,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
         IERC20Upgradeable(tokens[_i]).safeTransfer(msg.sender, transferAmount);
         totalSupply = D - _amount;
         poolToken.burnSharesFrom(msg.sender, _amount);
-        collectFeeOrYield(true);
+        feeAmount = collectFeeOrYield(true);
         emit Redeemed(msg.sender, _amount, amounts, feeAmount);
         return transferAmount;
     }
@@ -1003,7 +999,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
             if (_amounts[i] == 0) continue;
             IERC20Upgradeable(tokens[i]).safeTransfer(msg.sender, _amounts[i]);
         }
-        collectFeeOrYield(true);
+        feeAmount = collectFeeOrYield(true);
         emit Redeemed(msg.sender, redeemAmount, amounts, feeAmount);
         return amounts;
     }
@@ -1088,7 +1084,14 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
         } else {
             uint256[] memory amounts = new uint256[](_balances.length);
             for (uint256 i = 0; i < _balances.length; i++) {
-                amounts[i] = _balances[i] - oldBalances[i];
+                uint256 amount = _balances[i] - oldBalances[i];
+                if (i == exchangeRateTokenIndex) {
+                    amount =
+                        (amount *
+                            (10 ** exchangeRateProvider.exchangeRateDecimals())) /
+                        exchangeRateProvider.exchangeRate();
+                }
+                amounts[i] = amount;
             }
             emit YieldCollected(amounts, feeAmount, totalSupply);
         }
