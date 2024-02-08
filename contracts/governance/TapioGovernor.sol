@@ -138,7 +138,11 @@ contract TapioGovernor is
     uint256[] memory values,
     bytes[] memory calldatas,
     bytes32 descriptionHash
-  ) public override(Governor, GovernorCompatibilityBravo, IGovernor) returns (uint256) {
+  )
+    public
+    override(Governor, GovernorCompatibilityBravo, IGovernor)
+    returns (uint256)
+  {
     return super.cancel(targets, values, calldatas, descriptionHash);
   }
 

@@ -54,10 +54,7 @@ contract TapETH is Initializable, ITapETH {
     uint256 sharesAmount
   );
 
-  event RewardsMinted(
-    uint256 amount,
-    uint256 actualAmount
-  );
+  event RewardsMinted(uint256 amount, uint256 actualAmount);
 
   event GovernanceModified(address indexed governance);
   event GovernanceProposed(address indexed governance);
@@ -261,7 +258,7 @@ contract TapETH is Initializable, ITapETH {
    *
    * @dev The total rewards of tapETH by the protocol.
    */
-   function totalRewards() external view returns (uint256) {
+  function totalRewards() external view returns (uint256) {
     return _totalRewards;
   }
 
