@@ -160,6 +160,10 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
    * @dev This is the maximum value of the amplification coefficient A.
    */
   uint256 public constant MAX_A = 10 ** 6;
+  /**
+   *  @dev This is minimum initial mint
+   */
+  uint256 private constant INITIAL_MINT_MIN = 100000;
 
   /**
    * @dev This is an array of addresses representing the tokens currently supported by the StableAsset contract.
@@ -252,9 +256,14 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
   uint256 public maxDeltaD;
 
   /**
-   * @dev Pending governance address,
+   * @dev Pending governance address.
    */
   address public pendingGovernance;
+
+  /**
+   * @dev Last redeem or mint timestamp
+   */
+  uint256 public lastRedeemOrMint;
 
   /**
    * @dev Initializes the StableAsset contract with the given parameters.
@@ -289,8 +298,12 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
         _precisions[i] != 0 && _precisions[i] == 10 ** (18 - _decimals),
         "precision not set"
       );
-      require(_precisions[i] != 0, "precision not set");
       balances.push(0);
+    }
+    for (uint256 i = 0; i < _tokens.length; i++) {
+      for (uint256 j = i + 1; j < _tokens.length; j++) {
+        require(_tokens[i] != _tokens[j], "duplicate token address");
+      }
     }
     require(address(_poolToken) != address(0x0), "pool token not set");
     require(_A > 0 && _A < MAX_A, "A not set");
@@ -321,6 +334,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     feeErrorMargin = DEFAULT_FEE_ERROR_MARGIN;
     yieldErrorMargin = DEFAULT_YIELD_ERROR_MARGIN;
     maxDeltaD = DEFAULT_MAX_DELTA_D;
+    lastRedeemOrMint = block.timestamp;
 
     // The swap must start with paused state!
     paused = true;
@@ -366,11 +380,18 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
      * We choose to implement n*n instead of n*(n-1) because it's
      * clearer in code and A value across pool is comparable.
      */
+    bool allZero = true;
     for (i = 0; i < _balances.length; i++) {
-      sum = sum + _balances[i];
+      uint256 correctedBalance = _balances[i];
+      if (correctedBalance != 0) {
+        allZero = false;
+      } else {
+        correctedBalance = 1;
+      }
+      sum = sum + correctedBalance;
       Ann = Ann * _balances.length;
     }
-    if (sum == 0) return 0;
+    if (allZero) return 0;
 
     uint256 prevD = 0;
     uint256 D = sum;
@@ -495,6 +516,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     // If swap is paused, only admins can mint.
     require(!paused || admins[msg.sender], "paused");
     require(balances.length == _amounts.length, "invalid amounts");
+    require(block.timestamp > lastRedeemOrMint, "same block redeem");
 
     collectFeeOrYield(false);
     uint256[] memory _balances = balances;
@@ -502,9 +524,11 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     uint256 oldD = totalSupply;
     uint256 i = 0;
     for (i = 0; i < _balances.length; i++) {
-      if (_amounts[i] == 0) {
+      if (_amounts[i] < INITIAL_MINT_MIN) {
         // Initial deposit requires all tokens provided!
         require(oldD > 0, "zero amount");
+      }
+      if (_amounts[i] == 0) {
         continue;
       }
       uint256 balanceAmount = _amounts[i];
@@ -543,6 +567,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     poolToken.mintShares(msg.sender, mintAmount);
     feeAmount = collectFeeOrYield(true);
     emit Minted(msg.sender, mintAmount, _amounts, feeAmount);
+    lastRedeemOrMint = block.timestamp;
     return mintAmount;
   }
 
@@ -751,6 +776,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     require(!paused || admins[msg.sender], "paused");
     require(_amount != 0, "zero amount");
     require(balances.length == _minRedeemAmounts.length, "invalid mins");
+    require(block.timestamp > lastRedeemOrMint, "same block redeem");
 
     collectFeeOrYield(false);
     uint256[] memory _balances = balances;
@@ -795,6 +821,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     // After reducing the redeem fee, the remaining pool tokens are burned!
     poolToken.burnSharesFrom(msg.sender, _amount);
     feeAmount = collectFeeOrYield(true);
+    lastRedeemOrMint = block.timestamp;
     emit Redeemed(msg.sender, _amount, amounts, feeAmount);
     return amounts;
   }
@@ -855,6 +882,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     require(!paused || admins[msg.sender], "paused");
     require(_amount > 0, "zero amount");
     require(_i < balances.length, "invalid token");
+    require(block.timestamp > lastRedeemOrMint, "same block redeem");
 
     collectFeeOrYield(false);
     uint256[] memory _balances = balances;
@@ -894,6 +922,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     totalSupply = D - _amount;
     poolToken.burnSharesFrom(msg.sender, _amount);
     feeAmount = collectFeeOrYield(true);
+    lastRedeemOrMint = block.timestamp;
     emit Redeemed(msg.sender, _amount, amounts, feeAmount);
     return transferAmount;
   }
@@ -953,6 +982,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     require(_amounts.length == balances.length, "length not match");
     // If swap is paused, only admins can redeem.
     require(!paused || admins[msg.sender], "paused");
+    require(block.timestamp > lastRedeemOrMint, "same block redeem");
 
     collectFeeOrYield(false);
     uint256[] memory _balances = balances;
@@ -995,6 +1025,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
       IERC20Upgradeable(tokens[i]).safeTransfer(msg.sender, _amounts[i]);
     }
     feeAmount = collectFeeOrYield(true);
+    lastRedeemOrMint = block.timestamp;
     emit Redeemed(msg.sender, redeemAmount, amounts, feeAmount);
     return amounts;
   }
@@ -1068,7 +1099,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     if (feeAmount == 0) {
       return 0;
     }
-    poolToken.setTotalSupply(feeAmount);
+    poolToken.addTotalSupply(feeAmount);
 
     if (isFee) {
       emit FeeCollected(feeAmount, totalSupply);
@@ -1081,7 +1112,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
             (amount * (10 ** exchangeRateProvider.exchangeRateDecimals())) /
             exchangeRateProvider.exchangeRate();
         }
-        amounts[i] = amount;
+        amounts[i] = amount / precisions[i];
       }
       emit YieldCollected(amounts, feeAmount, totalSupply);
     }
@@ -1188,6 +1219,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     futureA = _futureA;
     futureABlock = _futureABlock;
 
+    collectFeeOrYield(false);
     uint256 newD = _getD(balances, futureA);
     uint256 absolute = totalSupply > newD
       ? totalSupply - newD
@@ -1257,7 +1289,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
       balances = _balances;
       totalSupply = newD;
       uint256 _amount = newD - oldD;
-      poolToken.setTotalSupply(_amount);
+      poolToken.addTotalSupply(_amount);
       return _amount;
     }
   }

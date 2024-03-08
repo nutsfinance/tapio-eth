@@ -486,7 +486,7 @@ describe("TapETH", function () {
     });
   });
 
-  describe("setTotalSupply", function () {
+  describe("addTotalSupply", function () {
     it("it Should increase totalSupply", async function () {
       const { tapETH, accounts, governance, owner, pool1, pool2 } =
         await deployeFixture();
@@ -496,7 +496,7 @@ describe("TapETH", function () {
       let amount2 = 500_000_000_000_000_000_000n;
       let totalAmount = amount1 + amount2;
       await tapETH.connect(pool1).mintShares(user.address, amount1);
-      await tapETH.connect(pool1).setTotalSupply(amount2);
+      await tapETH.connect(pool1).addTotalSupply(amount2);
       expect(await tapETH.totalSupply()).to.equal(totalAmount);
       expect(await tapETH.totalShares()).to.equal(amount1);
       expect(await tapETH.totalRewards()).to.equal(amount2);

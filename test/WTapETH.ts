@@ -36,7 +36,7 @@ describe("wtapETH", function () {
       let wtapETHTargetAmount = (amountToWrap * amount1) / targetTotalSupply;
       let totalAmount = amount1 + amount2;
       await tapETH.connect(pool1).mintShares(user.address, amount1);
-      await tapETH.connect(pool1).setTotalSupply(amount2);
+      await tapETH.connect(pool1).addTotalSupply(amount2);
       await tapETH.connect(user).approve(wtapETH.address, amountToWrap);
       await wtapETH.connect(user).wrap(amountToWrap);
       expect(await tapETH.totalSupply()).to.equal(targetTotalSupply);
@@ -67,7 +67,7 @@ describe("wtapETH", function () {
       let wtapETHTargetAmount = (amountToWrap * amount1) / targetTotalSupply;
       let totalAmount = amount1 + amount2;
       await tapETH.connect(pool1).mintShares(user.address, amount1);
-      await tapETH.connect(pool1).setTotalSupply(amount2);
+      await tapETH.connect(pool1).addTotalSupply(amount2);
       await tapETH.connect(user).approve(wtapETH.address, amountToWrap);
       await wtapETH.connect(user).wrap(amountToWrap);
       await wtapETH.connect(user).unwrap(wtapETHTargetAmount);

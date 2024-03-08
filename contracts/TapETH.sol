@@ -276,7 +276,7 @@ contract TapETH is Initializable, ITapETH {
    * @notice This function is called only by a stableSwap pool to increase
    * the total supply of TapETH by the staking rewards and the swap fee.
    */
-  function setTotalSupply(uint256 _amount) external {
+  function addTotalSupply(uint256 _amount) external {
     require(pools[msg.sender], "TapETH: no pool");
     require(_amount != 0, "TapETH: no pool");
     uint256 _deltaBuffer = (buffer * _amount) / BUFFER_DENOMINATOR;

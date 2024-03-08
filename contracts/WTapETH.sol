@@ -58,12 +58,6 @@ contract WtapETH is ERC20PermitUpgradeable {
   }
 
   /**
-   * @notice Shortcut to stake ETH and auto-wrap returned tapETH
-   * @dev to do
-   */
-  receive() external payable {}
-
-  /**
    * @notice Get amount of wtapETH for a given amount of tapETH
    * @param _tapETHAmount amount of tapETH
    * @return Amount of wtapETH for a given tapETH amount

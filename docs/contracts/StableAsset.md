@@ -409,6 +409,23 @@ function initialize(address[] _tokens, uint256[] _precisions, uint256[] _fees, c
 | _exchangeRateProvider | contract IExchangeRateProvider | undefined |
 | _exchangeRateTokenIndex | uint256 | undefined |
 
+### lastRedeemOrMint
+
+```solidity
+function lastRedeemOrMint() external view returns (uint256)
+```
+
+
+
+*Last redeem or mint timestamp*
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined |
+
 ### maxDeltaD
 
 ```solidity
@@ -502,7 +519,7 @@ function pendingGovernance() external view returns (address)
 
 
 
-*Pending governance address,*
+*Pending governance address.*
 
 
 #### Returns

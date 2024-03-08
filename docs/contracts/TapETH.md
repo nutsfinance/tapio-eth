@@ -54,6 +54,22 @@ function addPool(address _pool) external nonpayable
 |---|---|---|
 | _pool | address | undefined |
 
+### addTotalSupply
+
+```solidity
+function addTotalSupply(uint256 _amount) external nonpayable
+```
+
+This function is called only by a stableSwap pool to increase the total supply of TapETH by the staking rewards and the swap fee.
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _amount | uint256 | undefined |
+
 ### allowance
 
 ```solidity
@@ -432,22 +448,6 @@ This function is called by the governance to set the buffer rate.
 | Name | Type | Description |
 |---|---|---|
 | _buffer | uint256 | undefined |
-
-### setTotalSupply
-
-```solidity
-function setTotalSupply(uint256 _amount) external nonpayable
-```
-
-This function is called only by a stableSwap pool to increase the total supply of TapETH by the staking rewards and the swap fee.
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _amount | uint256 | undefined |
 
 ### sharesOf
 

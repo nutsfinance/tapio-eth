@@ -37,6 +37,22 @@ function addPool(address _pool) external nonpayable
 |---|---|---|
 | _pool | address | undefined |
 
+### addTotalSupply
+
+```solidity
+function addTotalSupply(uint256 _amount) external nonpayable
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _amount | uint256 | undefined |
+
 ### allowance
 
 ```solidity
@@ -276,22 +292,6 @@ function removePool(address _pool) external nonpayable
 | Name | Type | Description |
 |---|---|---|
 | _pool | address | undefined |
-
-### setTotalSupply
-
-```solidity
-function setTotalSupply(uint256 _amount) external nonpayable
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _amount | uint256 | undefined |
 
 ### sharesOf
 

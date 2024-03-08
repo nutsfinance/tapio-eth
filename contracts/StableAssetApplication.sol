@@ -394,6 +394,16 @@ contract StableAssetApplication is Initializable, ReentrancyGuardUpgradeable {
     require(msg.sender == governance, "not governance");
     if (_enabled && !allowedPoolAddress[_swap]) {
       pools.push(_swap);
+    } else {
+      address[] memory updatedPools;
+      uint256 index = 0;
+      for (uint256 i = 0; i < pools.length; i++) {
+        if (pools[i] != _swap) {
+          updatedPools[index] = pools[i];
+          index++;
+        }
+      }
+      pools = updatedPools;
     }
     allowedPoolAddress[_swap] = _enabled;
 
