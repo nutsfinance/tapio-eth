@@ -10,40 +10,6 @@ The StableAsset pool provides a way to swap between different tokens
 
 ## Methods
 
-### FEE_DENOMINATOR
-
-```solidity
-function FEE_DENOMINATOR() external view returns (uint256)
-```
-
-
-
-*This is the denominator used for calculating transaction fees in the StableAsset contract.*
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined |
-
-### MAX_A
-
-```solidity
-function MAX_A() external view returns (uint256)
-```
-
-
-
-*This is the maximum value of the amplification coefficient A.*
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined |
-
 ### acceptGovernance
 
 ```solidity
@@ -98,6 +64,17 @@ function balances(uint256) external view returns (uint256)
 | Name | Type | Description |
 |---|---|---|
 | _0 | uint256 | undefined |
+
+### distributeLoss
+
+```solidity
+function distributeLoss() external nonpayable
+```
+
+
+
+*Distribute losses*
+
 
 ### exchangeRateProvider
 
@@ -408,23 +385,6 @@ function initialize(address[] _tokens, uint256[] _precisions, uint256[] _fees, c
 | _A | uint256 | The initial value of the amplification coefficient A for the pool. |
 | _exchangeRateProvider | contract IExchangeRateProvider | undefined |
 | _exchangeRateTokenIndex | uint256 | undefined |
-
-### lastRedeemOrMint
-
-```solidity
-function lastRedeemOrMint() external view returns (uint256)
-```
-
-
-
-*Last redeem or mint timestamp*
-
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined |
 
 ### maxDeltaD
 

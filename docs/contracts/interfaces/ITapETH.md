@@ -293,6 +293,22 @@ function removePool(address _pool) external nonpayable
 |---|---|---|
 | _pool | address | undefined |
 
+### removeTotalSupply
+
+```solidity
+function removeTotalSupply(uint256 _amount) external nonpayable
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _amount | uint256 | undefined |
+
 ### sharesOf
 
 ```solidity

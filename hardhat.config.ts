@@ -4,6 +4,7 @@ import "@nomiclabs/hardhat-web3";
 import "@nomicfoundation/hardhat-toolbox";
 import "@primitivefi/hardhat-dodoc";
 import "solidity-coverage";
+import "hardhat-contract-sizer";
 
 import * as dotenv from "dotenv";
 
@@ -17,12 +18,6 @@ const config: HardhatUserConfig = {
       optimizer: {
         enabled: true,
         runs: 1000,
-        details: {
-          yul: true,
-          yulDetails: {
-            optimizerSteps: "u",
-          },
-        },
       },
     },
   },

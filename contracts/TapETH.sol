@@ -26,15 +26,16 @@ contract TapETH is Initializable, ITapETH {
   uint256 internal constant INFINITE_ALLOWANCE = ~uint256(0);
   uint256 public constant BUFFER_DENOMINATOR = 10 ** 10;
 
-  uint256 private _totalShares;
-  uint256 private _totalSupply;
-  uint256 private _totalRewards;
+  uint256 public totalShares;
+  uint256 public totalSupply;
+  uint256 public totalRewards;
   address public governance;
   address public pendingGovernance;
-  mapping(address => uint256) private shares;
-  mapping(address => mapping(address => uint256)) private allowances;
+  mapping(address => uint256) public shares;
+  mapping(address => mapping(address => uint256)) public allowances;
   mapping(address => bool) public pools;
-  uint256 public buffer;
+  uint256 public bufferPercent;
+  uint256 public bufferAmount;
 
   event TransferShares(
     address indexed from,
@@ -60,7 +61,9 @@ contract TapETH is Initializable, ITapETH {
   event GovernanceProposed(address indexed governance);
   event PoolAdded(address indexed pool);
   event PoolRemoved(address indexed pool);
-  event SetBuffer(uint256);
+  event SetBufferPercent(uint256);
+  event BufferIncreased(uint256, uint256);
+  event BufferDecreased(uint256, uint256);
 
   function initialize(address _governance) public initializer {
     require(_governance != address(0), "TapETH: zero address");
@@ -115,15 +118,6 @@ contract TapETH is Initializable, ITapETH {
    */
   function decimals() external pure returns (uint8) {
     return 18;
-  }
-
-  /**
-   * @return the amount of tokens in existence.
-   *
-   * @dev The total amount of tapETH controlled by the protocol.
-   */
-  function totalSupply() external view returns (uint256) {
-    return _totalSupply;
   }
 
   /**
@@ -244,32 +238,13 @@ contract TapETH is Initializable, ITapETH {
   }
 
   /**
-   * @return the total amount of shares in existence.
-   *
-   * @dev The sum of all accounts' shares can be an arbitrary number, therefore
-   * it is necessary to store it in order to calculate each account's relative share.
-   */
-  function totalShares() external view returns (uint256) {
-    return _totalShares;
-  }
-
-  /**
-   * @return the total amount of rewards in existence.
-   *
-   * @dev The total rewards of tapETH by the protocol.
-   */
-  function totalRewards() external view returns (uint256) {
-    return _totalRewards;
-  }
-
-  /**
    * @notice This function is called by the governance to set the buffer rate.
    */
   function setBuffer(uint256 _buffer) external {
     require(msg.sender == governance, "TapETH: no governance");
-    require(_buffer <= BUFFER_DENOMINATOR, "TapETH: out of range");
-    buffer = _buffer;
-    emit SetBuffer(_buffer);
+    require(_buffer < BUFFER_DENOMINATOR, "TapETH: out of range");
+    bufferPercent = _buffer;
+    emit SetBufferPercent(_buffer);
   }
 
   /**
@@ -278,14 +253,30 @@ contract TapETH is Initializable, ITapETH {
    */
   function addTotalSupply(uint256 _amount) external {
     require(pools[msg.sender], "TapETH: no pool");
-    require(_amount != 0, "TapETH: no pool");
-    uint256 _deltaBuffer = (buffer * _amount) / BUFFER_DENOMINATOR;
+    require(_amount != 0, "TapETH: no amount");
+    uint256 _deltaBuffer = (bufferPercent * _amount) / BUFFER_DENOMINATOR;
     uint256 actualAmount = _amount - _deltaBuffer;
 
-    _totalSupply += actualAmount;
-    _totalRewards += actualAmount;
+    totalSupply += actualAmount;
+    totalRewards += actualAmount;
+    bufferAmount += _deltaBuffer;
 
+    emit BufferIncreased(_deltaBuffer, bufferAmount);
     emit RewardsMinted(_amount, actualAmount);
+  }
+
+  /**
+   * @notice This function is called only by a stableSwap pool to decrease
+   * the total supply of TapETH by lost amount.
+   */
+  function removeTotalSupply(uint256 _amount) external {
+    require(pools[msg.sender], "TapETH: no pool");
+    require(_amount != 0, "TapETH: no amount");
+    require(_amount <= bufferAmount, "TapETH: insuffcient buffer");
+
+    bufferAmount -= _amount;
+
+    emit BufferDecreased(_amount, bufferAmount);
   }
 
   /**
@@ -301,10 +292,10 @@ contract TapETH is Initializable, ITapETH {
   function getSharesByPooledEth(
     uint256 _tapETHAmount
   ) public view returns (uint256) {
-    if (_totalSupply == 0) {
+    if (totalSupply == 0) {
       return 0;
     } else {
-      return (_tapETHAmount * _totalShares) / _totalSupply;
+      return (_tapETHAmount * totalShares) / totalSupply;
     }
   }
 
@@ -314,10 +305,10 @@ contract TapETH is Initializable, ITapETH {
   function getPooledEthByShares(
     uint256 _sharesAmount
   ) public view returns (uint256) {
-    if (_totalShares == 0) {
+    if (totalShares == 0) {
       return 0;
     } else {
-      return (_sharesAmount * _totalSupply) / _totalShares;
+      return (_sharesAmount * totalSupply) / totalShares;
     }
   }
 
@@ -468,15 +459,15 @@ contract TapETH is Initializable, ITapETH {
   ) internal returns (uint256 newTotalShares) {
     require(_recipient != address(0), "TapETH: MINT_TO_ZERO_ADDR");
     uint256 _sharesAmount;
-    if (_totalSupply != 0 && _totalShares != 0) {
+    if (totalSupply != 0 && totalShares != 0) {
       _sharesAmount = getSharesByPooledEth(_tokenAmount);
     } else {
       _sharesAmount = _tokenAmount;
     }
     shares[_recipient] += _sharesAmount;
-    _totalShares += _sharesAmount;
-    newTotalShares = _totalShares;
-    _totalSupply += _tokenAmount;
+    totalShares += _sharesAmount;
+    newTotalShares = totalShares;
+    totalSupply += _tokenAmount;
 
     emit SharesMinted(_recipient, _tokenAmount, _sharesAmount);
   }
@@ -497,9 +488,9 @@ contract TapETH is Initializable, ITapETH {
 
     uint256 _sharesAmount = getSharesByPooledEth(_tokenAmount);
     shares[_account] -= _sharesAmount;
-    _totalShares -= _sharesAmount;
-    newTotalShares = _totalShares;
-    _totalSupply -= _tokenAmount;
+    totalShares -= _sharesAmount;
+    newTotalShares = totalShares;
+    totalSupply -= _tokenAmount;
 
     emit SharesBurnt(_account, _tokenAmount, _sharesAmount);
   }

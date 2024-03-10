@@ -32,6 +32,7 @@ interface ITapETH is IERC20 {
   ) external view returns (uint256);
 
   function addTotalSupply(uint256 _amount) external;
+  function removeTotalSupply(uint256 _amount) external;
 
   function getPooledEthByShares(
     uint256 _sharesAmount

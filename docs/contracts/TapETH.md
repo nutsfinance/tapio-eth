@@ -93,6 +93,29 @@ function allowance(address _owner, address _spender) external view returns (uint
 |---|---|---|
 | _0 | uint256 | the remaining number of tokens that `_spender` is allowed to spend on behalf of `_owner` through `transferFrom`. This is zero by default. |
 
+### allowances
+
+```solidity
+function allowances(address, address) external view returns (uint256)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | address | undefined |
+| _1 | address | undefined |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined |
+
 ### approve
 
 ```solidity
@@ -138,10 +161,27 @@ function balanceOf(address _account) external view returns (uint256)
 |---|---|---|
 | _0 | uint256 | the amount of tokens owned by the `_account`. |
 
-### buffer
+### bufferAmount
 
 ```solidity
-function buffer() external view returns (uint256)
+function bufferAmount() external view returns (uint256)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined |
+
+### bufferPercent
+
+```solidity
+function bufferPercent() external view returns (uint256)
 ```
 
 
@@ -433,6 +473,22 @@ function removePool(address _pool) external nonpayable
 |---|---|---|
 | _pool | address | undefined |
 
+### removeTotalSupply
+
+```solidity
+function removeTotalSupply(uint256 _amount) external nonpayable
+```
+
+This function is called only by a stableSwap pool to decrease the total supply of TapETH by lost amount.
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _amount | uint256 | undefined |
+
 ### setBuffer
 
 ```solidity
@@ -448,6 +504,28 @@ This function is called by the governance to set the buffer rate.
 | Name | Type | Description |
 |---|---|---|
 | _buffer | uint256 | undefined |
+
+### shares
+
+```solidity
+function shares(address) external view returns (uint256)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | address | undefined |
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined |
 
 ### sharesOf
 
@@ -496,14 +574,14 @@ function totalRewards() external view returns (uint256)
 
 
 
-*The total rewards of tapETH by the protocol.*
+
 
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint256 | the total amount of rewards in existence. |
+| _0 | uint256 | undefined |
 
 ### totalShares
 
@@ -513,14 +591,14 @@ function totalShares() external view returns (uint256)
 
 
 
-*The sum of all accounts&#39; shares can be an arbitrary number, therefore it is necessary to store it in order to calculate each account&#39;s relative share.*
+
 
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint256 | the total amount of shares in existence. |
+| _0 | uint256 | undefined |
 
 ### totalSupply
 
@@ -530,14 +608,14 @@ function totalSupply() external view returns (uint256)
 
 
 
-*The total amount of tapETH controlled by the protocol.*
+*Returns the amount of tokens in existence.*
 
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | uint256 | the amount of tokens in existence. |
+| _0 | uint256 | undefined |
 
 ### transfer
 
@@ -655,6 +733,40 @@ event Approval(address indexed owner, address indexed spender, uint256 value)
 | spender `indexed` | address | undefined |
 | value  | uint256 | undefined |
 
+### BufferDecreased
+
+```solidity
+event BufferDecreased(uint256, uint256)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _0  | uint256 | undefined |
+| _1  | uint256 | undefined |
+
+### BufferIncreased
+
+```solidity
+event BufferIncreased(uint256, uint256)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _0  | uint256 | undefined |
+| _1  | uint256 | undefined |
+
 ### GovernanceModified
 
 ```solidity
@@ -752,10 +864,10 @@ event RewardsMinted(uint256 amount, uint256 actualAmount)
 | amount  | uint256 | undefined |
 | actualAmount  | uint256 | undefined |
 
-### SetBuffer
+### SetBufferPercent
 
 ```solidity
-event SetBuffer(uint256)
+event SetBufferPercent(uint256)
 ```
 
 

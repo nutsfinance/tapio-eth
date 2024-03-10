@@ -141,7 +141,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
   /**
    * @dev This is the denominator used for calculating transaction fees in the StableAsset contract.
    */
-  uint256 public constant FEE_DENOMINATOR = 10 ** 10;
+  uint256 private constant FEE_DENOMINATOR = 10 ** 10;
   /**
    *  @dev This is the maximum error margin for calculating transaction fees in the StableAsset contract.
    */
@@ -159,7 +159,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
   /**
    * @dev This is the maximum value of the amplification coefficient A.
    */
-  uint256 public constant MAX_A = 10 ** 6;
+  uint256 private constant MAX_A = 10 ** 6;
   /**
    *  @dev This is minimum initial mint
    */
@@ -263,7 +263,7 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
   /**
    * @dev Last redeem or mint timestamp
    */
-  uint256 public lastRedeemOrMint;
+  uint256 private lastRedeemOrMint;
 
   /**
    * @dev Initializes the StableAsset contract with the given parameters.
@@ -1254,6 +1254,34 @@ contract StableAsset is Initializable, ReentrancyGuardUpgradeable {
     require(msg.sender == governance, "not governance");
     maxDeltaD = newValue;
     emit MaxDeltaDModified(newValue);
+  }
+
+  /**
+   * @dev Distribute losses
+   */
+  function distributeLoss() external {
+    require(msg.sender == governance, "not governance");
+    require(paused, "not paused");
+
+    uint256[] memory _balances = balances;
+    uint256 A = getA();
+    uint256 oldD = totalSupply;
+
+    for (uint256 i = 0; i < _balances.length; i++) {
+      uint256 balanceI = IERC20Upgradeable(tokens[i]).balanceOf(address(this));
+      if (i == exchangeRateTokenIndex) {
+        balanceI =
+          (balanceI * (exchangeRateProvider.exchangeRate())) /
+          (10 ** exchangeRateProvider.exchangeRateDecimals());
+      }
+      _balances[i] = balanceI * precisions[i];
+    }
+    uint256 newD = _getD(_balances, A);
+
+    require(newD < oldD, "no losses");
+    poolToken.removeTotalSupply(oldD - newD);
+    balances = _balances;
+    totalSupply = newD;
   }
 
   /**
