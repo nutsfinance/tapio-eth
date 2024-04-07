@@ -39,8 +39,8 @@ contract WtapETH is ERC20PermitUpgradeable {
   function wrap(uint256 _tapETHAmount) external returns (uint256) {
     require(_tapETHAmount > 0, "wtapETH: can't wrap zero tapETH");
     uint256 _wtapETHAmount = tapETH.getSharesByPooledEth(_tapETHAmount);
-    _mint(msg.sender, _wtapETHAmount);
     tapETH.transferFrom(msg.sender, address(this), _tapETHAmount);
+    _mint(msg.sender, _wtapETHAmount);
     return _wtapETHAmount;
   }
 
