@@ -19,6 +19,7 @@
 - Set minter of pool token to be swapOne contract
 - Set minter of pool token to be swapTwo contract
 - Deploy swap and tokens
+- Deploy swap and tokens
 - Unpause swap contract
 - Mint 100 token2 to user
 - Approve application contract to spend 100 token2

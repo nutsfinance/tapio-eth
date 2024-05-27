@@ -392,21 +392,31 @@ contract StableAssetApplication is Initializable, ReentrancyGuardUpgradeable {
    */
   function updatePool(address _swap, bool _enabled) external {
     require(msg.sender == governance, "not governance");
-    if (_enabled && !allowedPoolAddress[_swap]) {
-      pools.push(_swap);
+
+    if (_enabled) {
+      // If _enabled is true and the pool is not already allowed
+      if (!allowedPoolAddress[_swap]) {
+        // Add the pool to the pools array
+        pools.push(_swap);
+      }
     } else {
-      address[] memory updatedPools;
-      uint256 index = 0;
-      for (uint256 i = 0; i < pools.length; i++) {
-        if (pools[i] != _swap) {
-          updatedPools[index] = pools[i];
-          index++;
+      // If _enabled is false, find and remove the pool from the pools array
+      uint256 length = pools.length;
+      for (uint256 i = 0; i < length; i++) {
+        if (pools[i] == _swap) {
+          // Replace the pool to be removed with the last pool in the array
+          pools[i] = pools[length - 1];
+          // Remove the last element
+          pools.pop();
+          break; // Exit the loop once the pool is found and removed
         }
       }
-      pools = updatedPools;
     }
+
+    // Update the allowedPoolAddress mapping
     allowedPoolAddress[_swap] = _enabled;
 
+    // Emit the PoolModified event
     emit PoolModified(_swap, _enabled);
   }
 

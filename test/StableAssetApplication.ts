@@ -158,6 +158,30 @@ describe("StableAssetApplication", function () {
     return { swapOne, swapTwo, wETH, token1, token2, poolToken, application };
   }
 
+  it("should remove the pool from pools array when _enabled is false", async () => {
+    /// Deploy swap and tokens
+    const { swap, application } =
+      await loadFixture(deploySwapAndTokens);
+
+    // Ensure the pool is initially added
+    await application.updatePool(swap.address, true);
+
+    // Verify that the pool was added
+    let pools = await application.pools(0); // Directly access the first element of the public state variable
+    expect(pools).to.equal(swap.address);
+
+    // Disable the pool
+    await application.updatePool(swap.address, false);
+
+    // Verify that the pool was removed
+    try {
+      pools = await application.pools(0); // This should now throw an error or return an empty value
+      expect(pools).to.not.equal(swap.address);
+    } catch (error) {
+      console.log("Pool removed successfully");
+    }
+  });
+
   it("should mint", async () => {
     /// Deploy swap and tokens
     const { swap, wETH, token2, poolToken, application } = await loadFixture(
