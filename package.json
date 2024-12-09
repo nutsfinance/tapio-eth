@@ -1,31 +1,31 @@
 {
-  "name": "tapio-eth",
-  "scripts": {
-    "clean": "hardhat clean",
-    "test": "hardhat test",
-    "doc": "ts-node test/docs/generate-tests-doc.ts",
-    "coverage": "hardhat coverage"
-  },
-  "devDependencies": {
-    "@nomicfoundation/hardhat-network-helpers": "^1.0.8",
-    "@nomicfoundation/hardhat-toolbox": "^2.0.2",
-    "@nomiclabs/hardhat-web3": "^2.0.0",
-    "@openzeppelin/hardhat-upgrades": "^1.22.1",
-    "@primitivefi/hardhat-dodoc": "^0.2.3",
-    "codecov": "^3.8.3",
-    "hardhat": "^2.17.3",
-    "hardhat-contract-sizer": "^2.10.0",
-    "prettier": "3.3.3",
-    "prettier-plugin-solidity": "^1.3.1",
-    "solidity-coverage": "^0.8.2",
-    "typescript": "^5.6.3",
-    "web3": "^1.9.0"
+  "name": "tapio",
+  "description": "Tapio",
+  "version": "1.0.0",
+  "author": {
+    "name": "NUTS Finance",
+    "email": "security@nuts.finance",
+    "url": "https://nuts.finance"
   },
   "dependencies": {
     "@openzeppelin/contracts": "^4.8.3",
-    "@openzeppelin/contracts-upgradeable": "^4.8.3",
-    "@openzeppelin/test-helpers": "^0.5.16",
-    "dotenv": "^16.0.3",
-    "gitbook-plugin-katex-dev": "^0.0.1"
+    "@openzeppelin/contracts-upgradeable": "^4.8.3"
+  },
+  "devDependencies": {
+    "forge-std": "github:foundry-rs/forge-std#v1.8.1",
+    "prettier": "^3.0.0",
+    "solhint": "^3.6.2"
+  },
+  "private": true,
+  "scripts": {
+    "clean": "rm -rf cache out",
+    "build": "forge build",
+    "lint": "yarn run lint:sol && yarn run prettier:check",
+    "lint:fix": "forge fmt && yarn solhint \"{script,src,test}/**/*.sol\" --fix",
+    "lint:sol": "forge fmt --check && yarn solhint \"{script,src,test}/**/*.sol\"",
+    "prettier:check": "prettier --check \"**/*.{json,md,yml}\" --ignore-path \".prettierignore\"",
+    "prettier:write": "prettier --write \"**/*.{json,md,yml}\" --ignore-path \".prettierignore\"",
+    "test": "forge test",
+    "test:coverage:report": "forge coverage --report lcov && genhtml lcov.info --branch-coverage --output-dir coverage"
   }
 }
