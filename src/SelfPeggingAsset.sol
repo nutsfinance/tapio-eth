@@ -1103,23 +1103,19 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         balances = _balances;
         totalSupply = newD;
 
-        if (isFee) {
-            if (oldD > newD && (oldD - newD) < feeErrorMargin) {
-                return 0;
-            } else if (oldD > newD) {
-                // Cover losses using the buffer
-                poolToken.removeTotalSupply(oldD - newD, true, true);
-                return 0;
-            }
-        } else {
-            if (oldD > newD && (oldD - newD) < yieldErrorMargin) {
-                return 0;
-            } else if (oldD > newD) {
-                // Cover losses using the buffer
-                poolToken.removeTotalSupply(oldD - newD, true, true);
+        if (oldD > newD) {
+            uint256 delta = oldD - newD;
+            uint256 margin = isFee ? feeErrorMargin : yieldErrorMargin;
+
+            if (delta < margin) {
                 return 0;
             }
+
+            // Cover losses using the buffer
+            poolToken.removeTotalSupply(delta, true, true);
+            return 0;
         }
+
         uint256 feeAmount = newD - oldD;
         if (feeAmount == 0) {
             return 0;
