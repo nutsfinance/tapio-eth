@@ -14,9 +14,11 @@ interface IZap {
 
     /**
      * @notice Add liquidity to SPA and automatically wrap LP tokens
-     * @param amounts Array of token amounts to add
-     * @param minMintAmount Minimum amount of LP tokens to receive
+     * @param spa Address of the SPA contract
+     * @param wlp Address of the wrapped LP token contract
      * @param receiver Address to receive the wrapped LP tokens
+     * @param minMintAmount Minimum amount of LP tokens to receive
+     * @param amounts Array of token amounts to add
      * @return wlpAmount Amount of wrapped LP tokens minted
      */
     function zapIn(
@@ -31,9 +33,11 @@ interface IZap {
 
     /**
      * @notice Remove liquidity from SPA by unwrapping LP tokens first
+     * @param spa Address of the SPA contract
+     * @param wlp Address of the wrapped LP token contract
+     * @param receiver Address to receive the tokens
      * @param wlpAmount Amount of wrapped LP tokens to redeem
      * @param minAmountsOut Minimum amounts of tokens to receive
-     * @param receiver Address to receive the tokens
      * @param proportional If true, withdraws proportionally; if false, uses minAmountsOut
      * @return amounts Array of token amounts received
      */
@@ -50,10 +54,12 @@ interface IZap {
 
     /**
      * @notice Unwrap wLP tokens and redeem a single asset
+     * @param spa Address of the SPA contract
+     * @param wlp Address of the wrapped LP token contract
+     * @param receiver Address to receive the tokens
      * @param wlpAmount Amount of wrapped LP tokens to redeem
      * @param tokenIndex Index of the token to receive
      * @param minAmountOut Minimum amount of token to receive
-     * @param receiver Address to receive the tokens
      * @return amount Amount of token received
      */
     function zapOutSingle(
