@@ -7,9 +7,16 @@ pragma solidity 0.8.28;
  * @dev Defines functions to add and remove liquidity with wrapping/unwrapping in one transaction
  */
 interface IZap {
-    event ZapIn(address indexed user, address indexed receiver, uint256 wlpAmount, uint256[] inputAmounts);
+    event ZapIn(
+        address indexed spa, address indexed user, address indexed receiver, uint256 wlpAmount, uint256[] inputAmounts
+    );
     event ZapOut(
-        address indexed user, address indexed receiver, uint256 wlpAmount, uint256[] outputAmounts, bool proportional
+        address indexed spa,
+        address indexed user,
+        address indexed receiver,
+        uint256 wlpAmount,
+        uint256[] outputAmounts,
+        bool proportional
     );
 
     /**

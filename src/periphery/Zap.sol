@@ -61,7 +61,7 @@ contract Zap is IZap, Ownable, ReentrancyGuard {
         IERC20(lpToken).forceApprove(wlp, lpAmount);
         wlpAmount = _deposit(wlp, lpAmount, receiver);
 
-        emit ZapIn(msg.sender, receiver, wlpAmount, amounts);
+        emit ZapIn(spa, msg.sender, receiver, wlpAmount, amounts);
         return wlpAmount;
     }
 
@@ -105,7 +105,7 @@ contract Zap is IZap, Ownable, ReentrancyGuard {
             if (amounts[i] > 0) IERC20(tokens[i]).safeTransfer(receiver, amounts[i]);
         }
 
-        emit ZapOut(msg.sender, receiver, wlpAmount, amounts, proportional);
+        emit ZapOut(spa, msg.sender, receiver, wlpAmount, amounts, proportional);
         return amounts;
     }
 
@@ -149,7 +149,7 @@ contract Zap is IZap, Ownable, ReentrancyGuard {
         uint256[] memory amounts = new uint256[](tokens.length);
         amounts[tokenIndex] = amount;
 
-        emit ZapOut(msg.sender, receiver, wlpAmount, amounts, false);
+        emit ZapOut(spa, msg.sender, receiver, wlpAmount, amounts, false);
         return amount;
     }
 
