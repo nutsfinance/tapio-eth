@@ -20,9 +20,11 @@ interface IZap {
      * @return wlpAmount Amount of wrapped LP tokens minted
      */
     function zapIn(
-        uint256[] calldata amounts,
+        address spa,
+        address wlp,
+        address receiver,
         uint256 minMintAmount,
-        address receiver
+        uint256[] calldata amounts
     )
         external
         returns (uint256 wlpAmount);
@@ -36,9 +38,11 @@ interface IZap {
      * @return amounts Array of token amounts received
      */
     function zapOut(
+        address spa,
+        address wlp,
+        address receiver,
         uint256 wlpAmount,
         uint256[] calldata minAmountsOut,
-        address receiver,
         bool proportional
     )
         external
@@ -53,10 +57,12 @@ interface IZap {
      * @return amount Amount of token received
      */
     function zapOutSingle(
+        address spa,
+        address wlp,
+        address receiver,
         uint256 wlpAmount,
         uint256 tokenIndex,
-        uint256 minAmountOut,
-        address receiver
+        uint256 minAmountOut
     )
         external
         returns (uint256 amount);
