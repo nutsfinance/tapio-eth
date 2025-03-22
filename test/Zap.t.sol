@@ -4,7 +4,6 @@ pragma solidity 0.8.28;
 import "forge-std/Test.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
-import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 import { MockToken } from "../src/mock/MockToken.sol";
 import { Zap } from "../src/periphery/Zap.sol";
@@ -17,7 +16,6 @@ import { LPToken } from "../src/LPToken.sol";
 contract ZapTest is Test {
     using Math for uint256;
 
-    Zap public zapImplementation;
     Zap public zap;
     SelfPeggingAsset public spa;
     LPToken public lpToken;
@@ -84,11 +82,7 @@ contract ZapTest is Test {
         wlpToken = new WLPToken();
         wlpToken.initialize(lpToken);
 
-        zapImplementation = new Zap();
-        bytes memory initData = abi.encodeWithSelector(Zap.initialize.selector, address(spa), address(wlpToken));
-
-        ERC1967Proxy proxy = new ERC1967Proxy(address(zapImplementation), initData);
-        zap = Zap(address(proxy));
+        zap = new Zap(address(spa), address(wlpToken));
 
         token1.mint(user1, INITIAL_BALANCE);
         token2.mint(user1, INITIAL_BALANCE);
@@ -289,16 +283,5 @@ contract ZapTest is Test {
 
         assertEq(token1.balanceOf(admin), initialAdminBalance + recoveryAmount, "Tokens not recovered correctly");
         vm.stopPrank();
-    }
-
-    function testUpgrade() public {
-        Zap newImplementation = new Zap();
-
-        vm.prank(user1);
-        vm.expectRevert();
-        zap.upgradeToAndCall(address(newImplementation), "");
-
-        vm.prank(admin);
-        zap.upgradeToAndCall(address(newImplementation), "");
     }
 }
