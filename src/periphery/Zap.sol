@@ -7,7 +7,6 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import { ILPToken } from "../interfaces/ILPToken.sol";
 import { IZap } from "../interfaces/IZap.sol";
-import { console } from "forge-std/console.sol";
 
 /**
  * @title Zap
