@@ -21,11 +21,8 @@ contract Zap is IZap, Ownable, ReentrancyGuard {
     address public wlp;
 
     error ZeroAmount();
-    error InsufficientAllowance();
-    error SlippageExceeded();
     error InvalidParameters();
-    error TransferFailed();
-    error UnsupportedToken();
+    error CallFailed();
 
     constructor(address _spa, address _wlp) Ownable(msg.sender) {
         require(_spa != address(0) && _wlp != address(0), InvalidParameters());
@@ -66,7 +63,7 @@ contract Zap is IZap, Ownable, ReentrancyGuard {
         IERC20(lpToken).forceApprove(wlp, lpAmount);
         wlpAmount = _deposit(lpAmount, receiver);
 
-        emit ZapIn(msg.sender, wlpAmount, amounts);
+        emit ZapIn(msg.sender, receiver, wlpAmount, amounts);
         return wlpAmount;
     }
 
@@ -105,7 +102,7 @@ contract Zap is IZap, Ownable, ReentrancyGuard {
             if (amounts[i] > 0) IERC20(tokens[i]).safeTransfer(receiver, amounts[i]);
         }
 
-        emit ZapOut(msg.sender, wlpAmount, amounts, proportional);
+        emit ZapOut(msg.sender, receiver, wlpAmount, amounts, proportional);
         return amounts;
     }
 
@@ -144,7 +141,7 @@ contract Zap is IZap, Ownable, ReentrancyGuard {
         uint256[] memory amounts = new uint256[](tokens.length);
         amounts[tokenIndex] = amount;
 
-        emit ZapOut(msg.sender, wlpAmount, amounts, false);
+        emit ZapOut(msg.sender, receiver, wlpAmount, amounts, false);
         return amount;
     }
 
@@ -258,7 +255,7 @@ contract Zap is IZap, Ownable, ReentrancyGuard {
      * @dev Helper function to revert with the same error message as the original call
      */
     function _revertBytes(bytes memory data) internal pure {
-        require(data.length > 0, TransferFailed());
+        require(data.length > 0, CallFailed());
 
         assembly {
             revert(add(32, data), mload(data))
