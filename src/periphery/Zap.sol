@@ -6,6 +6,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import { ILPToken } from "../interfaces/ILPToken.sol";
+import { IZap } from "../interfaces/IZap.sol";
 import { console } from "forge-std/console.sol";
 
 /**
@@ -13,7 +14,7 @@ import { console } from "forge-std/console.sol";
  * @notice A helper contract to simplify liquidity provision and removal in Tapio
  * @dev Allows users to add/remove liquidity with automatic wrapping/unwrapping in 1 tx
  */
-contract Zap is Ownable, ReentrancyGuard {
+contract Zap is IZap, Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     address public spa;
@@ -25,9 +26,6 @@ contract Zap is Ownable, ReentrancyGuard {
     error InvalidParameters();
     error TransferFailed();
     error UnsupportedToken();
-
-    event ZapIn(address indexed user, uint256 wlpAmount, uint256[] inputAmounts);
-    event ZapOut(address indexed user, uint256 wlpAmount, uint256[] outputAmounts, bool proportional);
 
     constructor(address _spa, address _wlp) Ownable(msg.sender) {
         require(_spa != address(0) && _wlp != address(0), InvalidParameters());

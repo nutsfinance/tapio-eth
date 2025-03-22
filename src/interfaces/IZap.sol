@@ -7,6 +7,9 @@ pragma solidity 0.8.28;
  * @dev Defines functions to add and remove liquidity with wrapping/unwrapping in one transaction
  */
 interface IZap {
+    event ZapIn(address indexed user, uint256 wlpAmount, uint256[] inputAmounts);
+    event ZapOut(address indexed user, uint256 wlpAmount, uint256[] outputAmounts, bool proportional);
+
     /**
      * @notice Add liquidity to SPA and automatically wrap LP tokens
      * @param amounts Array of token amounts to add
