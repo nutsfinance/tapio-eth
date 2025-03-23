@@ -407,56 +407,39 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         collectFeeOrYield(false);
         uint256[] memory _balances = balances;
         uint256 oldD = totalSupply;
-        uint256 i = 0;
-        uint256 totalAmount;
-        for (i = 0; i < _balances.length; i++) {
-            if (_amounts[i] < INITIAL_MINT_MIN) {
-                // Initial deposit requires all tokens provided!
-                require(oldD > 0, ZeroAmount());
-            }
-            if (_amounts[i] == 0) {
-                continue;
-            }
-            totalAmount += _amounts[i];
-            uint256 balanceAmount = _amounts[i];
-            balanceAmount = (balanceAmount * exchangeRateProviders[i].exchangeRate())
+        uint256 N = _balances.length;
+        uint256 idealReserve = oldD / N; // Ideal reserve
+
+        uint256[] memory addedAmounts = new uint256[](N);
+        for (uint256 i = 0; i < N; i++) {
+            if (_amounts[i] < INITIAL_MINT_MIN && oldD == 0) revert ZeroAmount();
+            if (_amounts[i] == 0) continue;
+            uint256 balanceAmount = (_amounts[i] * exchangeRateProviders[i].exchangeRate())
                 / (10 ** exchangeRateProviders[i].exchangeRateDecimals());
-            _balances[i] = _balances[i] + (balanceAmount * precisions[i]);
+            addedAmounts[i] = balanceAmount * precisions[i];
+            _balances[i] = _balances[i] + addedAmounts[i];
         }
-
-        if (totalAmount == 0) {
-            revert ZeroAmount();
-        }
-
         uint256 newD = _getD(_balances);
         // newD should be bigger than or equal to oldD
         uint256 mintAmount = newD - oldD;
 
-        uint256 feeAmount = 0;
-        uint256 ys = (newD + oldD) / _balances.length;
-        if (mintFee > 0 && oldD != 0) {
-            for (i = 0; i < _balances.length; i++) {
-                uint256 idealBalance = newD * balances[i] / oldD;
-                uint256 difference = 0;
-
-                if (idealBalance > _balances[i]) {
-                    difference = idealBalance - _balances[i];
-                } else {
-                    difference = _balances[i] - idealBalance;
-                }
-
-                uint256 xs = ((balances[i] + _balances[i]) * exchangeRateProviders[i].exchangeRate())
-                    / (10 ** exchangeRateProviders[i].exchangeRateDecimals());
-                uint256 dynamicFee = _dynamicFee(xs, ys, mintFee);
-                mintAmount = mintAmount - ((difference * dynamicFee) / FEE_DENOMINATOR);
+        uint256 totalFeeAmount = 0;
+        if (mintFee > 0) {
+            for (uint256 i = 0; i < N; i++) {
+                if (addedAmounts[i] == 0) continue;
+                uint256 oldBalance = balances[i];
+                uint256 newBalance = _balances[i];
+                uint256 avgReserve = (oldBalance + newBalance) / 2;
+                uint256 dynamicFee = _dynamicFee(idealReserve, avgReserve, mintFee);
+                uint256 feeAmount = (addedAmounts[i] * dynamicFee) / FEE_DENOMINATOR;
+                totalFeeAmount += feeAmount;
             }
-        }
-        if (mintAmount < _minMintAmount) {
-            revert InsufficientMintAmount(mintAmount, _minMintAmount);
+            mintAmount = mintAmount - totalFeeAmount; // Reduce minted amount
         }
 
-        // Transfer tokens into the swap
-        for (i = 0; i < _amounts.length; i++) {
+        if (mintAmount < _minMintAmount) revert InsufficientMintAmount(mintAmount, _minMintAmount);
+
+        for (uint256 i = 0; i < N; i++) {
             if (_amounts[i] == 0) continue;
             // Update the balance in storage
             balances[i] = _balances[i];
@@ -464,8 +447,8 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         }
         totalSupply = oldD + mintAmount;
         poolToken.mintShares(msg.sender, mintAmount);
-        feeAmount = collectFeeOrYield(true);
-        emit Minted(msg.sender, mintAmount, _amounts, feeAmount);
+        uint256 feeAmountActual = collectFeeOrYield(true);
+        emit Minted(msg.sender, mintAmount, _amounts, feeAmountActual);
         return mintAmount;
     }
 
@@ -478,7 +461,6 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
      * @return Amount of swap out.
      */
     function swap(uint256 _i, uint256 _j, uint256 _dx, uint256 _minDy) external nonReentrant returns (uint256) {
-        // If swap is paused, only admins can swap.
         require(!paused || admins[msg.sender], Paused());
         if (_i == _j) {
             revert SameToken();
@@ -489,42 +471,28 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
 
         collectFeeOrYield(false);
         uint256[] memory _balances = balances;
-        uint256 prevBalanceI = _balances[_i];
-        uint256 balanceAmount = _dx;
-        balanceAmount = (balanceAmount * exchangeRateProviders[_i].exchangeRate())
-            / (10 ** exchangeRateProviders[_i].exchangeRateDecimals());
-        // balance[i] = balance[i] + dx * precisions[i]
-        _balances[_i] = _balances[_i] + (balanceAmount * precisions[_i]);
+        uint256 oldBalanceI = _balances[_i];
+        uint256 oldBalanceJ = _balances[_j];
+        uint256 newBalanceI = oldBalanceI
+            + ((_dx * exchangeRateProviders[_i].exchangeRate()) / (10 ** exchangeRateProviders[_i].exchangeRateDecimals()))
+                * precisions[_i];
+        _balances[_i] = newBalanceI;
         uint256 y = _getY(_balances, _j, totalSupply);
-        // dy = (balance[j] - y - 1) / precisions[j] in case there was rounding errors
         uint256 dy = (_balances[_j] - y - 1) / precisions[_j];
-        // Update token balance in storage
         balances[_j] = y;
-        balances[_i] = _balances[_i];
+        balances[_i] = newBalanceI;
 
-        uint256 feeAmount = 0;
-        if (swapFee > 0) {
-            uint256 dynamicFee = _dynamicFee((prevBalanceI + _balances[_i]) / 2, (_balances[_j] + y) / 2, swapFee);
-            feeAmount = (dy * dynamicFee) / FEE_DENOMINATOR;
-            dy = dy - feeAmount;
-        }
+        uint256 feeAmount = _calculateSwapFee(dy, oldBalanceI, newBalanceI, oldBalanceJ, y);
+        dy = dy - feeAmount;
+
         _minDy = (_minDy * exchangeRateProviders[_j].exchangeRate())
             / (10 ** exchangeRateProviders[_j].exchangeRateDecimals());
-
         if (dy < _minDy) {
             revert InsufficientSwapOutAmount(dy, _minDy);
         }
 
-        IERC20(tokens[_i]).safeTransferFrom(msg.sender, address(this), _dx);
-        // Important: When swap fee > 0, the swap fee is charged on the output token.
-        // Therefore, balances[j] < tokens[j].balanceOf(this)
-        // Since balances[j] is used to compute D, D is unchanged.
-        // collectFees() is used to convert the difference between balances[j] and tokens[j].balanceOf(this)
-        // into pool token as fees!
-        uint256 transferAmountJ = dy;
-        transferAmountJ = (transferAmountJ * (10 ** exchangeRateProviders[_j].exchangeRateDecimals()))
-            / exchangeRateProviders[_j].exchangeRate();
-        IERC20(tokens[_j]).safeTransfer(msg.sender, transferAmountJ);
+        uint256 transferAmountJ = _convertToTokenUnits(dy, _j);
+        _executeSwapTransfers(_i, _j, _dx, transferAmountJ);
 
         uint256[] memory amounts = new uint256[](_balances.length);
         amounts[_i] = _dx;
@@ -618,29 +586,29 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         collectFeeOrYield(false);
         uint256[] memory _balances = balances;
         uint256 D = totalSupply;
-        uint256 feeAmount = 0;
-        uint256 redeemAmount = _amount;
-        if (redeemFee > 0) {
-            feeAmount = (_amount * redeemFee) / FEE_DENOMINATOR;
-            redeemAmount = _amount - feeAmount;
-        }
         _minRedeemAmount = (_minRedeemAmount * exchangeRateProviders[_i].exchangeRate())
             / (10 ** exchangeRateProviders[_i].exchangeRateDecimals());
 
-        // y is converted(18 decimals)
-        uint256 y = _getY(_balances, _i, D - redeemAmount);
-        // dy is not converted
-        // dy = (balance[i] - y - 1) / precisions[i] in case there was rounding errors
+        uint256 y = _getY(_balances, _i, D - _amount);
         uint256 dy = (_balances[_i] - y - 1) / precisions[_i];
+        uint256 idealReserve = D / _balances.length;
+
+        uint256 feeAmount = 0;
+        if (redeemFee > 0) {
+            uint256 avgReserve = (_balances[_i] + y) / 2;
+            uint256 dynamicFee = _dynamicFee(idealReserve, avgReserve, redeemFee);
+            feeAmount = (dy * dynamicFee) / FEE_DENOMINATOR;
+            dy = dy - feeAmount;
+        }
+
         if (dy < _minRedeemAmount) {
             revert InsufficientRedeemAmount(dy, _minRedeemAmount);
         }
         // Updates token balance in storage
         balances[_i] = y;
         uint256[] memory amounts = new uint256[](_balances.length);
-        uint256 transferAmount = dy;
-        transferAmount = (transferAmount * (10 ** exchangeRateProviders[_i].exchangeRateDecimals()))
-            / exchangeRateProviders[_i].exchangeRate();
+        uint256 transferAmount =
+            (dy * (10 ** exchangeRateProviders[_i].exchangeRateDecimals())) / exchangeRateProviders[_i].exchangeRate();
         amounts[_i] = transferAmount;
         IERC20(tokens[_i]).safeTransfer(msg.sender, transferAmount);
         totalSupply = D - _amount;
@@ -671,40 +639,46 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         collectFeeOrYield(false);
         uint256[] memory _balances = balances;
         uint256 oldD = totalSupply;
-        uint256 i = 0;
-        for (i = 0; i < _balances.length; i++) {
+        uint256 N = _balances.length;
+        uint256 idealReserve = oldD / N; // Ideal reserve
+
+        uint256[] memory removedAmounts = new uint256[](N);
+        for (uint256 i = 0; i < N; i++) {
             if (_amounts[i] == 0) continue;
-            uint256 balanceAmount = _amounts[i];
-            balanceAmount = (balanceAmount * exchangeRateProviders[i].exchangeRate())
-                / 10 ** exchangeRateProviders[i].exchangeRateDecimals();
-            // balance = balance - amount * precision
-            _balances[i] = _balances[i] - (balanceAmount * precisions[i]);
+            uint256 balanceAmount = (_amounts[i] * exchangeRateProviders[i].exchangeRate())
+                / (10 ** exchangeRateProviders[i].exchangeRateDecimals());
+            removedAmounts[i] = balanceAmount * precisions[i];
+            _balances[i] = _balances[i] - removedAmounts[i];
         }
         uint256 newD = _getD(_balances);
 
         // newD should be smaller than or equal to oldD
         uint256 redeemAmount = oldD - newD;
-        uint256 feeAmount = 0;
+        uint256 totalFeeAmount = 0;
         if (redeemFee > 0) {
-            uint256 dynamicFee = _dynamicFee(oldD, newD, redeemFee);
-            redeemAmount = (redeemAmount * FEE_DENOMINATOR) / (FEE_DENOMINATOR - dynamicFee);
-            feeAmount = redeemAmount - (oldD - newD);
+            for (uint256 i = 0; i < N; i++) {
+                if (removedAmounts[i] == 0) continue;
+                uint256 oldBalance = balances[i];
+                uint256 newBalance = _balances[i];
+                uint256 avgReserve = (oldBalance + newBalance) / 2;
+                uint256 dynamicFee = _dynamicFee(idealReserve, avgReserve, redeemFee);
+                uint256 feeAmount = (removedAmounts[i] * dynamicFee) / FEE_DENOMINATOR;
+                totalFeeAmount += feeAmount;
+            }
+            redeemAmount = redeemAmount + totalFeeAmount; // Increase redeem amount
         }
-        if (redeemAmount > _maxRedeemAmount) {
-            revert MaxRedeemAmount(redeemAmount, _maxRedeemAmount);
-        }
-
+        if (redeemAmount > _maxRedeemAmount) revert MaxRedeemAmount(redeemAmount, _maxRedeemAmount);
         // Updates token balances in storage.
         balances = _balances;
         totalSupply = oldD - redeemAmount;
         poolToken.burnSharesFrom(msg.sender, redeemAmount);
         uint256[] memory amounts = _amounts;
-        for (i = 0; i < _balances.length; i++) {
+        for (uint256 i = 0; i < N; i++) {
             if (_amounts[i] == 0) continue;
             IERC20(tokens[i]).safeTransfer(msg.sender, _amounts[i]);
         }
-        feeAmount = collectFeeOrYield(true);
-        emit Redeemed(msg.sender, redeemAmount, amounts, feeAmount);
+        uint256 feeAmountActual = collectFeeOrYield(true);
+        emit Redeemed(msg.sender, redeemAmount, amounts, feeAmountActual);
         return amounts;
     }
 
@@ -907,8 +881,6 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         if (oldD == newD) {
             return 0;
         } else if (oldD > newD) {
-            balances = _balances;
-            totalSupply = newD;
             poolToken.removeTotalSupply(oldD - newD, true, true);
             return 0;
         } else {
@@ -931,26 +903,26 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         uint256[] memory _balances;
         uint256 _totalSupply;
         (_balances, _totalSupply) = getUpdatedBalancesAndD();
-
         require(_amount > 0, ZeroAmount());
         require(_i < _balances.length, InvalidToken());
 
         uint256 D = _totalSupply;
-        uint256 feeAmount = 0;
-        uint256 redeemAmount = _amount;
-        if (redeemFee > 0) {
-            feeAmount = (_amount * redeemFee) / FEE_DENOMINATOR;
-            redeemAmount = _amount - feeAmount;
-        }
-        // The pool token amount becomes D - redeemAmount
-        uint256 y = _getY(_balances, _i, D - redeemAmount);
-        // dy = (balance[i] - y - 1) / precisions[i] in case there was rounding errors
+        uint256 y = _getY(_balances, _i, D - _amount);
         uint256 dy = (_balances[_i] - y - 1) / precisions[_i];
-        uint256 transferAmount = dy;
-        transferAmount = (transferAmount * (10 ** exchangeRateProviders[_i].exchangeRateDecimals()))
-            / exchangeRateProviders[_i].exchangeRate();
+        uint256 feeAmount = 0;
+        uint256 idealReserve = D / _balances.length;
 
-        return (transferAmount, feeAmount);
+        if (redeemFee > 0) {
+            uint256 avgReserve = (_balances[_i] + y) / 2;
+            uint256 dynamicFee = _dynamicFee(idealReserve, avgReserve, redeemFee);
+            feeAmount = (dy * dynamicFee) / FEE_DENOMINATOR;
+            dy = dy - feeAmount;
+        }
+
+        uint256 transferAmount =
+            (dy * (10 ** exchangeRateProviders[_i].exchangeRateDecimals())) / exchangeRateProviders[_i].exchangeRate();
+
+        return (transferAmount, feeAmount); // feeAmount in output token units
     }
 
     /**
@@ -966,25 +938,36 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         require(_amounts.length == balances.length, InputMismatch());
 
         uint256 oldD = _totalSupply;
-        for (uint256 i = 0; i < _balances.length; i++) {
+        uint256 N = _balances.length;
+        uint256 idealReserve = oldD / N;
+        uint256[] memory removedAmounts = new uint256[](N);
+
+        for (uint256 i = 0; i < N; i++) {
             if (_amounts[i] == 0) continue;
-            // balance = balance - amount * precision
-            uint256 balanceAmount = _amounts[i];
-            balanceAmount = (balanceAmount * exchangeRateProviders[i].exchangeRate())
-                / 10 ** exchangeRateProviders[i].exchangeRateDecimals();
-            _balances[i] = _balances[i] - (balanceAmount * precisions[i]);
+            uint256 balanceAmount = (_amounts[i] * exchangeRateProviders[i].exchangeRate())
+                / (10 ** exchangeRateProviders[i].exchangeRateDecimals());
+            removedAmounts[i] = balanceAmount * precisions[i];
+            _balances[i] = _balances[i] - removedAmounts[i];
         }
         uint256 newD = _getD(_balances);
 
         // newD should be smaller than or equal to oldD
         uint256 redeemAmount = oldD - newD;
-        uint256 feeAmount = 0;
+        uint256 totalFeeAmount = 0;
         if (redeemFee > 0) {
-            redeemAmount = (redeemAmount * FEE_DENOMINATOR) / (FEE_DENOMINATOR - redeemFee);
-            feeAmount = redeemAmount - (oldD - newD);
+            for (uint256 i = 0; i < N; i++) {
+                if (removedAmounts[i] == 0) continue;
+                uint256 oldBalance = balances[i]; // Use stored balances
+                uint256 newBalance = oldBalance - removedAmounts[i];
+                uint256 avgReserve = (oldBalance + newBalance) / 2;
+                uint256 dynamicFee = _dynamicFee(idealReserve, avgReserve, redeemFee);
+                uint256 feeAmount = (removedAmounts[i] * dynamicFee) / FEE_DENOMINATOR;
+                totalFeeAmount += feeAmount;
+            }
+            redeemAmount = redeemAmount + totalFeeAmount;
         }
 
-        return (redeemAmount, feeAmount);
+        return (redeemAmount, totalFeeAmount);
     }
 
     /**
@@ -1000,42 +983,36 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         require(_amounts.length == _balances.length, InvalidAmount());
 
         uint256 oldD = _totalSupply;
-        uint256 i = 0;
-        for (i = 0; i < _balances.length; i++) {
+        uint256 N = _balances.length;
+        uint256 idealReserve = oldD / N;
+        uint256[] memory addedAmounts = new uint256[](N);
+
+        for (uint256 i = 0; i < N; i++) {
             if (_amounts[i] == 0) continue;
-            uint256 balanceAmount = _amounts[i];
-            balanceAmount = (balanceAmount * exchangeRateProviders[i].exchangeRate())
+            uint256 balanceAmount = (_amounts[i] * exchangeRateProviders[i].exchangeRate())
                 / (10 ** exchangeRateProviders[i].exchangeRateDecimals());
-            // balance = balance + amount * precision
-            _balances[i] = _balances[i] + (balanceAmount * precisions[i]);
+            addedAmounts[i] = balanceAmount * precisions[i];
+            _balances[i] = _balances[i] + addedAmounts[i];
         }
         uint256 newD = _getD(_balances);
         // newD should be bigger than or equal to oldD
         uint256 mintAmount = newD - oldD;
-        uint256 feeAmount = 0;
-        uint256 ys = (newD + oldD) / _balances.length;
+        uint256 totalFeeAmount = 0;
 
-        if (mintFee > 0 && oldD != 0) {
-            for (i = 0; i < _balances.length; i++) {
-                uint256 idealBalance = newD * balances[i] / oldD;
-                uint256 difference = 0;
-
-                if (idealBalance > _balances[i]) {
-                    difference = idealBalance - _balances[i];
-                } else {
-                    difference = _balances[i] - idealBalance;
-                }
-
-                uint256 xs = ((balances[i] + _balances[i]) * exchangeRateProviders[i].exchangeRate())
-                    / (10 ** exchangeRateProviders[i].exchangeRateDecimals());
-                uint256 dynamicFee = _dynamicFee(xs, ys, mintFee);
-                uint256 fee = (difference * dynamicFee) / FEE_DENOMINATOR;
-                mintAmount = mintAmount - fee;
-                feeAmount += fee;
+        if (mintFee > 0) {
+            for (uint256 i = 0; i < N; i++) {
+                if (addedAmounts[i] == 0) continue;
+                uint256 oldBalance = balances[i]; // Use stored balances
+                uint256 newBalance = oldBalance + addedAmounts[i];
+                uint256 avgReserve = (oldBalance + newBalance) / 2;
+                uint256 dynamicFee = _dynamicFee(idealReserve, avgReserve, mintFee);
+                uint256 feeAmount = (addedAmounts[i] * dynamicFee) / FEE_DENOMINATOR;
+                totalFeeAmount += feeAmount;
             }
+            mintAmount = mintAmount - totalFeeAmount;
         }
 
-        return (mintAmount, feeAmount);
+        return (mintAmount, totalFeeAmount);
     }
 
     /**
@@ -1055,32 +1032,45 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         require(_j < _balances.length, InvalidOut());
         require(_dx > 0, InvalidAmount());
 
-        uint256 prevBalanceI = _balances[_i];
-        uint256 D = _totalSupply;
-        uint256 balanceAmount = _dx;
-        balanceAmount = (balanceAmount * exchangeRateProviders[_i].exchangeRate())
-            / (10 ** exchangeRateProviders[_i].exchangeRateDecimals());
-        // balance[i] = balance[i] + dx * precisions[i]
-        _balances[_i] = _balances[_i] + (balanceAmount * precisions[_i]);
-        uint256 y = _getY(_balances, _j, D);
-        // dy = (balance[j] - y - 1) / precisions[j] in case there was rounding errors
+        uint256 oldBalanceI = _balances[_i];
+        uint256 oldBalanceJ = _balances[_j];
+        uint256 newBalanceI = oldBalanceI
+            + ((_dx * exchangeRateProviders[_i].exchangeRate()) / (10 ** exchangeRateProviders[_i].exchangeRateDecimals()))
+                * precisions[_i];
+        _balances[_i] = newBalanceI;
+        uint256 y = _getY(_balances, _j, _totalSupply);
         uint256 dy = (_balances[_j] - y - 1) / precisions[_j];
-        uint256 feeAmount = 0;
 
-        if (swapFee > 0) {
-            uint256 dynamicFee = _dynamicFee((prevBalanceI + _balances[_i]) / 2, (_balances[_j] + y) / 2, swapFee);
-            feeAmount = (dy * dynamicFee) / FEE_DENOMINATOR;
-            dy = dy - feeAmount;
-        }
+        uint256 feeAmount = _calculateSwapFee(dy, oldBalanceI, newBalanceI, oldBalanceJ, y);
+        dy = dy - feeAmount;
 
-        uint256 transferAmountJ = dy;
-        uint256 feeAmountReturn = feeAmount;
-        transferAmountJ = (transferAmountJ * (10 ** exchangeRateProviders[_j].exchangeRateDecimals()))
-            / exchangeRateProviders[_j].exchangeRate();
-        feeAmountReturn = (feeAmountReturn * (10 ** exchangeRateProviders[_j].exchangeRateDecimals()))
-            / exchangeRateProviders[_j].exchangeRate();
+        uint256 transferAmountJ = _convertToTokenUnits(dy, _j);
+        uint256 feeAmountReturn = _convertToTokenUnits(feeAmount, _j);
 
         return (transferAmountJ, feeAmountReturn);
+    }
+
+    function _convertToTokenUnits(uint256 amount, uint256 tokenIndex) internal view returns (uint256) {
+        uint256 decimals = 10 ** exchangeRateProviders[tokenIndex].exchangeRateDecimals();
+        uint256 rate = exchangeRateProviders[tokenIndex].exchangeRate();
+        return (amount * decimals) / rate;
+    }
+
+    function _calculateSwapFee(
+        uint256 dy,
+        uint256 prevBalanceI,
+        uint256 newBalanceI,
+        uint256 oldBalanceJ,
+        uint256 newBalanceJ
+    )
+        internal
+        view
+        returns (uint256)
+    {
+        if (swapFee == 0) return 0;
+        uint256 fee = (dy * _dynamicFee((prevBalanceI + newBalanceI) / 2, (oldBalanceJ + newBalanceJ) / 2, swapFee))
+            / FEE_DENOMINATOR;
+        return fee;
     }
 
     /**
@@ -1122,6 +1112,18 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
      */
     function getTokens() external view returns (address[] memory) {
         return tokens;
+    }
+
+    function _executeSwapTransfers(
+        uint256 inputIndex,
+        uint256 outputIndex,
+        uint256 inputAmount,
+        uint256 outputAmount
+    )
+        internal
+    {
+        IERC20(tokens[inputIndex]).safeTransferFrom(msg.sender, address(this), inputAmount);
+        IERC20(tokens[outputIndex]).safeTransfer(msg.sender, outputAmount);
     }
 
     /**
