@@ -454,55 +454,6 @@ contract SelfPeggingAssetTest is Test {
         assertEq(feeAmount, 0.016018006119571831e18);
     }
 
-    function testUpdateA() external {
-        WETH.mint(user, 105e18);
-        frxETH.mint(user, 85e18);
-
-        vm.startPrank(user);
-        WETH.approve(address(pool), 105e18);
-        frxETH.approve(address(pool), 85e18);
-
-        uint256[] memory amounts = new uint256[](2);
-        amounts[0] = 105e18;
-        amounts[1] = 85e18;
-
-        pool.mint(amounts, 0);
-        vm.stopPrank();
-
-        frxETH.mint(user2, 8e18);
-
-        assertEq(pool.A(), 100);
-
-        uint256 bufferBefore = lpToken.bufferAmount();
-
-        // increase A
-        vm.prank(owner);
-        pool.updateA(200);
-
-        assertEq(pool.A(), 200);
-        assert(lpToken.bufferAmount() > bufferBefore);
-
-        // decrease A
-        vm.prank(owner);
-        WETH.mint(user, 205e18);
-        frxETH.mint(user, 195e18);
-
-        vm.startPrank(user);
-        WETH.approve(address(pool), 205e18);
-        frxETH.approve(address(pool), 195e18);
-
-        amounts[0] = 205e18;
-        amounts[1] = 195e18;
-
-        pool.donateD(amounts, 0);
-        vm.stopPrank();
-
-        vm.prank(owner);
-        pool.updateA(90);
-
-        assertEq(pool.A(), 90);
-    }
-
     function testDynamicFeeForSwap() external {
         WETH.mint(user, 105e18);
         frxETH.mint(user, 85e18);

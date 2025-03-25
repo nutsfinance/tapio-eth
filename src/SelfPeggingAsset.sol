@@ -9,6 +9,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 import "./interfaces/IExchangeRateProvider.sol";
 import "./interfaces/ILPToken.sol";
+import "./interfaces/IRampAController.sol";
 
 /**
  * @title SelfPeggingAsset swap
@@ -117,6 +118,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
      * @dev These is a state variables that represents the amplification coefficient A.
      */
     uint256 public A;
+    IRampAController public rampAController;
 
     /**
      * @dev Exchange rate provider for the tokens
@@ -194,6 +196,11 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
     event AModified(uint256 A);
 
     /**
+     * @dev This event is emitted when the RampAController is set or updated.
+     */
+    event RampAControllerUpdated(address indexed _rampAController);
+
+    /**
      * @dev This event is emitted when the mint fee is modified.
      * @param mintFee is the new value of the mint fee.
      */
@@ -262,6 +269,9 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
     /// @notice Error thrown when the A value is not set.
     error ANotSet();
 
+    /// @notice Error thrown when the controller is in a ramp
+    error CannotChangeControllerDuringRamp();
+
     /// @notice Error thrown when the amount is invalid.
     error InvalidAmount();
 
@@ -324,6 +334,11 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
 
     /// @notice Error thrown when the pool is imbalanced
     error ImbalancedPool(uint256 oldD, uint256 newD);
+
+    modifier syncRamping() {
+        if (address(rampAController) != address(0) && rampAController.isRamping()) _syncTotalSupply();
+        _;
+    }
 
     constructor() {
         _disableInitializers();
@@ -402,7 +417,15 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
      * @param _minMintAmount Minimum amount of pool token to mint.
      * @return The amount of pool tokens minted.
      */
-    function mint(uint256[] calldata _amounts, uint256 _minMintAmount) external nonReentrant returns (uint256) {
+    function mint(
+        uint256[] calldata _amounts,
+        uint256 _minMintAmount
+    )
+        external
+        nonReentrant
+        syncRamping
+        returns (uint256)
+    {
         // If swap is paused, only admins can mint.
         require(!paused || admins[msg.sender], Paused());
         require(balances.length == _amounts.length, InvalidAmount());
@@ -464,7 +487,17 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
      * @param _minDy Minimum token _j to swap out in converted balance.
      * @return Amount of swap out.
      */
-    function swap(uint256 _i, uint256 _j, uint256 _dx, uint256 _minDy) external nonReentrant returns (uint256) {
+    function swap(
+        uint256 _i,
+        uint256 _j,
+        uint256 _dx,
+        uint256 _minDy
+    )
+        external
+        nonReentrant
+        syncRamping
+        returns (uint256)
+    {
         // If swap is paused, only admins can swap.
         require(!paused || admins[msg.sender], Paused());
         require(_i != _j, SameToken());
@@ -522,6 +555,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
     )
         external
         nonReentrant
+        syncRamping
         returns (uint256[] memory)
     {
         // If swap is paused, only admins can redeem.
@@ -579,6 +613,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
     )
         external
         nonReentrant
+        syncRamping
         returns (uint256)
     {
         // If swap is paused, only admins can redeem.
@@ -635,6 +670,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
     )
         external
         nonReentrant
+        syncRamping
         returns (uint256[] memory)
     {
         require(_amounts.length == balances.length, InputMismatch());
@@ -753,27 +789,59 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         admins[_account] = _allowed;
     }
 
+    function _syncTotalSupply() internal {
+        uint256 newD = _getD(balances, getCurrentA());
+
+        if (totalSupply > newD) {
+            // A decreased
+            poolToken.removeTotalSupply(totalSupply - newD, true, false);
+            totalSupply = newD;
+        } else if (newD > totalSupply) {
+            // A increased
+            poolToken.addBuffer(newD - totalSupply);
+            totalSupply = newD;
+        }
+    }
+
     /**
-     * @dev Update the A value.
-     * @param _A The new A value.
+     * @dev Get the current A value from the controller if set, or use the local value
+     * @return The current A value
      */
-    function updateA(uint256 _A) external onlyOwner {
-        collectFeeOrYield(false);
-        A = _A;
+    function getCurrentA() public view returns (uint256) {
+        if (address(rampAController) != address(0)) {
+            try rampAController.getA() returns (uint256 controllerA) {
+                return controllerA;
+            } catch {
+                return A;
+            }
+        }
+        return A;
+    }
 
-        uint256 newD = _getD(balances, A);
-        /// A decreased or increased
-        if (totalSupply > newD) poolToken.removeTotalSupply(totalSupply - newD, true, false);
-        else if (newD > totalSupply) poolToken.addBuffer(newD - totalSupply);
-        totalSupply = newD;
-
-        emit AModified(_A);
+    /**
+     * @dev Set the RampAController address
+     * @param _rampAController New controller address
+     */
+    function setRampAController(address _rampAController) external onlyOwner {
+        if (address(rampAController) != address(0) && rampAController.isRamping()) {
+            revert CannotChangeControllerDuringRamp();
+        }
+        rampAController = IRampAController(_rampAController);
+        emit RampAControllerUpdated(_rampAController);
     }
 
     /**
      * @dev Update the exchange rate provider for the token.
      */
-    function donateD(uint256[] calldata _amounts, uint256 _minDonationAmount) external nonReentrant returns (uint256) {
+    function donateD(
+        uint256[] calldata _amounts,
+        uint256 _minDonationAmount
+    )
+        external
+        nonReentrant
+        syncRamping
+        returns (uint256)
+    {
         collectFeeOrYield(false);
 
         uint256[] memory _balances = balances;
@@ -848,7 +916,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
      * @notice This function allows to rebase LPToken by increasing his total supply
      * from the current stableSwap pool by the staking rewards and the swap fee.
      */
-    function rebase() external returns (uint256) {
+    function rebase() external syncRamping returns (uint256) {
         uint256[] memory _balances = balances;
         uint256 oldD = totalSupply;
 
