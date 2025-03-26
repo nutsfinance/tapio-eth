@@ -80,6 +80,8 @@ contract RampAControllerTest is Test {
 
         lpToken.addPool(address(spa));
 
+        controller = RampAController(address(rampAControllerProxy));
+
         vm.stopPrank();
     }
 
