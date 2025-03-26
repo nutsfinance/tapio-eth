@@ -17,6 +17,7 @@ import "./misc/ConstantExchangeRateProvider.sol";
 import "./misc/ERC4626ExchangeRate.sol";
 import "./misc/OracleExchangeRate.sol";
 import "./interfaces/IExchangeRateProvider.sol";
+import "./periphery/RampAController.sol";
 
 /**
  * @title SelfPeggingAsset Application
@@ -105,9 +106,19 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
     address public wlpTokenBeacon;
 
     /**
+     * @dev Beacon for the RampAController implementation.
+     */
+    address public rampAControllerBeacon;
+
+    /**
      * @dev Constant exchange rate provider.
      */
     ConstantExchangeRateProvider public constantExchangeRateProvider;
+
+    /**
+     * @dev Minimum ramp time for the A parameter.
+     */
+    uint256 public minRampTime;
 
     /**
      * @dev This event is emitted when the governor is modified.
@@ -118,8 +129,11 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
     /**
      * @dev This event is emitted when a new pool is created.
      * @param poolToken is the pool token created.
+     * @param selfPeggingAsset is the self pegging asset created.
+     * @param wrappedPoolToken is the wrapped pool token created.
+     * @param rampAController is the ramp A controller created.
      */
-    event PoolCreated(address poolToken, address selfPeggingAsset, address wrappedPoolToken);
+    event PoolCreated(address poolToken, address selfPeggingAsset, address wrappedPoolToken, address rampAController);
 
     /**
      * @dev This event is emitted when the mint fee is updated.
@@ -151,6 +165,12 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
      */
     event AModified(uint256 A);
 
+    /**
+     * @dev This event is emitted when the min ramp time is updated.
+     * @param minRampTime is the new value of the min ramp time.
+     */
+    event MinRampTimeUpdated(uint256 minRampTime);
+
     /// @dev Error thrown when the address is invalid
     error InvalidAddress();
 
@@ -177,9 +197,11 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
         uint256 _redeemFee,
         uint256 _offPegFeeMultiplier,
         uint256 _A,
+        uint256 _minRampTime,
         address _selfPeggingAssetBeacon,
         address _lpTokenBeacon,
         address _wlpTokenBeacon,
+        address _rampAControllerBeacon,
         ConstantExchangeRateProvider _constantExchangeRateProvider
     )
         public
@@ -191,6 +213,7 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
         require(_lpTokenBeacon != address(0), InvalidAddress());
         require(_wlpTokenBeacon != address(0), InvalidAddress());
         require(address(_constantExchangeRateProvider) != address(0), InvalidAddress());
+        require(_rampAControllerBeacon != address(0), InvalidAddress());
 
         __Ownable_init(msg.sender);
 
@@ -199,6 +222,7 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
         selfPeggingAssetBeacon = _selfPeggingAssetBeacon;
         lpTokenBeacon = _lpTokenBeacon;
         wlpTokenBeacon = _wlpTokenBeacon;
+        rampAControllerBeacon = _rampAControllerBeacon;
         constantExchangeRateProvider = _constantExchangeRateProvider;
 
         mintFee = _mintFee;
@@ -206,6 +230,7 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
         redeemFee = _redeemFee;
         A = _A;
         offPegFeeMultiplier = _offPegFeeMultiplier;
+        minRampTime = _minRampTime;
     }
 
     /**
@@ -256,6 +281,11 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
         require(_A > 0, InvalidValue());
         A = _A;
         emit AModified(_A);
+    }
+
+    function setMinRampTime(uint256 _minRampTime) external onlyOwner {
+        minRampTime = _minRampTime;
+        emit MinRampTimeUpdated(_minRampTime);
     }
 
     /**
@@ -316,9 +346,22 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
             exchangeRateProviders[1] = IExchangeRateProvider(erc4626ExchangeRate);
         }
 
+        bytes memory rampAControllerInit = abi.encodeCall(RampAController.initialize, (A, minRampTime));
+        BeaconProxy rampAControllerProxy = new BeaconProxy(rampAControllerBeacon, rampAControllerInit);
+        RampAController rampAConotroller = RampAController(address(rampAControllerProxy));
+
         bytes memory selfPeggingAssetInit = abi.encodeCall(
             SelfPeggingAsset.initialize,
-            (tokens, precisions, fees, offPegFeeMultiplier, LPToken(address(lpTokenProxy)), A, exchangeRateProviders)
+            (
+                tokens,
+                precisions,
+                fees,
+                offPegFeeMultiplier,
+                LPToken(address(lpTokenProxy)),
+                A,
+                exchangeRateProviders,
+                address(rampAControllerProxy)
+            )
         );
         BeaconProxy selfPeggingAssetProxy = new BeaconProxy(selfPeggingAssetBeacon, selfPeggingAssetInit);
         SelfPeggingAsset selfPeggingAsset = SelfPeggingAsset(address(selfPeggingAssetProxy));
@@ -328,11 +371,14 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
         selfPeggingAsset.transferOwnership(governor);
         lpToken.addPool(address(selfPeggingAsset));
         lpToken.transferOwnership(governor);
+        rampAConotroller.transferOwnership(governor);
 
         bytes memory wlpTokenInit = abi.encodeCall(WLPToken.initialize, (ILPToken(lpToken)));
         BeaconProxy wlpTokenProxy = new BeaconProxy(wlpTokenBeacon, wlpTokenInit);
 
-        emit PoolCreated(address(lpTokenProxy), address(selfPeggingAssetProxy), address(wlpTokenProxy));
+        emit PoolCreated(
+            address(lpTokenProxy), address(selfPeggingAssetProxy), address(wlpTokenProxy), address(rampAControllerProxy)
+        );
     }
 
     /**

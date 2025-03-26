@@ -61,7 +61,7 @@ contract SelfPeggingAssetTest is Test {
         exchangeRateProviders[1] = exchangeRateProvider;
 
         data = abi.encodeCall(
-            SelfPeggingAsset.initialize, (tokens, precisions, fees, 0, lpToken, A, exchangeRateProviders)
+            SelfPeggingAsset.initialize, (tokens, precisions, fees, 0, lpToken, A, exchangeRateProviders, address(0))
         );
 
         proxy = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
@@ -142,7 +142,8 @@ contract SelfPeggingAssetTest is Test {
         _precisions[1] = 1;
 
         data = abi.encodeCall(
-            SelfPeggingAsset.initialize, (_tokens, _precisions, _fees, 0, _lpToken, A, exchangeRateProviders)
+            SelfPeggingAsset.initialize,
+            (_tokens, _precisions, _fees, 0, _lpToken, A, exchangeRateProviders, address(0))
         );
 
         proxy = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
@@ -529,7 +530,8 @@ contract SelfPeggingAssetTest is Test {
         _precisions[1] = 1;
 
         data = abi.encodeCall(
-            SelfPeggingAsset.initialize, (_tokens, _precisions, _fees, 0, _lpToken, A, exchangeRateProviders)
+            SelfPeggingAsset.initialize,
+            (_tokens, _precisions, _fees, 0, _lpToken, A, exchangeRateProviders, address(0))
         );
         proxy = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
         SelfPeggingAsset _pool = SelfPeggingAsset(address(proxy));

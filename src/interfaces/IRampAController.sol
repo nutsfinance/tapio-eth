@@ -7,6 +7,18 @@ pragma solidity 0.8.28;
  */
 interface IRampAController {
     /**
+     * @dev Initiates the ramping of A from current value to the target over the specified duration
+     * @param _futureA Target A value
+     * @param _futureTime Timestamp when ramping should complete
+     */
+    function rampA(uint256 _futureA, uint256 _futureTime) external;
+
+    /**
+     * @dev Stops an ongoing ramp and freezes A at the current value
+     */
+    function stopRamp() external;
+
+    /**
      * @dev Returns the current A value based on the ongoing ramp progress or the static value if no ramp
      * @return The current A value
      */
@@ -41,16 +53,4 @@ interface IRampAController {
      * @return The timestamp
      */
     function futureATime() external view returns (uint256);
-
-    /**
-     * @dev Initiates the ramping of A from current value to the target over the specified duration
-     * @param _futureA Target A value
-     * @param _futureTime Timestamp when ramping should complete
-     */
-    function rampA(uint256 _futureA, uint256 _futureTime) external;
-
-    /**
-     * @dev Stops an ongoing ramp and freezes A at the current value
-     */
-    function stopRamp() external;
 }

@@ -20,6 +20,7 @@ contract Config is Script {
     address selfPeggingAssetBeacon;
     address lpTokenBeacon;
     address wlpTokenBeacon;
+    address rampAControllerBeacon;
     address zap;
 
     struct JSONData {

@@ -12,6 +12,7 @@ import { MockOracle } from "../src/mock/MockOracle.sol";
 import { SelfPeggingAsset } from "../src/SelfPeggingAsset.sol";
 import { LPToken } from "../src/LPToken.sol";
 import { WLPToken } from "../src/WLPToken.sol";
+import { RampAController } from "../src/periphery/RampAController.sol";
 import "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 import "../src/misc/ConstantExchangeRateProvider.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC4626Upgradeable.sol";
@@ -26,6 +27,7 @@ contract FactoryTest is Test {
         address selfPeggingAssetImplentation = address(new SelfPeggingAsset());
         address lpTokenImplentation = address(new LPToken());
         address wlpTokenImplentation = address(new WLPToken());
+        address rampAControllerImplentation = address(new RampAController());
 
         UpgradeableBeacon beacon = new UpgradeableBeacon(selfPeggingAssetImplentation, governor);
         address selfPeggingAssetBeacon = address(beacon);
@@ -36,6 +38,9 @@ contract FactoryTest is Test {
         beacon = new UpgradeableBeacon(wlpTokenImplentation, governor);
         address wlpTokenBeacon = address(beacon);
 
+        beacon = new UpgradeableBeacon(rampAControllerImplentation, governor);
+        address rampAControllerBeacon = address(beacon);
+
         bytes memory data = abi.encodeCall(
             SelfPeggingAssetFactory.initialize,
             (
@@ -45,9 +50,11 @@ contract FactoryTest is Test {
                 0,
                 0,
                 100,
+                30 minutes,
                 selfPeggingAssetBeacon,
                 lpTokenBeacon,
                 wlpTokenBeacon,
+                rampAControllerBeacon,
                 new ConstantExchangeRateProvider()
             )
         );
@@ -248,7 +255,9 @@ contract FactoryTest is Test {
         ConstantExchangeRateProvider exchangeRateProvider = new ConstantExchangeRateProvider();
 
         vm.expectRevert(Initializable.InvalidInitialization.selector);
-        factory.initialize(governor, 0, 0, 0, 0, 100, address(0), address(0), address(0), exchangeRateProvider);
+        factory.initialize(
+            governor, 0, 0, 0, 0, 100, 30 minutes, address(0), address(0), address(0), address(0), exchangeRateProvider
+        );
 
         SelfPeggingAsset selfPeggingAsset = new SelfPeggingAsset();
         address[] memory _tokens;
@@ -256,7 +265,9 @@ contract FactoryTest is Test {
         uint256[] memory _fees;
         IExchangeRateProvider[] memory _exchangeRateProviders;
         vm.expectRevert(Initializable.InvalidInitialization.selector);
-        selfPeggingAsset.initialize(_tokens, _precisions, _fees, 0, LPToken(address(0)), 0, _exchangeRateProviders);
+        selfPeggingAsset.initialize(
+            _tokens, _precisions, _fees, 0, LPToken(address(0)), 0, _exchangeRateProviders, address(0)
+        );
 
         LPToken lpToken = new LPToken();
         vm.expectRevert(Initializable.InvalidInitialization.selector);
@@ -265,5 +276,9 @@ contract FactoryTest is Test {
         WLPToken wlpToken = new WLPToken();
         vm.expectRevert(Initializable.InvalidInitialization.selector);
         wlpToken.initialize(LPToken(address(0)));
+
+        RampAController rampAController = new RampAController();
+        vm.expectRevert(Initializable.InvalidInitialization.selector);
+        rampAController.initialize(30 minutes, 0);
     }
 }

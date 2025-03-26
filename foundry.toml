@@ -20,7 +20,7 @@
     "forge-std/=node_modules/forge-std/src/",
   ]
   fs_permissions = [{ access = "read-write", path = "./"}]
-  via_ir = false
+  via_ir = true
 
 [profile.ci]
   fuzz = { runs = 10_000 }

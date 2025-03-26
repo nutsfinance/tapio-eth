@@ -36,6 +36,10 @@ contract RampAController is IRampAController, Initializable, OwnableUpgradeable 
     error InsufficientRampTime();
     error Unauthorized();
 
+    constructor() {
+        _disableInitializers();
+    }
+
     /**
      * @notice Initializer for RampAController
      * @param _initialA is the initial value of A

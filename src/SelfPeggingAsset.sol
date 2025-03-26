@@ -356,6 +356,8 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
      * @param _offPegFeeMultiplier The off peg fee multiplier.
      * @param _poolToken The address of the pool token.
      * @param _A The initial value of the amplification coefficient A for the pool.
+     * @param _exchangeRateProviders The exchange rate providers for the tokens.
+     * @param _rampAController The address of the RampAController contract.
      */
     function initialize(
         address[] memory _tokens,
@@ -364,7 +366,8 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         uint256 _offPegFeeMultiplier,
         ILPToken _poolToken,
         uint256 _A,
-        IExchangeRateProvider[] memory _exchangeRateProviders
+        IExchangeRateProvider[] memory _exchangeRateProviders,
+        address _rampAController
     )
         public
         initializer
@@ -406,6 +409,8 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         poolToken = _poolToken;
         exchangeRateProviders = _exchangeRateProviders;
         offPegFeeMultiplier = _offPegFeeMultiplier;
+
+        rampAController = IRampAController(_rampAController);
 
         A = _A;
         feeErrorMargin = DEFAULT_FEE_ERROR_MARGIN;

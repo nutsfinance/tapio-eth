@@ -55,23 +55,30 @@ contract RampAControllerTest is Test {
         providerArray[0] = providers[0];
         providerArray[1] = providers[1];
 
+        bytes memory rampAControllerData = abi.encodeCall(RampAController.initialize, (INITIAL_A, MIN_RAMP_TIME));
+        ERC1967Proxy rampAControllerProxy = new ERC1967Proxy(address(new RampAController()), rampAControllerData);
+
         bytes memory lpTokenData = abi.encodeCall(LPToken.initialize, ("LP Token", "TLP"));
         ERC1967Proxy lpTokenProxy = new ERC1967Proxy(address(new LPToken()), lpTokenData);
         lpToken = LPToken(address(lpTokenProxy));
 
         bytes memory spaData = abi.encodeCall(
             SelfPeggingAsset.initialize,
-            (tokens, precisions, fees, offPegFeeMultiplier, lpToken, INITIAL_A, providerArray)
+            (
+                tokens,
+                precisions,
+                fees,
+                offPegFeeMultiplier,
+                lpToken,
+                INITIAL_A,
+                providerArray,
+                address(rampAControllerProxy)
+            )
         );
         ERC1967Proxy spaProxy = new ERC1967Proxy(address(new SelfPeggingAsset()), spaData);
         spa = SelfPeggingAsset(address(spaProxy));
 
         lpToken.addPool(address(spa));
-
-        controller = new RampAController();
-        controller.initialize(INITIAL_A, MIN_RAMP_TIME);
-
-        spa.setRampAController(address(controller));
 
         vm.stopPrank();
     }
