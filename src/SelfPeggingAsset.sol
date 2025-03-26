@@ -916,7 +916,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
      * @notice This function allows to rebase LPToken by increasing his total supply
      * from the current stableSwap pool by the staking rewards and the swap fee.
      */
-    function rebase() external syncRamping returns (uint256) {
+    function rebase() external returns (uint256) {
         uint256[] memory _balances = balances;
         uint256 oldD = totalSupply;
 
