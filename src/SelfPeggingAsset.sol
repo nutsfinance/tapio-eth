@@ -118,6 +118,10 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
      * @dev These is a state variables that represents the amplification coefficient A.
      */
     uint256 public A;
+
+    /**
+     * @dev RampAController contract address for gradual A changes
+     */
     IRampAController public rampAController;
 
     /**

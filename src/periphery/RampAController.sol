@@ -36,6 +36,11 @@ contract RampAController is IRampAController, Initializable, OwnableUpgradeable 
     error InsufficientRampTime();
     error Unauthorized();
 
+    /**
+     * @notice Initializer for RampAController
+     * @param _initialA is the initial value of A
+     * @param _minRampTime is min ramp time
+     */
     function initialize(uint256 _initialA, uint256 _minRampTime) external initializer {
         __Ownable_init(msg.sender);
 
@@ -50,12 +55,21 @@ contract RampAController is IRampAController, Initializable, OwnableUpgradeable 
         emit MinRampTimeUpdated(0, minRampTime);
     }
 
+    /**
+     * @notice Set the minimum ramp time (default is 30 minutes)
+     * @param _minRampTime is the new minimum ramp time
+     */
     function setMinRampTime(uint256 _minRampTime) external onlyOwner {
         uint256 oldValue = minRampTime;
         minRampTime = _minRampTime;
         emit MinRampTimeUpdated(oldValue, _minRampTime);
     }
 
+    /**
+     * @notice Initiate a ramp to a new A value
+     * @param _futureA is the target value of A
+     * @param _futureTime is UNIX timestamp when the ramp should complete
+     */
     function rampA(uint256 _futureA, uint256 _futureTime) external override onlyOwner {
         if (_futureTime <= block.timestamp) revert InvalidFutureTime();
         if (block.timestamp < futureATime) revert RampAlreadyInProgress();
@@ -81,6 +95,9 @@ contract RampAController is IRampAController, Initializable, OwnableUpgradeable 
         emit RampInitiated(_initialA, _futureA, block.timestamp, _futureTime);
     }
 
+    /**
+     * @notice Force-stop ramping A coeff
+     */
     function stopRamp() external override onlyOwner {
         if (block.timestamp >= futureATime) revert NoOngoingRamp();
         uint256 currentA = getA();
@@ -93,10 +110,18 @@ contract RampAController is IRampAController, Initializable, OwnableUpgradeable 
         emit RampStopped(currentA);
     }
 
+    /**
+     * @notice Check if ramping in progress
+     * @return true if it is, false otherwise
+     */
     function isRamping() external view override returns (bool) {
         return block.timestamp < futureATime;
     }
 
+    /**
+     * @notice Public getter which is used in SPA
+     * @return the current value of A coeff
+     */
     function getA() public view override returns (uint256) {
         if (block.timestamp >= futureATime) return futureA;
         if (block.timestamp <= initialATime) return initialA;
