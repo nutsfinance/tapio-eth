@@ -82,18 +82,19 @@ contract FactoryTest is Test {
         vm.recordLogs();
         factory.createPool(arg);
         Vm.Log[] memory entries = vm.getRecordedLogs();
-        bytes32 eventSig = keccak256("PoolCreated(address,address,address)");
+        bytes32 eventSig = keccak256("PoolCreated(address,address,address,address)");
 
         address decodedPoolToken;
         address decodedSelfPeggingAsset;
         address decodedWrappedPoolToken;
+        address decodedRampAController;
 
         for (uint256 i = 0; i < entries.length; i++) {
             Vm.Log memory log = entries[i];
 
             if (log.topics[0] == eventSig) {
-                (decodedPoolToken, decodedSelfPeggingAsset, decodedWrappedPoolToken) =
-                    abi.decode(log.data, (address, address, address));
+                (decodedPoolToken, decodedSelfPeggingAsset, decodedWrappedPoolToken, decodedRampAController) =
+                    abi.decode(log.data, (address, address, address, address));
             }
         }
 
@@ -146,18 +147,19 @@ contract FactoryTest is Test {
         vm.recordLogs();
         factory.createPool(arg);
         Vm.Log[] memory entries = vm.getRecordedLogs();
-        bytes32 eventSig = keccak256("PoolCreated(address,address,address)");
+        bytes32 eventSig = keccak256("PoolCreated(address,address,address,address)");
 
         address decodedPoolToken;
         address decodedSelfPeggingAsset;
         address decodedWrappedPoolToken;
+        address decodedRampAController;
 
         for (uint256 i = 0; i < entries.length; i++) {
             Vm.Log memory log = entries[i];
 
             if (log.topics[0] == eventSig) {
-                (decodedPoolToken, decodedSelfPeggingAsset, decodedWrappedPoolToken) =
-                    abi.decode(log.data, (address, address, address));
+                (decodedPoolToken, decodedSelfPeggingAsset, decodedWrappedPoolToken, decodedRampAController) =
+                    abi.decode(log.data, (address, address, address, address));
             }
         }
 
@@ -212,18 +214,19 @@ contract FactoryTest is Test {
         vm.recordLogs();
         factory.createPool(arg);
         Vm.Log[] memory entries = vm.getRecordedLogs();
-        bytes32 eventSig = keccak256("PoolCreated(address,address,address)");
+        bytes32 eventSig = keccak256("PoolCreated(address,address,address,address)");
 
         address decodedPoolToken;
         address decodedSelfPeggingAsset;
         address decodedWrappedPoolToken;
+        address decodedRampAController;
 
         for (uint256 i = 0; i < entries.length; i++) {
             Vm.Log memory log = entries[i];
 
             if (log.topics[0] == eventSig) {
-                (decodedPoolToken, decodedSelfPeggingAsset, decodedWrappedPoolToken) =
-                    abi.decode(log.data, (address, address, address));
+                (decodedPoolToken, decodedSelfPeggingAsset, decodedWrappedPoolToken, decodedRampAController) =
+                    abi.decode(log.data, (address, address, address, address));
             }
         }
 
