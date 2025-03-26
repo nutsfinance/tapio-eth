@@ -76,19 +76,11 @@ contract RampAController is IRampAController, Initializable, OwnableUpgradeable 
         uint256 _initialA = getA();
 
         if (_futureA > _initialA) {
-            // A increasing
-            if (_futureA * MAX_A_CHANGE < _initialA * (MAX_A_CHANGE + 1)) {
-                // futureA <= initialA * (1 + 1/MAX_A_CHANGE)
-            } else {
-                revert ExcessiveAChange();
-            }
+            // A increasing, check if futureA <= initialA * (1 + 1/MAX_A_CHANGE)
+            if (_futureA * MAX_A_CHANGE >= _initialA * (MAX_A_CHANGE + 1)) revert ExcessiveAChange();
         } else {
-            // A decreasing
-            if (_initialA * MAX_A_CHANGE < _futureA * (MAX_A_CHANGE + 1)) {
-                // initialA <= futureA * (1 + 1/MAX_A_CHANGE)
-            } else {
-                revert ExcessiveAChange();
-            }
+            // A decreasing, check if initialA <= futureA * (1 + 1/MAX_A_CHANGE)
+            if (_initialA * MAX_A_CHANGE >= _futureA * (MAX_A_CHANGE + 1)) revert ExcessiveAChange();
         }
 
         initialA = _initialA;
