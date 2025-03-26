@@ -22,12 +22,9 @@ contract RampAController is IRampAController, Initializable, OwnableUpgradeable 
     uint256 public override futureATime;
     uint256 public minRampTime;
 
-    address public spa;
-
     // Events
     event RampInitiated(uint256 initialA, uint256 futureA, uint256 initialATime, uint256 futureATime);
     event RampStopped(uint256 currentA);
-    event SelfPeggingAssetSet(address indexed selfPeggingAsset);
     event MinRampTimeUpdated(uint256 oldValue, uint256 newValue);
 
     // Custom errors
@@ -39,25 +36,18 @@ contract RampAController is IRampAController, Initializable, OwnableUpgradeable 
     error InsufficientRampTime();
     error Unauthorized();
 
-    function initialize(address _spa, uint256 _initialA, uint256 _minRampTime) external initializer {
+    function initialize(uint256 _initialA, uint256 _minRampTime) external initializer {
         __Ownable_init(msg.sender);
 
         if (_initialA == 0 || _initialA > MAX_A) revert AOutOfBounds();
 
-        spa = _spa;
         initialA = _initialA;
         futureA = _initialA;
         initialATime = block.timestamp;
         futureATime = block.timestamp;
         minRampTime = _minRampTime == 0 ? DEFAULT_RAMP_TIME : _minRampTime;
 
-        emit SelfPeggingAssetSet(_spa);
         emit MinRampTimeUpdated(0, minRampTime);
-    }
-
-    function setSelfPeggingAsset(address _spa) external onlyOwner {
-        spa = _spa;
-        emit SelfPeggingAssetSet(_spa);
     }
 
     function setMinRampTime(uint256 _minRampTime) external onlyOwner {

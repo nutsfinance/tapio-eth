@@ -69,7 +69,7 @@ contract RampAControllerTest is Test {
         lpToken.addPool(address(spa));
 
         controller = new RampAController();
-        controller.initialize(address(spa), INITIAL_A, MIN_RAMP_TIME);
+        controller.initialize(INITIAL_A, MIN_RAMP_TIME);
 
         spa.setRampAController(address(controller));
 
