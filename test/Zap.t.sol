@@ -422,7 +422,15 @@ contract ZapTest is Test {
         RampAController secondRampAController = RampAController(address(proxy));
 
         data = abi.encodeWithSelector(
-            SelfPeggingAsset.initialize.selector, tokens, precisions, fees, 0, secondLpToken, 100, providers, address(secondRampAController)
+            SelfPeggingAsset.initialize.selector,
+            tokens,
+            precisions,
+            fees,
+            0,
+            secondLpToken,
+            100,
+            providers,
+            address(secondRampAController)
         );
         proxy = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
         SelfPeggingAsset secondSpa = SelfPeggingAsset(address(proxy));
