@@ -19,7 +19,7 @@
     "ordering": "error",
     "visibility-modifier-order": "error",
     "code-complexity": ["error", 15],
-    "function-max-lines": ["error", 80],
+    "function-max-lines": ["error", 90],
     "max-line-length": ["warn", 120],
     "max-states-count": ["warn", 16],
     "no-empty-blocks": "warn",

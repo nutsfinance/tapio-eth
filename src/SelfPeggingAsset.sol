@@ -798,35 +798,6 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         admins[_account] = _allowed;
     }
 
-    function _syncTotalSupply() internal {
-        uint256 newD = _getD(balances, getCurrentA());
-
-        if (totalSupply > newD) {
-            // A decreased
-            poolToken.removeTotalSupply(totalSupply - newD, true, false);
-            totalSupply = newD;
-        } else if (newD > totalSupply) {
-            // A increased
-            poolToken.addBuffer(newD - totalSupply);
-            totalSupply = newD;
-        }
-    }
-
-    /**
-     * @dev Get the current A value from the controller if set, or use the local value
-     * @return The current A value
-     */
-    function getCurrentA() public view returns (uint256) {
-        if (address(rampAController) != address(0)) {
-            try rampAController.getA() returns (uint256 controllerA) {
-                return controllerA;
-            } catch {
-                return A;
-            }
-        }
-        return A;
-    }
-
     /**
      * @dev Set the RampAController address
      * @param _rampAController New controller address
@@ -1118,6 +1089,35 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
      */
     function getTokens() external view returns (address[] memory) {
         return tokens;
+    }
+
+    /**
+     * @dev Get the current A value from the controller if set, or use the local value
+     * @return The current A value
+     */
+    function getCurrentA() public view returns (uint256) {
+        if (address(rampAController) != address(0)) {
+            try rampAController.getA() returns (uint256 controllerA) {
+                return controllerA;
+            } catch {
+                return A;
+            }
+        }
+        return A;
+    }
+
+    function _syncTotalSupply() internal {
+        uint256 newD = _getD(balances, getCurrentA());
+
+        if (totalSupply > newD) {
+            // A decreased
+            poolToken.removeTotalSupply(totalSupply - newD, true, false);
+            totalSupply = newD;
+        } else if (newD > totalSupply) {
+            // A increased
+            poolToken.addBuffer(newD - totalSupply);
+            totalSupply = newD;
+        }
     }
 
     /**
