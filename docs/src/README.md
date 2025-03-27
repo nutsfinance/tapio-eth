@@ -113,18 +113,18 @@ Get a test coverage report:
 $ forge coverage
 ```
 
-### Deploy to Testnet and Verify
+### Deploy to Testnet
 
-Deploy to Base Testnet and automatically verify contracts:
+Deploy to Base Testnet:
 
 ```sh
-$ forge script ./script/Testnet.s.sol -vvv --rpc-url basesepolia --broadcast --verify
+$ forge script ./script/Testnet.s.sol -vvv --rpc-url basesepolia --broadcast
 ```
 
 Before deploying make sure you configure the neccessary variables in `.env` file. To just test the scripts with just a
 dry run remove the `--broadcast` flag.
 
-### Manually Verifying Contracts on Testnet Explorer
+### Verifying Contracts on Testnet Explorer
 
 Here is an example on how to verify a contract on base sepolia:
 
@@ -178,33 +178,6 @@ simply copy paste the path):
 
 ```sh
 $ yarn run test:coverage:report
-```
-
-## Scope
-
-```
-src/
-├── LPToken.sol
-├── SelfPeggingAsset.sol
-├── SelfPeggingAssetFactory.sol
-├── WLPToken.sol
-├── interfaces
-│   ├── IExchangeRateProvider.sol
-│   └── ILPToken.sol
-├── misc
-│   ├── ConstantExchangeRateProvider.sol
-│   ├── ERC4626ExchangeRate.sol
-│   ├── OracleExchangeRate.sol
-│   └── reth
-│       ├── RocketTokenExchangeRateProvider.sol
-│       └── RocketTokenRETHInterface.sol
-└── mock
-    ├── MockERC4626Token.sol
-    ├── MockExchangeRateProvider.sol
-    ├── MockOracle.sol
-    ├── MockToken.sol
-    ├── MockTokenERC4626.sol
-    └── WETH.sol
 ```
 
 ## License
