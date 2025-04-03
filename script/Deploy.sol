@@ -57,7 +57,8 @@ contract Deploy is Config {
                 lpTokenBeacon,
                 wlpTokenBeacon,
                 rampAControllerBeacon,
-                new ConstantExchangeRateProvider()
+                new ConstantExchangeRateProvider(),
+                0
             )
         );
         ERC1967Proxy proxy = new ERC1967Proxy(address(new SelfPeggingAssetFactory()), data);

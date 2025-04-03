@@ -51,6 +51,15 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
     uint256 private constant INITIAL_MINT_MIN = 100_000;
 
     /**
+     * @dev This is the maximum time window since last rate update for the rate change fee to be skipped.
+     */
+    uint256 private constant RATE_CHANGE_FEE_STALE_WINDOW = 1 hours;
+
+    uint256[] private lastExchangeRate;
+
+    uint256 private lastExchangeRateTimestamp;
+
+    /**
      * @dev This is an array of addresses representing the tokens currently supported by the SelfPeggingAsset contract.
      */
     address[] public tokens;
@@ -143,6 +152,8 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
      * @dev Max delta D.
      */
     uint256 public maxDeltaD;
+
+    uint256 public exchangeRateFeeFactor;
 
     /**
      * @notice This event is emitted when a token swap occurs.
@@ -367,7 +378,8 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         ILPToken _poolToken,
         uint256 _A,
         IExchangeRateProvider[] memory _exchangeRateProviders,
-        address _rampAController
+        address _rampAController,
+        uint256 _exchangeRateFeeFactor
     )
         public
         initializer
@@ -390,6 +402,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
             require(_precisions[i] == 10 ** (18 - _decimals), PrecisionNotSet());
             exchangeRateDecimals[i] = _exchangeRateProviders[i].exchangeRateDecimals();
             balances.push(0);
+            lastExchangeRate.push(_exchangeRateProviders[i].exchangeRate());
         }
         for (uint256 i = 0; i < _tokens.length; i++) {
             for (uint256 j = i + 1; j < _tokens.length; j++) {
@@ -409,6 +422,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         poolToken = _poolToken;
         exchangeRateProviders = _exchangeRateProviders;
         offPegFeeMultiplier = _offPegFeeMultiplier;
+        exchangeRateFeeFactor = _exchangeRateFeeFactor;
 
         rampAController = IRampAController(_rampAController);
 
@@ -418,6 +432,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         maxDeltaD = DEFAULT_MAX_DELTA_D;
 
         paused = false;
+        lastExchangeRateTimestamp = block.timestamp;
     }
 
     /**
@@ -528,7 +543,17 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
 
         uint256 feeAmount = 0;
         if (swapFee > 0) {
-            feeAmount = _calcSwapFee(prevBalanceI, _balances[_i], _balances[_j], y, dy);
+            feeAmount = _calcSwapFee(
+                _i,
+                _j,
+                prevBalanceI,
+                _balances[_i],
+                _balances[_j],
+                y,
+                dy,
+                exchangeRateProviders[_i].exchangeRate(),
+                exchangeRateProviders[_j].exchangeRate()
+            );
             dy -= feeAmount;
         }
         _minDy = (_minDy * exchangeRateProviders[_j].exchangeRate()) / (10 ** exchangeRateDecimals[_j]);
@@ -548,6 +573,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         amounts[_j] = transferAmountJ;
 
         uint256 feeAmountActual = collectFeeOrYield(true);
+        updateExchangeRate();
         emit TokenSwapped(msg.sender, transferAmountJ, amounts, feeAmountActual);
         return transferAmountJ;
     }
@@ -1048,7 +1074,17 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         uint256 feeAmount = 0;
 
         if (swapFee > 0) {
-            feeAmount = _calcSwapFee(prevBalanceI, _balances[_i], _balances[_j], y, dy);
+            feeAmount = _calcSwapFee(
+                _i,
+                _j,
+                prevBalanceI,
+                _balances[_i],
+                _balances[_j],
+                y,
+                dy,
+                exchangeRateProviders[_i].exchangeRate(),
+                exchangeRateProviders[_j].exchangeRate()
+            );
             dy -= feeAmount;
         }
         uint256 transferAmountJ = (dy * (10 ** exchangeRateDecimals[_j])) / exchangeRateProviders[_j].exchangeRate();
@@ -1152,6 +1188,15 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         return feeAmount;
     }
 
+    function updateExchangeRate() internal {
+        uint256[] memory _balances = balances;
+        for (uint256 i = 0; i < _balances.length; i++) {
+            lastExchangeRate[i] = exchangeRateProviders[i].exchangeRate();
+        }
+
+        lastExchangeRateTimestamp = block.timestamp;
+    }
+
     /**
      * @dev Return the amount of fee that's not collected.
      * @return The balances of underlying tokens.
@@ -1220,18 +1265,45 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
      * @return Fee amount in output token units (token decimals).
      */
     function _calcSwapFee(
+        uint256 i,
+        uint256 j,
         uint256 prevBalanceI,
         uint256 newBalanceI,
         uint256 oldBalanceJ,
         uint256 newBalanceJ,
-        uint256 dy
+        uint256 dy,
+        uint256 exchangeRateI,
+        uint256 exchangeRateJ
     )
         internal
         view
         returns (uint256)
     {
         uint256 dynamicFee = _dynamicFee((prevBalanceI + newBalanceI) / 2, (oldBalanceJ + newBalanceJ) / 2, swapFee);
-        return (dy * dynamicFee) / FEE_DENOMINATOR;
+
+        if (lastExchangeRateTimestamp - block.timestamp > RATE_CHANGE_FEE_STALE_WINDOW) {
+            return (dy * dynamicFee) / FEE_DENOMINATOR;
+        }
+
+        uint256 exchangeRateFeeI;
+        if (exchangeRateI > lastExchangeRate[i]) {
+            exchangeRateFeeI = lastExchangeRate[i] * FEE_DENOMINATOR / exchangeRateI;
+        } else {
+            exchangeRateFeeI = exchangeRateI * FEE_DENOMINATOR / lastExchangeRate[i];
+        }
+
+        exchangeRateFeeI = (exchangeRateFeeI * exchangeRateFeeFactor) / FEE_DENOMINATOR;
+
+        uint256 exchangeRateFeeJ;
+        if (exchangeRateJ > lastExchangeRate[j]) {
+            exchangeRateFeeJ = lastExchangeRate[j] * FEE_DENOMINATOR / exchangeRateJ;
+        } else {
+            exchangeRateFeeJ = exchangeRateJ * FEE_DENOMINATOR / lastExchangeRate[j];
+        }
+
+        exchangeRateFeeJ = (exchangeRateFeeJ * exchangeRateFeeFactor) / FEE_DENOMINATOR;
+
+        return (dy * (dynamicFee + exchangeRateFeeI + exchangeRateFeeJ)) / FEE_DENOMINATOR;
     }
 
     /**

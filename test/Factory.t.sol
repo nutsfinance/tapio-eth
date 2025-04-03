@@ -55,7 +55,8 @@ contract FactoryTest is Test {
                 lpTokenBeacon,
                 wlpTokenBeacon,
                 rampAControllerBeacon,
-                new ConstantExchangeRateProvider()
+                new ConstantExchangeRateProvider(),
+                0
             )
         );
         ERC1967Proxy proxy = new ERC1967Proxy(address(new SelfPeggingAssetFactory()), data);
@@ -259,7 +260,19 @@ contract FactoryTest is Test {
 
         vm.expectRevert(Initializable.InvalidInitialization.selector);
         factory.initialize(
-            governor, 0, 0, 0, 0, 100, 30 minutes, address(0), address(0), address(0), address(0), exchangeRateProvider
+            governor,
+            0,
+            0,
+            0,
+            0,
+            100,
+            30 minutes,
+            address(0),
+            address(0),
+            address(0),
+            address(0),
+            exchangeRateProvider,
+            0
         );
 
         SelfPeggingAsset selfPeggingAsset = new SelfPeggingAsset();
@@ -269,7 +282,7 @@ contract FactoryTest is Test {
         IExchangeRateProvider[] memory _exchangeRateProviders;
         vm.expectRevert(Initializable.InvalidInitialization.selector);
         selfPeggingAsset.initialize(
-            _tokens, _precisions, _fees, 0, LPToken(address(0)), 0, _exchangeRateProviders, address(0)
+            _tokens, _precisions, _fees, 0, LPToken(address(0)), 0, _exchangeRateProviders, address(0), 0
         );
 
         LPToken lpToken = new LPToken();

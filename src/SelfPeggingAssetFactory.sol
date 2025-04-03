@@ -120,6 +120,8 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
      */
     uint256 public minRampTime;
 
+    uint256 public exchangeRateFeeFactor;
+
     /**
      * @dev This event is emitted when the governor is modified.
      * @param governor is the new value of the governor.
@@ -202,7 +204,8 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
         address _lpTokenBeacon,
         address _wlpTokenBeacon,
         address _rampAControllerBeacon,
-        ConstantExchangeRateProvider _constantExchangeRateProvider
+        ConstantExchangeRateProvider _constantExchangeRateProvider,
+        uint256 _exchangeRateFeeFactor
     )
         public
         initializer
@@ -231,6 +234,7 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
         A = _A;
         offPegFeeMultiplier = _offPegFeeMultiplier;
         minRampTime = _minRampTime;
+        exchangeRateFeeFactor = _exchangeRateFeeFactor;
     }
 
     /**
@@ -360,7 +364,8 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
                 LPToken(address(lpTokenProxy)),
                 A,
                 exchangeRateProviders,
-                address(rampAControllerProxy)
+                address(rampAControllerProxy),
+                exchangeRateFeeFactor
             )
         );
         BeaconProxy selfPeggingAssetProxy = new BeaconProxy(selfPeggingAssetBeacon, selfPeggingAssetInit);
