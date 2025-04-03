@@ -289,4 +289,145 @@ contract RampAControllerTest is Test {
         uint256 finalTotalSupply = spa.totalSupply();
         assertGt(finalTotalSupply, 0);
     }
+
+    function testLowInitialARamp() public {
+        bytes memory rampAControllerData = abi.encodeCall(RampAController.initialize, (1, MIN_RAMP_TIME));
+        ERC1967Proxy rampAControllerProxy = new ERC1967Proxy(address(new RampAController()), rampAControllerData);
+        RampAController lowAController = RampAController(address(rampAControllerProxy));
+
+        assertEq(lowAController.initialA(), 1, "initial A should be 1");
+        assertEq(lowAController.futureA(), 1, "future A should be 1");
+        assertEq(lowAController.isRamping(), false, "should not be ramping initially");
+
+        uint256 newA = 10;
+        uint256 endTime = block.timestamp + 1 hours;
+
+        lowAController.rampA(newA, endTime);
+        assertEq(lowAController.isRamping(), true, "should be ramping");
+        assertEq(lowAController.initialA(), 1, "initial A should remain 1");
+        assertEq(lowAController.futureA(), newA, "future A should be updated");
+
+        vm.warp(block.timestamp + 30 minutes);
+        uint256 expectedA = 1 + (newA - 1) / 2;
+        assertApproxEqAbs(lowAController.getA(), expectedA, 1, "A should be ramping linearly");
+
+        vm.warp(endTime);
+        assertEq(lowAController.getA(), newA, "A should reach target");
+        assertEq(lowAController.isRamping(), false, "should not be ramping after end time");
+    }
+
+    function testLowInitialARampExceedingMax() public {
+        bytes memory rampAControllerData = abi.encodeCall(RampAController.initialize, (1, MIN_RAMP_TIME));
+        ERC1967Proxy rampAControllerProxy = new ERC1967Proxy(address(new RampAController()), rampAControllerData);
+        RampAController lowAController = RampAController(address(rampAControllerProxy));
+
+        uint256 tooHighA = 11;
+        uint256 endTime = block.timestamp + 1 hours;
+
+        vm.expectRevert(RampAController.ExcessiveAChange.selector);
+        lowAController.rampA(tooHighA, endTime);
+
+        uint256 maxAllowedA = 10;
+        lowAController.rampA(maxAllowedA, endTime);
+        assertEq(lowAController.futureA(), maxAllowedA, "should allow ramping to max multiple");
+    }
+
+    function testInitialAEqualsTwo() public {
+        bytes memory rampAControllerData = abi.encodeCall(RampAController.initialize, (2, MIN_RAMP_TIME));
+        ERC1967Proxy rampAControllerProxy = new ERC1967Proxy(address(new RampAController()), rampAControllerData);
+        RampAController lowAController = RampAController(address(rampAControllerProxy));
+
+        uint256 maxAllowedA = 18;
+        uint256 endTime = block.timestamp + 1 hours;
+
+        lowAController.rampA(maxAllowedA, endTime);
+        assertEq(lowAController.futureA(), maxAllowedA, "should allow ramping to max multiple for A=2");
+
+        bytes memory newControllerData = abi.encodeCall(RampAController.initialize, (2, MIN_RAMP_TIME));
+        ERC1967Proxy newControllerProxy = new ERC1967Proxy(address(new RampAController()), newControllerData);
+        RampAController anotherController = RampAController(address(newControllerProxy));
+
+        uint256 tooHighA = 19;
+        uint256 newEndTime = block.timestamp + 1 hours;
+
+        vm.expectRevert(RampAController.ExcessiveAChange.selector);
+        anotherController.rampA(tooHighA, newEndTime);
+    }
+
+    function testInitialAEqualsThree() public {
+        bytes memory rampAControllerData = abi.encodeCall(RampAController.initialize, (3, MIN_RAMP_TIME));
+        ERC1967Proxy rampAControllerProxy = new ERC1967Proxy(address(new RampAController()), rampAControllerData);
+        RampAController regularAController = RampAController(address(rampAControllerProxy));
+
+        uint256 endTime = block.timestamp + 1 hours;
+        uint256 maxAllowedA = 4;
+        uint256 excessiveA = 5;
+
+        vm.expectRevert(RampAController.ExcessiveAChange.selector);
+        regularAController.rampA(excessiveA, endTime);
+
+        regularAController.rampA(maxAllowedA, endTime);
+        assertEq(regularAController.futureA(), maxAllowedA, "should allow ramping within normal limits");
+    }
+
+    function testLowInitialAWithPool() public {
+        bytes memory rampAControllerData = abi.encodeCall(RampAController.initialize, (1, MIN_RAMP_TIME));
+        ERC1967Proxy rampAControllerProxy = new ERC1967Proxy(address(new RampAController()), rampAControllerData);
+        RampAController lowAController = RampAController(address(rampAControllerProxy));
+
+        IExchangeRateProvider[] memory providerArray = new IExchangeRateProvider[](2);
+        providerArray[0] = providers[0];
+        providerArray[1] = providers[1];
+
+        bytes memory lpTokenData = abi.encodeCall(LPToken.initialize, ("LP Token Low A", "TLPA"));
+        ERC1967Proxy lpTokenProxy = new ERC1967Proxy(address(new LPToken()), lpTokenData);
+        LPToken newLpToken = LPToken(address(lpTokenProxy));
+
+        bytes memory spaData = abi.encodeCall(
+            SelfPeggingAsset.initialize,
+            (
+                tokens,
+                precisions,
+                fees,
+                offPegFeeMultiplier,
+                newLpToken,
+                1, // initialA
+                providerArray,
+                address(lowAController)
+            )
+        );
+
+        ERC1967Proxy spaProxy = new ERC1967Proxy(address(new SelfPeggingAsset()), spaData);
+        SelfPeggingAsset lowASpa = SelfPeggingAsset(address(spaProxy));
+        newLpToken.addPool(address(lowASpa));
+
+        MockToken(tokens[0]).mint(address(this), 1000e18);
+        MockToken(tokens[1]).mint(address(this), 1000e18);
+
+        uint256[] memory initialAmounts = new uint256[](2);
+        initialAmounts[0] = 100e18;
+        initialAmounts[1] = 100e18;
+
+        MockToken(tokens[0]).approve(address(lowASpa), type(uint256).max);
+        MockToken(tokens[1]).approve(address(lowASpa), type(uint256).max);
+
+        lowASpa.mint(initialAmounts, 0);
+
+        uint256 newA = 10;
+        uint256 endTime = block.timestamp + 1 hours;
+        lowAController.rampA(newA, endTime);
+
+        assertEq(lowASpa.getCurrentA(), 1, "initial A should be 1");
+
+        vm.warp(block.timestamp + 30 minutes);
+        uint256 expectedA = 1 + (newA - 1) / 2;
+        assertApproxEqAbs(lowASpa.getCurrentA(), expectedA, 1, "SPA should see ramped A value");
+
+        uint256 swapAmount = 10e18;
+        MockToken(tokens[0]).mint(address(this), swapAmount);
+        lowASpa.swap(0, 1, swapAmount, 0);
+
+        vm.warp(endTime);
+        assertEq(lowASpa.getCurrentA(), newA, "final A should be 10");
+    }
 }
