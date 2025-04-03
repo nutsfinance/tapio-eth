@@ -430,4 +430,19 @@ contract RampAControllerTest is Test {
         vm.warp(endTime);
         assertEq(lowASpa.getCurrentA(), newA, "final A should be 10");
     }
+
+    function testSetMinRampA() public {
+        uint256 prevMinTime = controller.minRampTime();
+        uint256 newMinTime = 1 hours;
+
+        // shold not able to update without access
+        vm.prank(address(1));
+        vm.expectRevert();
+        controller.setMinRampTime(1);
+
+        vm.prank(owner);
+        controller.setMinRampTime(newMinTime);
+        assertEq(newMinTime, controller.minRampTime());
+        assertNotEq(prevMinTime, newMinTime);
+    }
 }

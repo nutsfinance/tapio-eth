@@ -670,4 +670,59 @@ contract SelfPeggingAssetTest is Test {
             require(b - a <= tolerance == true == true, "Not close enough");
         }
     }
+
+    function test_DonateDCorrectlyUpdatesState() external {
+        uint256[] memory mintAmounts = new uint256[](2);
+        mintAmounts[0] = 100e18;
+        mintAmounts[1] = 100e18;
+
+        WETH.mint(user, 100e18);
+        frxETH.mint(user, 100e18);
+
+        vm.startPrank(user);
+        WETH.approve(address(pool), 100e18);
+        frxETH.approve(address(pool), 100e18);
+        uint256 mintedAmount = pool.mint(mintAmounts, 0);
+        vm.stopPrank();
+
+        uint256[] memory donationAmounts = new uint256[](2);
+        donationAmounts[0] = 10e18; // Donate 10 WETH
+        donationAmounts[1] = 5e18; // Donate 5 frxETH
+        uint256 minDonationAmount = 14e18;
+
+        WETH.mint(user2, 10e18);
+        frxETH.mint(user2, 5e18);
+
+        vm.startPrank(user2);
+        WETH.approve(address(pool), 10e18);
+        frxETH.approve(address(pool), 5e18);
+
+        uint256 initialTotalSupply = pool.totalSupply();
+        uint256 initialWETHBalance = pool.balances(0);
+        uint256 initialFrxETHBalance = pool.balances(1);
+        uint256 initialBuffer = lpToken.bufferAmount();
+        assertEq(WETH.balanceOf(user2), 10e18);
+        assertEq(frxETH.balanceOf(user2), 5e18);
+        assertEq(WETH.balanceOf(address(pool)), 100e18);
+        assertEq(frxETH.balanceOf(address(pool)), 100e18);
+        assertEq(initialTotalSupply, mintedAmount);
+
+        uint256 donationAmount = pool.donateD(donationAmounts, minDonationAmount);
+        vm.stopPrank();
+
+        uint256 expectedWETHBalance = initialWETHBalance + donationAmounts[0] * precisions[0];
+        uint256 expectedFrxETHBalance = initialFrxETHBalance + donationAmounts[1] * precisions[1];
+        uint256 expectedTotalSupply = initialTotalSupply + donationAmount;
+        uint256 expectedBuffer = initialBuffer + donationAmount;
+
+        assertEq(WETH.balanceOf(user2), 0);
+        assertEq(frxETH.balanceOf(user2), 0);
+        assertEq(WETH.balanceOf(address(pool)), 110e18);
+        assertEq(frxETH.balanceOf(address(pool)), 105e18);
+        assertEq(pool.balances(0), expectedWETHBalance);
+        assertEq(pool.balances(1), expectedFrxETHBalance);
+        assertEq(pool.totalSupply(), expectedTotalSupply);
+        assertEq(lpToken.bufferAmount(), expectedBuffer);
+        assertTrue(donationAmount >= minDonationAmount);
+    }
 }
