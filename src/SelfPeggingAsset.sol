@@ -57,7 +57,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
 
     uint256[] private lastExchangeRate;
 
-    uint256 private lastExchangeRateTimestamp;
+    uint256 private lastSwapTimestamp;
 
     /**
      * @dev This is an array of addresses representing the tokens currently supported by the SelfPeggingAsset contract.
@@ -432,7 +432,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         maxDeltaD = DEFAULT_MAX_DELTA_D;
 
         paused = false;
-        lastExchangeRateTimestamp = block.timestamp;
+        lastSwapTimestamp = block.timestamp;
     }
 
     /**
@@ -1194,7 +1194,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
             lastExchangeRate[i] = exchangeRateProviders[i].exchangeRate();
         }
 
-        lastExchangeRateTimestamp = block.timestamp;
+        lastSwapTimestamp = block.timestamp;
     }
 
     /**
@@ -1281,27 +1281,16 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
     {
         uint256 dynamicFee = _dynamicFee((prevBalanceI + newBalanceI) / 2, (oldBalanceJ + newBalanceJ) / 2, swapFee);
 
-        if (lastExchangeRateTimestamp - block.timestamp > RATE_CHANGE_FEE_STALE_WINDOW) {
+        if (block.timestamp - lastSwapTimestamp > RATE_CHANGE_FEE_STALE_WINDOW) {
             return (dy * dynamicFee) / FEE_DENOMINATOR;
         }
 
-        uint256 exchangeRateFeeI;
-        if (exchangeRateI > lastExchangeRate[i]) {
-            exchangeRateFeeI = lastExchangeRate[i] * FEE_DENOMINATOR / exchangeRateI;
-        } else {
-            exchangeRateFeeI = exchangeRateI * FEE_DENOMINATOR / lastExchangeRate[i];
-        }
-
-        exchangeRateFeeI = (exchangeRateFeeI * exchangeRateFeeFactor) / FEE_DENOMINATOR;
-
-        uint256 exchangeRateFeeJ;
-        if (exchangeRateJ > lastExchangeRate[j]) {
-            exchangeRateFeeJ = lastExchangeRate[j] * FEE_DENOMINATOR / exchangeRateJ;
-        } else {
-            exchangeRateFeeJ = exchangeRateJ * FEE_DENOMINATOR / lastExchangeRate[j];
-        }
-
-        exchangeRateFeeJ = (exchangeRateFeeJ * exchangeRateFeeFactor) / FEE_DENOMINATOR;
+        uint256 exchangeRateFeeI = exchangeRateI > lastExchangeRate[i]
+            ? (exchangeRateI - lastExchangeRate[i]) * FEE_DENOMINATOR / lastExchangeRate[i]
+            : (lastExchangeRate[i] - exchangeRateI) * FEE_DENOMINATOR / lastExchangeRate[i];
+        uint256 exchangeRateFeeJ = exchangeRateJ > lastExchangeRate[j]
+            ? (exchangeRateJ - lastExchangeRate[j]) * FEE_DENOMINATOR / lastExchangeRate[j]
+            : (lastExchangeRate[j] - exchangeRateJ) * FEE_DENOMINATOR / lastExchangeRate[j];
 
         return (dy * (dynamicFee + exchangeRateFeeI + exchangeRateFeeJ)) / FEE_DENOMINATOR;
     }
