@@ -136,12 +136,12 @@ contract RampAControllerTest is Test {
 
         vm.expectRevert(RampAController.InsufficientRampTime.selector);
         controller.rampA(300, block.timestamp + 1 minutes);
-
+        // increase more than 50%
         vm.expectRevert(RampAController.ExcessiveAChange.selector);
-        controller.rampA(INITIAL_A * 2, block.timestamp + 1 hours);
-
+        controller.rampA((INITIAL_A * 3 / 2) + 1, block.timestamp + 1 hours);
+        // decrease more than 50%
         vm.expectRevert(RampAController.ExcessiveAChange.selector);
-        controller.rampA(INITIAL_A * 6 / 10, block.timestamp + 1 hours);
+        controller.rampA((INITIAL_A / 2) - 1, block.timestamp + 1 hours);
     }
 
     function testSPAIntegration() public {
