@@ -340,7 +340,13 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
     error ImbalancedPool(uint256 oldD, uint256 newD);
 
     modifier syncRamping() {
-        if (address(rampAController) != address(0) && rampAController.isRamping()) _syncTotalSupply();
+        if (address(rampAController) != address(0)) {
+            uint256 currentA = getCurrentA();
+            if (currentA != A) {
+                A = currentA;
+                _syncTotalSupply();
+            }
+        }
         _;
     }
 
