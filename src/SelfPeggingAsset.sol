@@ -1316,6 +1316,9 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
             ? (exchangeRateJ - lastExchangeRate[j]) * FEE_DENOMINATOR / lastExchangeRate[j]
             : (lastExchangeRate[j] - exchangeRateJ) * FEE_DENOMINATOR / lastExchangeRate[j];
 
+        exchangeRateFeeI = (exchangeRateFeeI * exchangeRateFeeFactor) / FEE_DENOMINATOR;
+        exchangeRateFeeJ = (exchangeRateFeeJ * exchangeRateFeeFactor) / FEE_DENOMINATOR;
+
         return (dy * (dynamicFee + exchangeRateFeeI + exchangeRateFeeJ)) / FEE_DENOMINATOR;
     }
 

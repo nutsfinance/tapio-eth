@@ -26,4 +26,8 @@ contract MockExchangeRateProvider is IExchangeRateProvider {
     function exchangeRateDecimals() external view returns (uint256) {
         return decimals;
     }
+
+    function setExchangeRate(uint256 _rate) external {
+        rate = _rate;
+    }
 }
