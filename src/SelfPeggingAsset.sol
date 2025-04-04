@@ -55,8 +55,14 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
      */
     uint256 private constant RATE_CHANGE_FEE_STALE_WINDOW = 1 hours;
 
+    /**
+     * @dev This is the last fetched exchange rate during swap
+     */
     uint256[] private lastExchangeRate;
 
+    /**
+     * @dev This is the last time the exchange rate was updated.
+     */
     uint256 private lastSwapTimestamp;
 
     /**
@@ -153,6 +159,9 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
      */
     uint256 public maxDeltaD;
 
+    /**
+     * @dev This is the factor used to calculate the exchange rate fee.
+     */
     uint256 public exchangeRateFeeFactor;
 
     /**
@@ -256,6 +265,12 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
      * @param delta is the new value of the delta.
      */
     event MaxDeltaDModified(uint256 delta);
+
+    /**
+     * @dev This event is emitted when the exchange rate fee factor is modified.
+     * @param factor is the new value of the factor.
+     */
+    event ExchangeRateFeeFactorModified(uint256 factor);
 
     /// @notice Error thrown when the input parameters do not match the expected values.
     error InputMismatch();
@@ -791,6 +806,15 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
     function setOffPegFeeMultiplier(uint256 _offPegFeeMultiplier) external onlyOwner {
         offPegFeeMultiplier = _offPegFeeMultiplier;
         emit OffPegFeeMultiplierModified(_offPegFeeMultiplier);
+    }
+
+    /**
+     * @dev Updates the exchange rate fee factor.
+     * @param _exchangeRateFeeFactor The new exchange rate fee factor.
+     */
+    function setExchangeRateFeeFactor(uint256 _exchangeRateFeeFactor) external onlyOwner {
+        exchangeRateFeeFactor = _exchangeRateFeeFactor;
+        emit ExchangeRateFeeFactorModified(_exchangeRateFeeFactor);
     }
 
     /**

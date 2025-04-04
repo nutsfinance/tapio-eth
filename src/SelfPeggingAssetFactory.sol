@@ -120,6 +120,9 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
      */
     uint256 public minRampTime;
 
+    /**
+     * @dev The exchange rate fee factor.
+     */
     uint256 public exchangeRateFeeFactor;
 
     /**
@@ -166,6 +169,12 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
      * @param A is the new value of the A parameter.
      */
     event AModified(uint256 A);
+
+    /**
+     * @dev This event is emitted when the exchange rate fee factor is updated.
+     * @param exchangeRateFeeFactor is the new value of the exchange rate fee factor.
+     */
+    event ExchangeRateFeeFactorModified(uint256 exchangeRateFeeFactor);
 
     /**
      * @dev This event is emitted when the min ramp time is updated.
@@ -287,9 +296,20 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
         emit AModified(_A);
     }
 
+    /**
+     * @dev Set the minimum ramp time.
+     */
     function setMinRampTime(uint256 _minRampTime) external onlyOwner {
         minRampTime = _minRampTime;
         emit MinRampTimeUpdated(_minRampTime);
+    }
+
+    /**
+     * @dev Set the exchange rate fee factor.
+     */
+    function setExchangeRateFeeFactor(uint256 _exchangeRateFeeFactor) external onlyOwner {
+        exchangeRateFeeFactor = _exchangeRateFeeFactor;
+        emit ExchangeRateFeeFactorModified(_exchangeRateFeeFactor);
     }
 
     /**
