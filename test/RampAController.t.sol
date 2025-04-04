@@ -394,7 +394,8 @@ contract RampAControllerTest is Test {
                 newLpToken,
                 1, // initialA
                 providerArray,
-                address(lowAController)
+                address(lowAController),
+                0
             )
         );
 
