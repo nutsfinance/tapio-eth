@@ -896,9 +896,6 @@ contract SelfPeggingAssetTest is Test {
         uint256 rETHBalance1 = rETH1.balanceOf(user2);
         uint256 rETHBalance2 = rETH2.balanceOf(user2);
 
-        console.log("rETHBalance1: ", rETHBalance1);
-        console.log("rETHBalance2: ", rETHBalance2);
-
         assertEq(rETHBalance1, 1.005985823364536561e18);
         assertEq(rETHBalance2, 0.999949848064596343e18);
     }
