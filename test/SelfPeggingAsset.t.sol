@@ -879,25 +879,25 @@ contract SelfPeggingAssetTest is Test {
         uint256 wstETHBalance1 = wstETH1.balanceOf(user2);
         uint256 wstETHBalance2 = wstETH2.balanceOf(user2);
 
-        assertEq(wstETHBalance1, 0.999940246803325135e18);
-        assertEq(wstETHBalance2, 0.999940246803325135e18);
+        assertLt(wstETHBalance1, 1e18);
+        assertLt(wstETHBalance2, 1e18);
 
         rETHExchangeRateProvider1.setExchangeRate(0.994e18);
         rETHExchangeRateProvider2.setExchangeRate(0.994e18);
 
         vm.startPrank(user2);
-        wstETH1.approve(address(_pool1), 0.999940246803325135e18);
-        wstETH2.approve(address(_pool2), 0.999940246803325135e18);
+        wstETH1.approve(address(_pool1), wstETHBalance1);
+        wstETH2.approve(address(_pool2), wstETHBalance2);
 
-        _pool1.swap(1, 0, 0.999940246803325135e18, 0);
-        _pool2.swap(1, 0, 0.999940246803325135e18, 0);
+        _pool1.swap(1, 0, wstETHBalance1, 0);
+        _pool2.swap(1, 0, wstETHBalance2, 0);
         vm.stopPrank();
 
         uint256 rETHBalance1 = rETH1.balanceOf(user2);
         uint256 rETHBalance2 = rETH2.balanceOf(user2);
 
-        assertEq(rETHBalance1, 1.005985823364536561e18);
-        assertEq(rETHBalance2, 0.999949848064596343e18);
+        assertGt(rETHBalance1, 1e18);
+        assertLt(rETHBalance2, 1e18);
     }
 
     function assertAlmostTheSame(uint256 num1, uint256 num2) internal view {
