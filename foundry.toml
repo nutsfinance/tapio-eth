@@ -36,6 +36,7 @@
   quote_style = "double"
   tab_width = 4
   wrap_comments = true
+  single_line_statement_blocks = "preserve"
 
 [rpc_endpoints]
   arbitrum = "https://arb1.arbitrum.io/rpc"
