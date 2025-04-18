@@ -75,14 +75,20 @@ contract ChainlinkCompositeOracleProvider {
                 revert InvalidStalePeriod();
             }
 
-            if (!_configs[i].isInverted) {
-                _configs[i].assetDecimals = _configs[i].feed.decimals();
-            }
-
             configs.push(_configs[i]);
         }
 
         sequencerUptimeFeed = _sequencerUptimeFeed;
+    }
+
+    /**
+     * @notice Get the current decimals of a config
+     * @param config The config to get decimals for
+     * @return The current decimals value
+     */
+    function _getCurrentDecimals(Config memory config) internal view returns (uint256) {
+        if (config.isInverted) return config.assetDecimals;
+        return config.feed.decimals();
     }
 
     /**
@@ -97,6 +103,7 @@ contract ChainlinkCompositeOracleProvider {
 
         for (uint256 i = 0; i < configs.length; i++) {
             Config memory config = configs[i];
+            uint256 currentDecimals = _getCurrentDecimals(config);
 
             (, int256 feedPrice,, uint256 updatedAt,) = config.feed.latestRoundData();
 
@@ -109,8 +116,8 @@ contract ChainlinkCompositeOracleProvider {
             }
 
             if (_price == 0) {
-                _price = 10 ** config.assetDecimals;
-                priceDecimals = config.assetDecimals;
+                _price = 10 ** currentDecimals;
+                priceDecimals = currentDecimals;
             }
 
             if (config.isInverted) {
@@ -122,7 +129,7 @@ contract ChainlinkCompositeOracleProvider {
             }
 
             _price = (_price * uint256(feedPrice)) / (10 ** priceDecimals);
-            priceDecimals = config.assetDecimals;
+            priceDecimals = currentDecimals;
         }
 
         return _price;
@@ -142,12 +149,7 @@ contract ChainlinkCompositeOracleProvider {
                 return _decimals;
             }
 
-            if (config.isInverted) {
-                _decimals = config.assetDecimals;
-                continue;
-            }
-
-            _decimals = config.feed.decimals();
+            _decimals = _getCurrentDecimals(config);
         }
 
         return _decimals;
