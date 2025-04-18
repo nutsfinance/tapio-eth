@@ -16,6 +16,11 @@ contract ChainlinkCompositeOracleProvider {
     }
 
     /**
+     * @notice Fixed-point precision for internal calculations
+     */
+    uint256 private constant PRECISION = 1e36;
+
+    /**
      * @notice Grace period time after the sequencer is back up
      */
     uint256 private constant GRACE_PERIOD_TIME = 3600;
@@ -82,21 +87,6 @@ contract ChainlinkCompositeOracleProvider {
     }
 
     /**
-     * @notice Get the current decimals of a config
-     * @param config The config to get decimals for
-     * @return The current decimals value
-     */
-    function _getCurrentDecimals(Config memory config) internal view returns (uint256) {
-        if (config.isInverted) return config.assetDecimals;
-        return config.feed.decimals();
-    }
-
-    /**
-     * @notice Fixed-point precision for internal calculations
-     */
-    uint256 private constant PRECISION = 1e36;
-
-    /**
      * @notice Get the price of the asset
      * @return Price of the asset
      */
@@ -158,6 +148,16 @@ contract ChainlinkCompositeOracleProvider {
         }
 
         return _getCurrentDecimals(lastConfig);
+    }
+
+    /**
+     * @notice Get the current decimals of a config
+     * @param config The config to get decimals for
+     * @return The current decimals value
+     */
+    function _getCurrentDecimals(Config memory config) internal view returns (uint256) {
+        if (config.isInverted) return config.assetDecimals;
+        return config.feed.decimals();
     }
 
     /**
