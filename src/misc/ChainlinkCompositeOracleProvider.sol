@@ -92,14 +92,20 @@ contract ChainlinkCompositeOracleProvider {
     }
 
     /**
+     * @notice Fixed-point precision for internal calculations
+     */
+    uint256 private constant PRECISION = 1e36;
+
+    /**
      * @notice Get the price of the asset
      * @return Price of the asset
      */
     function price() external view returns (uint256) {
         _validateSequencerStatus();
 
-        uint256 _price;
-        uint256 priceDecimals;
+        uint256 highPrecisionPrice; // precision accumulator
+        uint256 finalDecimals;
+        bool isFirstIteration = true;
 
         for (uint256 i = 0; i < configs.length; i++) {
             Config memory config = configs[i];
@@ -115,24 +121,27 @@ contract ChainlinkCompositeOracleProvider {
                 revert StalePrice();
             }
 
-            if (_price == 0) {
-                _price = 10 ** currentDecimals;
-                priceDecimals = currentDecimals;
+            if (isFirstIteration) {
+                // initialize accumulator
+                highPrecisionPrice = PRECISION * (10 ** currentDecimals) / (10 ** currentDecimals);
+                finalDecimals = currentDecimals;
+                isFirstIteration = false;
             }
 
             if (config.isInverted) {
                 uint256 invertedFeedPrice =
-                    ((10 ** config.assetDecimals) * (10 ** config.feed.decimals())) / uint256(feedPrice);
-                _price = (_price * invertedFeedPrice) / (10 ** priceDecimals);
-                priceDecimals = config.assetDecimals;
-                continue;
+                    (PRECISION * (10 ** config.assetDecimals) * (10 ** config.feed.decimals())) / uint256(feedPrice);
+                highPrecisionPrice = (highPrecisionPrice * invertedFeedPrice) / PRECISION;
+                finalDecimals = config.assetDecimals;
+            } else {
+                highPrecisionPrice = (highPrecisionPrice * uint256(feedPrice)) / (10 ** finalDecimals);
+                finalDecimals = currentDecimals;
             }
-
-            _price = (_price * uint256(feedPrice)) / (10 ** priceDecimals);
-            priceDecimals = currentDecimals;
         }
 
-        return _price;
+        if (highPrecisionPrice == 0) return 0;
+
+        return highPrecisionPrice * (10 ** finalDecimals) / PRECISION;
     }
 
     /**
