@@ -140,19 +140,15 @@ contract ChainlinkCompositeOracleProvider {
      * @return Decimals of the price
      */
     function decimals() external view returns (uint256) {
-        uint256 _decimals = 0;
+        if (configs.length == 0) return 0;
 
-        for (uint256 i = 0; i < configs.length; i++) {
-            Config memory config = configs[i];
-
-            if (address(config.feed) == address(0)) {
-                return _decimals;
-            }
-
-            _decimals = _getCurrentDecimals(config);
+        // last config only matters
+        Config memory lastConfig = configs[configs.length - 1];
+        if (address(lastConfig.feed) == address(0)) {
+            return lastConfig.isInverted ? lastConfig.assetDecimals : 0;
         }
 
-        return _decimals;
+        return _getCurrentDecimals(lastConfig);
     }
 
     /**
