@@ -67,7 +67,7 @@ contract ChainlinkCompositeOracleProvider {
      */
     constructor(AggregatorV3Interface _sequencerUptimeFeed, Config[] memory _configs) {
         for (uint256 i = 0; i < _configs.length; i++) {
-            if (i == 0 && address(_configs[i].feed) == address(0)) {
+            if (address(_configs[i].feed) == address(0)) {
                 revert InvalidFeed();
             }
 
