@@ -98,15 +98,14 @@ contract Zap is IZap, ReentrancyGuard {
         require(minAmountsOut.length == tokens.length, InvalidParameters());
 
         IERC20(wlp).safeTransferFrom(msg.sender, address(this), wlpAmount);
-
-        uint256 lpAmount = _redeem(wlp, wlpAmount, address(this));
+        _redeem(wlp, wlpAmount, address(this));
 
         address lpToken = _getPoolToken(spa);
-        uint256 lpTokenShares = ILPToken(lpToken).getSharesByPeggedToken(lpAmount);
-        IERC20(lpToken).forceApprove(spa, lpTokenShares);
+        uint256 lpAmount = ILPToken(lpToken).balanceOf(address(this));
+        IERC20(lpToken).forceApprove(spa, lpAmount);
 
-        if (proportional) amounts = _redeemProportion(spa, lpTokenShares, minAmountsOut);
-        else amounts = _redeemMulti(spa, minAmountsOut, lpTokenShares);
+        if (proportional) amounts = _redeemProportion(spa, lpAmount, minAmountsOut);
+        else amounts = _redeemMulti(spa, minAmountsOut, lpAmount);
 
         IERC20(lpToken).forceApprove(spa, 0);
         // repay remaining
@@ -148,13 +147,12 @@ contract Zap is IZap, ReentrancyGuard {
         require(tokenIndex < tokens.length, InvalidParameters());
 
         IERC20(wlp).safeTransferFrom(msg.sender, address(this), wlpAmount);
-
-        uint256 lpAmount = _redeem(wlp, wlpAmount, address(this));
+        _redeem(wlp, wlpAmount, address(this));
 
         address lpToken = _getPoolToken(spa);
-        uint256 lpTokenShares = ILPToken(lpToken).getSharesByPeggedToken(lpAmount);
-        IERC20(lpToken).forceApprove(spa, lpTokenShares);
-        amount = _redeemSingle(spa, lpTokenShares, tokenIndex, minAmountOut);
+        uint256 lpAmount = ILPToken(lpToken).balanceOf(address(this));
+        IERC20(lpToken).forceApprove(spa, lpAmount);
+        amount = _redeemSingle(spa, lpAmount, tokenIndex, minAmountOut);
 
         IERC20(lpToken).forceApprove(spa, 0);
         // repay remaining
