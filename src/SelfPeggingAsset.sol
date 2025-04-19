@@ -1197,7 +1197,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
             return;
         }
 
-        uint256 ratio = (diff * FEE_DENOMINATOR) / oldRate;
+        uint256 ratio = (diff * FEE_DENOMINATOR) / (oldRate > newRate ? oldRate : newRate);
         uint256 candidateMultiplier = FEE_DENOMINATOR + (ratio * exchangeRateFeeFactor) / FEE_DENOMINATOR;
         uint256 currentMult = _currentMultiplier(st);
 
