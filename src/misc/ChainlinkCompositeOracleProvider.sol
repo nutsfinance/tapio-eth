@@ -79,7 +79,7 @@ contract ChainlinkCompositeOracleProvider {
                 revert InvalidFeed();
             }
 
-            if (address(_configs[i].feed) != address(0) && _configs[i].maxStalePeriod == 0) {
+            if (_configs[i].maxStalePeriod == 0) {
                 revert InvalidStalePeriod();
             }
 
