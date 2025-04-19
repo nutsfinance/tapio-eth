@@ -2,8 +2,11 @@
 pragma solidity 0.8.28;
 
 import "@chainlink/contracts/shared/interfaces/AggregatorV3Interface.sol";
+import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 
 contract ChainlinkCompositeOracleProvider {
+    using Math for uint256;
+
     struct Config {
         /// @notice Chainlink feed
         AggregatorV3Interface feed;
@@ -93,13 +96,12 @@ contract ChainlinkCompositeOracleProvider {
     function price() external view returns (uint256) {
         _validateSequencerStatus();
 
-        uint256 highPrecisionPrice; // precision accumulator
-        uint256 finalDecimals;
-        bool isFirstIteration = true;
+        uint256 highPrecisionPrice = PRECISION; // precision accumulator
+        uint256 currentDecimals;
 
         for (uint256 i = 0; i < configs.length; i++) {
             Config memory config = configs[i];
-            uint256 currentDecimals = _getCurrentDecimals(config);
+            currentDecimals = _getCurrentDecimals(config);
 
             (, int256 feedPrice,, uint256 updatedAt,) = config.feed.latestRoundData();
 
@@ -111,27 +113,18 @@ contract ChainlinkCompositeOracleProvider {
                 revert StalePrice();
             }
 
-            if (isFirstIteration) {
-                // initialize accumulator
-                highPrecisionPrice = PRECISION * (10 ** currentDecimals) / (10 ** currentDecimals);
-                finalDecimals = currentDecimals;
-                isFirstIteration = false;
-            }
-
             if (config.isInverted) {
                 uint256 invertedFeedPrice =
-                    (PRECISION * (10 ** config.assetDecimals) * (10 ** config.feed.decimals())) / uint256(feedPrice);
-                highPrecisionPrice = (highPrecisionPrice * invertedFeedPrice) / PRECISION;
-                finalDecimals = config.assetDecimals;
+                    PRECISION.mulDiv((10 ** config.assetDecimals) * (10 ** config.feed.decimals()), uint256(feedPrice));
+                highPrecisionPrice = highPrecisionPrice.mulDiv(invertedFeedPrice, PRECISION);
             } else {
-                highPrecisionPrice = (highPrecisionPrice * uint256(feedPrice)) / (10 ** finalDecimals);
-                finalDecimals = currentDecimals;
+                highPrecisionPrice = (highPrecisionPrice).mulDiv(uint256(feedPrice), (10 ** currentDecimals));
             }
         }
 
         if (highPrecisionPrice == 0) return 0;
 
-        return highPrecisionPrice * (10 ** finalDecimals) / PRECISION;
+        return highPrecisionPrice / PRECISION;
     }
 
     /**

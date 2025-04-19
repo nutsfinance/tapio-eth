@@ -36,6 +36,6 @@ contract ChainlinkCompositeOracleProviderTest is Test {
         ChainlinkCompositeOracleProvider oracle =
             new ChainlinkCompositeOracleProvider(AggregatorV3Interface(address(0)), configs);
 
-        assertEq(oracle.price(), 1.065471935837571058e18);
+        assertEq(oracle.price(), 1.065471935837571059e18);
     }
 }
