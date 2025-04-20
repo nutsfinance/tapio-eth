@@ -56,6 +56,7 @@ contract FactoryTest is Test {
                 wlpTokenBeacon,
                 rampAControllerBeacon,
                 new ConstantExchangeRateProvider(),
+                0,
                 0
             )
         );
@@ -272,6 +273,7 @@ contract FactoryTest is Test {
             address(0),
             address(0),
             exchangeRateProvider,
+            0,
             0
         );
 

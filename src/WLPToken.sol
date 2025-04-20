@@ -46,6 +46,7 @@ contract WLPToken is ERC4626Upgradeable {
         shares = convertToShares(assets);
         lpToken.transferFrom(msg.sender, address(this), assets);
         _mint(receiver, shares);
+        emit Deposit(msg.sender, receiver, assets, shares);
     }
 
     /**
@@ -65,6 +66,8 @@ contract WLPToken is ERC4626Upgradeable {
 
         // Mint the shares to the receiver
         _mint(receiver, shares);
+
+        emit Deposit(msg.sender, receiver, assets, shares);
     }
 
     /**
@@ -84,6 +87,7 @@ contract WLPToken is ERC4626Upgradeable {
         }
         _burn(owner, shares);
         lpToken.transfer(receiver, assets);
+        emit Withdraw(msg.sender, receiver, owner, assets, shares);
     }
 
     /**
@@ -103,6 +107,7 @@ contract WLPToken is ERC4626Upgradeable {
         }
         _burn(owner, shares);
         lpToken.transfer(receiver, assets);
+        emit Withdraw(msg.sender, receiver, owner, assets, shares);
     }
 
     /**

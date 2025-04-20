@@ -126,6 +126,11 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
     uint256 public exchangeRateFeeFactor;
 
     /**
+     * @dev The buffer percent for the LPToken.
+     */
+    uint256 public bufferPercent;
+
+    /**
      * @dev This event is emitted when the governor is modified.
      * @param governor is the new value of the governor.
      */
@@ -182,6 +187,12 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
      */
     event MinRampTimeUpdated(uint256 minRampTime);
 
+    /**
+     * @dev This event is emitted when the buffer percent is updated.
+     * @param bufferPercent is the new value of the buffer percent.
+     */
+    event BufferPercentUpdated(uint256 bufferPercent);
+
     /// @dev Error thrown when the address is invalid
     error InvalidAddress();
 
@@ -214,7 +225,8 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
         address _wlpTokenBeacon,
         address _rampAControllerBeacon,
         ConstantExchangeRateProvider _constantExchangeRateProvider,
-        uint256 _exchangeRateFeeFactor
+        uint256 _exchangeRateFeeFactor,
+        uint256 _bufferPercent
     )
         public
         initializer
@@ -244,6 +256,7 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
         offPegFeeMultiplier = _offPegFeeMultiplier;
         minRampTime = _minRampTime;
         exchangeRateFeeFactor = _exchangeRateFeeFactor;
+        bufferPercent = _bufferPercent;
     }
 
     /**
@@ -310,6 +323,11 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
     function setExchangeRateFeeFactor(uint256 _exchangeRateFeeFactor) external onlyOwner {
         exchangeRateFeeFactor = _exchangeRateFeeFactor;
         emit ExchangeRateFeeFactorModified(_exchangeRateFeeFactor);
+    }
+
+    function setBufferPercent(uint256 _bufferPercent) external onlyOwner {
+        bufferPercent = _bufferPercent;
+        emit BufferPercentUpdated(_bufferPercent);
     }
 
     /**
@@ -395,6 +413,7 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
         selfPeggingAsset.setAdmin(governor, true);
         selfPeggingAsset.transferOwnership(governor);
         lpToken.addPool(address(selfPeggingAsset));
+        lpToken.setBuffer(bufferPercent);
         lpToken.transferOwnership(governor);
         rampAConotroller.transferOwnership(governor);
 
