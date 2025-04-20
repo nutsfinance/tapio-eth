@@ -273,6 +273,16 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
      */
     event DecayPeriodModified(uint256 decayPeriod);
 
+    /**
+     * @dev This event is emitted when the pool is paused.
+     */
+    event PoolPaused();
+
+    /**
+     * @dev This event is emitted when the pool is unpaused.
+     */
+    event PoolUnpaused();
+
     /// @notice Error thrown when the input parameters do not match the expected values.
     error InputMismatch();
 
@@ -851,6 +861,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         require(admins[msg.sender], NotAdmin());
 
         paused = true;
+        emit PoolPaused();
     }
 
     /**
@@ -861,6 +872,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         require(admins[msg.sender], NotAdmin());
 
         paused = false;
+        emit PoolUnpaused();
     }
 
     /**
