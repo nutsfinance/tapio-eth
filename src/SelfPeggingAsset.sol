@@ -70,7 +70,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
     /**
      * @dev This is the default rate change skip period
      */
-    uint256 private constant DEFAULT_RATE_CHANGE_SKIP_PERIOD = 1 hours;
+    uint256 private constant DEFAULT_RATE_CHANGE_SKIP_PERIOD = 1 days;
 
     /**
      * @dev This is an array of addresses representing the tokens currently supported by the SelfPeggingAsset contract.
@@ -690,7 +690,6 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         // After reducing the redeem fee, the remaining pool tokens are burned!
         poolToken.burnSharesFrom(msg.sender, _amount);
         feeAmount = collectFeeOrYield(true);
-        lastActivity = block.timestamp;
         emit Redeemed(msg.sender, _amount, amounts, feeAmount);
         return amounts;
     }
@@ -967,7 +966,6 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         }
         totalSupply = newD;
         poolToken.addBuffer(donationAmount);
-        lastActivity = block.timestamp;
 
         emit Donated(msg.sender, donationAmount, _amounts);
 
@@ -1011,7 +1009,6 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
 
         balances = _balances;
         totalSupply = newD;
-        lastActivity = block.timestamp;
     }
 
     /**
@@ -1021,7 +1018,6 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
     function rebase() external returns (uint256) {
         uint256[] memory _balances = balances;
         uint256 oldD = totalSupply;
-        lastActivity = block.timestamp;
 
         for (uint256 i = 0; i < _balances.length; i++) {
             uint256 balanceI = IERC20(tokens[i]).balanceOf(address(this));
