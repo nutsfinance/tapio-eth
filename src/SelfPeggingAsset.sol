@@ -68,6 +68,11 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
     uint256 private constant DEFAULT_DECAY_PERIOD = 5 minutes;
 
     /**
+     * @dev This is the default rate change skip period
+     */
+    uint256 private constant DEFAULT_RATE_CHANGE_SKIP_PERIOD = 1 hours;
+
+    /**
      * @dev This is an array of addresses representing the tokens currently supported by the SelfPeggingAsset contract.
      */
     address[] public tokens;
@@ -165,6 +170,16 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
      * @notice The time (in seconds) over which the multiplier decays back to 1x after being raised.
      */
     uint256 public decayPeriod;
+
+    /**
+     * @notice The time (in seconds) after which the multiplier is skipped when the rate is changed.
+     */
+    uint256 public rateChangeSkipPeriod;
+
+    /**
+     * @dev Tracks the last time a transaction occurred in the SelfPeggingAsset contract.
+     */
+    uint256 public lastActivity;
 
     /**
      * @notice Mapping of token index -> TokenFeeStatus
@@ -272,6 +287,12 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
      * @param decayPeriod is the new value of the decay period.
      */
     event DecayPeriodModified(uint256 decayPeriod);
+
+    /**
+     * @dev This event is emitted when the rate change skip period is modified.
+     * @param rateChangeSkipPeriod is the new value of the rate change skip period.
+     */
+    event RateChangeSkipPeriodModified(uint256 rateChangeSkipPeriod);
 
     /**
      * @dev This event is emitted when the pool is paused.
@@ -464,8 +485,10 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         feeErrorMargin = DEFAULT_FEE_ERROR_MARGIN;
         yieldErrorMargin = DEFAULT_YIELD_ERROR_MARGIN;
         decayPeriod = DEFAULT_DECAY_PERIOD;
+        rateChangeSkipPeriod = DEFAULT_RATE_CHANGE_SKIP_PERIOD;
 
         paused = false;
+        lastActivity = block.timestamp;
 
         for (uint256 i = 0; i < _exchangeRateProviders.length; i++) {
             uint256 initRate = _exchangeRateProviders[i].exchangeRate();
@@ -542,6 +565,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         totalSupply = oldD + mintAmount;
         poolToken.mintShares(msg.sender, mintAmount);
         feeAmount = collectFeeOrYield(true);
+        lastActivity = block.timestamp;
         emit Minted(msg.sender, mintAmount, _amounts, feeAmount);
         return mintAmount;
     }
@@ -609,6 +633,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         amounts[_j] = transferAmountJ;
 
         uint256 feeAmountActual = collectFeeOrYield(true);
+        lastActivity = block.timestamp;
         emit TokenSwapped(msg.sender, transferAmountJ, amounts, feeAmountActual);
         return transferAmountJ;
     }
@@ -665,6 +690,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         // After reducing the redeem fee, the remaining pool tokens are burned!
         poolToken.burnSharesFrom(msg.sender, _amount);
         feeAmount = collectFeeOrYield(true);
+        lastActivity = block.timestamp;
         emit Redeemed(msg.sender, _amount, amounts, feeAmount);
         return amounts;
     }
@@ -726,6 +752,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         totalSupply = newD;
         poolToken.burnSharesFrom(msg.sender, _amount);
         feeAmount = collectFeeOrYield(true);
+        lastActivity = block.timestamp;
         emit Redeemed(msg.sender, _amount, amounts, feeAmount);
         return transferAmount;
     }
@@ -792,6 +819,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
             IERC20(tokens[i]).safeTransfer(msg.sender, _amounts[i]);
         }
         feeAmount = collectFeeOrYield(true);
+        lastActivity = block.timestamp;
         emit Redeemed(msg.sender, redeemAmount, amounts, feeAmount);
         return amounts;
     }
@@ -851,6 +879,15 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
     function setDecayPeriod(uint256 _decayPeriod) external onlyOwner {
         decayPeriod = _decayPeriod;
         emit DecayPeriodModified(_decayPeriod);
+    }
+
+    /**
+     * @dev Updates the rate change skip period.
+     * @param _rateChangeSkipPeriod The new rate change skip period.
+     */
+    function setRateChangeSkipPeriod(uint256 _rateChangeSkipPeriod) external onlyOwner {
+        rateChangeSkipPeriod = _rateChangeSkipPeriod;
+        emit RateChangeSkipPeriodModified(_rateChangeSkipPeriod);
     }
 
     /**
@@ -930,6 +967,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         }
         totalSupply = newD;
         poolToken.addBuffer(donationAmount);
+        lastActivity = block.timestamp;
 
         emit Donated(msg.sender, donationAmount, _amounts);
 
@@ -973,6 +1011,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
 
         balances = _balances;
         totalSupply = newD;
+        lastActivity = block.timestamp;
     }
 
     /**
@@ -982,6 +1021,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
     function rebase() external returns (uint256) {
         uint256[] memory _balances = balances;
         uint256 oldD = totalSupply;
+        lastActivity = block.timestamp;
 
         for (uint256 i = 0; i < _balances.length; i++) {
             uint256 balanceI = IERC20(tokens[i]).balanceOf(address(this));
@@ -1271,7 +1311,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
      */
     function _currentMultiplier(TokenFeeStatus memory st) internal view returns (uint256) {
         uint256 endTime = st.raisedAt + decayPeriod;
-        if (block.timestamp >= endTime) {
+        if (block.timestamp >= endTime || block.timestamp - lastActivity > rateChangeSkipPeriod) {
             return FEE_DENOMINATOR;
         }
         uint256 timePassed = block.timestamp - st.raisedAt;

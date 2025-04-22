@@ -862,6 +862,146 @@ contract SelfPeggingAssetTest is Test {
         assertGt(rETHBalance1, rETHBalance2);
     }
 
+    function test_ExchangeRateFeeSkipPeriod() external {
+        MockExchangeRateProvider rETHExchangeRateProvider1 = new MockExchangeRateProvider(1e18, 18);
+        MockExchangeRateProvider wstETHExchangeRateProvider1 = new MockExchangeRateProvider(1e18, 18);
+
+        MockExchangeRateProvider rETHExchangeRateProvider2 = new MockExchangeRateProvider(1e18, 18);
+        MockExchangeRateProvider wstETHExchangeRateProvider2 = new MockExchangeRateProvider(1e18, 18);
+
+        MockToken rETH1 = new MockToken("rETH", "rETH", 18);
+        MockToken wstETH1 = new MockToken("wstETH", "wstETH", 18);
+
+        MockToken rETH2 = new MockToken("rETH", "rETH", 18);
+        MockToken wstETH2 = new MockToken("wstETH", "wstETH", 18);
+
+        address[] memory _tokens1 = new address[](2);
+        _tokens1[0] = address(rETH1);
+        _tokens1[1] = address(wstETH1);
+
+        address[] memory _tokens2 = new address[](2);
+        _tokens2[0] = address(rETH2);
+        _tokens2[1] = address(wstETH2);
+
+        IExchangeRateProvider[] memory exchangeRateProviders1 = new IExchangeRateProvider[](2);
+        exchangeRateProviders1[0] = IExchangeRateProvider(rETHExchangeRateProvider1);
+        exchangeRateProviders1[1] = IExchangeRateProvider(wstETHExchangeRateProvider1);
+
+        IExchangeRateProvider[] memory exchangeRateProviders2 = new IExchangeRateProvider[](2);
+        exchangeRateProviders2[0] = IExchangeRateProvider(rETHExchangeRateProvider2);
+        exchangeRateProviders2[1] = IExchangeRateProvider(wstETHExchangeRateProvider2);
+
+        bytes memory data = abi.encodeCall(LPToken.initialize, ("LP Token", "LPT"));
+
+        ERC1967Proxy proxy1 = new ERC1967Proxy(address(new LPToken()), data);
+        LPToken _lpToken1 = LPToken(address(proxy1));
+        _lpToken1.transferOwnership(owner);
+
+        ERC1967Proxy proxy2 = new ERC1967Proxy(address(new LPToken()), data);
+        LPToken _lpToken2 = LPToken(address(proxy2));
+        _lpToken2.transferOwnership(owner);
+
+        uint256[] memory _fees = new uint256[](3);
+        _fees[0] = 0;
+        _fees[1] = 0.00001e10;
+        _fees[2] = 0;
+
+        uint256[] memory _precisions = new uint256[](2);
+        _precisions[0] = 1;
+        _precisions[1] = 1;
+
+        data = abi.encodeCall(
+            SelfPeggingAsset.initialize,
+            (_tokens1, _precisions, _fees, 0, _lpToken1, A, exchangeRateProviders1, address(0), 1e10)
+        );
+
+        proxy1 = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
+        SelfPeggingAsset _pool1 = SelfPeggingAsset(address(proxy1));
+        _pool1.setRateChangeSkipPeriod(10 seconds);
+
+        _pool1.transferOwnership(owner);
+
+        data = abi.encodeCall(
+            SelfPeggingAsset.initialize,
+            (_tokens2, _precisions, _fees, 0, _lpToken2, A, exchangeRateProviders2, address(0), 1e10)
+        );
+
+        proxy2 = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
+        SelfPeggingAsset _pool2 = SelfPeggingAsset(address(proxy2));
+
+        _pool2.transferOwnership(owner);
+
+        vm.startPrank(owner);
+        _lpToken1.addPool(address(_pool1));
+        _lpToken2.addPool(address(_pool2));
+        vm.stopPrank();
+
+        vm.prank(address(_pool1));
+        _lpToken1.addBuffer(100e18);
+
+        vm.prank(address(_pool2));
+        _lpToken2.addBuffer(100e18);
+
+        uint256[] memory amounts = new uint256[](2);
+        amounts[0] = 100e18;
+        amounts[1] = 100e18;
+
+        rETH1.mint(user, 100e18);
+        wstETH1.mint(user, 100e18);
+
+        rETH2.mint(user, 100e18);
+        wstETH2.mint(user, 100e18);
+
+        vm.startPrank(user);
+        rETH1.approve(address(_pool1), 100e18);
+        wstETH1.approve(address(_pool1), 100e18);
+
+        rETH2.approve(address(_pool2), 100e18);
+        wstETH2.approve(address(_pool2), 100e18);
+
+        _pool1.mint(amounts, 0);
+        _pool2.mint(amounts, 0);
+        vm.stopPrank();
+
+        rETH1.mint(user2, 1e18);
+        rETH2.mint(user2, 1e18);
+
+        vm.startPrank(user2);
+        rETH1.approve(address(_pool1), 1e18);
+        rETH2.approve(address(_pool2), 1e18);
+
+        _pool1.swap(0, 1, 1e18, 0);
+        _pool2.swap(0, 1, 1e18, 0);
+        vm.stopPrank();
+
+        uint256 wstETHBalance1 = wstETH1.balanceOf(user2);
+        uint256 wstETHBalance2 = wstETH2.balanceOf(user2);
+
+        assertLt(wstETHBalance1, 1e18);
+        assertLt(wstETHBalance2, 1e18);
+
+        rETHExchangeRateProvider1.setExchangeRate(0.994e18);
+        rETHExchangeRateProvider2.setExchangeRate(0.994e18);
+
+        vm.warp(block.timestamp + 12 seconds);
+
+        vm.startPrank(user2);
+        wstETH1.approve(address(_pool1), wstETHBalance1);
+
+        wstETH2.mint(user2, 1);
+        wstETH2.approve(address(_pool2), wstETHBalance2 + 1);
+
+        _pool1.swap(1, 0, wstETHBalance1, 0);
+        _pool2.swap(1, 0, 1, 0);
+        _pool2.swap(1, 0, wstETHBalance2, 0);
+        vm.stopPrank();
+
+        uint256 rETHBalance1 = rETH1.balanceOf(user2);
+        uint256 rETHBalance2 = rETH2.balanceOf(user2);
+
+        assertGt(rETHBalance1, rETHBalance2);
+    }
+
     function testFuzz_ExchangeRateFee(
         uint256 initialLiquidity,
         uint256 swapAmount,
@@ -926,6 +1066,7 @@ contract SelfPeggingAssetTest is Test {
         );
         proxy1 = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
         SelfPeggingAsset pool1 = SelfPeggingAsset(address(proxy1));
+        pool1.setRateChangeSkipPeriod(100 days);
         pool1.transferOwnership(owner);
 
         data = abi.encodeCall(
@@ -934,6 +1075,7 @@ contract SelfPeggingAssetTest is Test {
         );
         proxy2 = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
         SelfPeggingAsset pool2 = SelfPeggingAsset(address(proxy2));
+        pool2.setRateChangeSkipPeriod(100 days);
         pool2.transferOwnership(owner);
 
         vm.startPrank(owner);
