@@ -983,7 +983,7 @@ contract SelfPeggingAssetTest is Test {
         rETHExchangeRateProvider1.setExchangeRate(0.994e18);
         rETHExchangeRateProvider2.setExchangeRate(0.994e18);
 
-        vm.warp(block.timestamp + 12 seconds);
+        vm.warp(block.timestamp + 2 days);
 
         vm.startPrank(user2);
         wstETH1.approve(address(_pool1), wstETHBalance1);
