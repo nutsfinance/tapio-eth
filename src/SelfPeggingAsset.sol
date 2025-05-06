@@ -1235,6 +1235,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
 
         if (isInactive(st.raisedAt)) {
             st.lastRate = newRate;
+            st.multiplier = FEE_DENOMINATOR;
             st.raisedAt = block.timestamp;
             return;
         }
