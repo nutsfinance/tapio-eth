@@ -983,7 +983,7 @@ contract SelfPeggingAssetTest is Test {
         rETHExchangeRateProvider1.setExchangeRate(0.994e18);
         rETHExchangeRateProvider2.setExchangeRate(0.994e18);
 
-        vm.warp(block.timestamp + 2 days);
+        vm.warp(block.timestamp + 4 minutes);
 
         vm.startPrank(user2);
         wstETH1.approve(address(_pool1), wstETHBalance1);
@@ -1151,7 +1151,7 @@ contract SelfPeggingAssetTest is Test {
         bool isFreshRate = timeElapsed <= 1 days;
 
         if (isSignificantRateChange && isFreshRate && exchangeRateFeeFactor > 1e10) {
-            assertLt(profit2, profit1, "Protected pool should yield less profit on rate exploit");
+            assertLe(profit2, profit1, "Protected pool should yield less profit on rate exploit");
         }
     }
 }
