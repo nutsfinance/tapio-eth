@@ -1233,6 +1233,12 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         uint256 newRate = exchangeRateProviders[i].exchangeRate();
         TokenFeeStatus storage st = feeStatusByToken[i];
 
+        if (isInactive(st.raisedAt)) {
+            st.lastRate = newRate;
+            st.raisedAt = block.timestamp;
+            return;
+        }
+
         uint256 oldRate = st.lastRate;
         if (oldRate == 0) {
             st.lastRate = newRate;
@@ -1306,8 +1312,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
      * @dev Computes current multiplier for a given TokenFeeStatus.
      */
     function _currentMultiplier(TokenFeeStatus memory st) internal view returns (uint256) {
-        uint256 endTime = st.raisedAt + decayPeriod;
-        if (block.timestamp >= endTime || block.timestamp - lastActivity > rateChangeSkipPeriod) {
+        if (isInactive(st.raisedAt)) {
             return FEE_DENOMINATOR;
         }
         uint256 timePassed = block.timestamp - st.raisedAt;
@@ -1325,6 +1330,10 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
 
     function _currentMultiplier(uint256 index) internal view returns (uint256) {
         return _currentMultiplier(feeStatusByToken[index]);
+    }
+
+    function isInactive(uint256 raisedAt) internal view returns (bool) {
+        return ((block.timestamp >= raisedAt + decayPeriod) || (block.timestamp - lastActivity > rateChangeSkipPeriod));
     }
 
     /**
