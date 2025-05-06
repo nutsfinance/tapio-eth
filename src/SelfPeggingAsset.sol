@@ -1233,6 +1233,12 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         uint256 newRate = exchangeRateProviders[i].exchangeRate();
         TokenFeeStatus storage st = feeStatusByToken[i];
 
+        if (block.timestamp - lastActivity > rateChangeSkipPeriod) {
+            st.lastRate = newRate;
+            st.raisedAt = block.timestamp;
+            return;
+        }
+
         uint256 oldRate = st.lastRate;
         if (oldRate == 0) {
             st.lastRate = newRate;
