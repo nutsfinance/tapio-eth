@@ -1332,6 +1332,9 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         return _currentMultiplier(feeStatusByToken[index]);
     }
 
+    /**
+     * @dev Indicates if the pool is inactive based on latest token fee status
+     */
     function isInactive(uint256 raisedAt) internal view returns (bool) {
         return ((block.timestamp >= raisedAt + decayPeriod) || (block.timestamp - lastActivity > rateChangeSkipPeriod));
     }
