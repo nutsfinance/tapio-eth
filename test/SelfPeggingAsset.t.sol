@@ -1002,6 +1002,122 @@ contract SelfPeggingAssetTest is Test {
         assertGt(rETHBalance1, rETHBalance2);
     }
 
+    function test_VolatilityFee_SkipPeriod() external {
+        MockToken rETH = new MockToken("rETH", "rETH", 18);
+        MockToken wstETH = new MockToken("wstETH", "wstETH", 18);
+
+        MockExchangeRateProvider provider0 = new MockExchangeRateProvider(1e18, 18);
+        MockExchangeRateProvider provider1 = new MockExchangeRateProvider(1e18, 18);
+
+        bytes memory data = abi.encodeCall(LPToken.initialize, ("LP Token", "LPT"));
+        ERC1967Proxy proxy = new ERC1967Proxy(address(new LPToken()), data);
+        LPToken lpToken = LPToken(address(proxy));
+        lpToken.transferOwnership(owner);
+
+        address[] memory tokens = new address[](2);
+        tokens[0] = address(rETH);
+        tokens[1] = address(wstETH);
+
+        IExchangeRateProvider[] memory providers = new IExchangeRateProvider[](2);
+        providers[0] = provider0;
+        providers[1] = provider1;
+
+        uint256[] memory fees = new uint256[](3);
+        fees[0] = 0.001e10; // 0.1% mint fee
+        fees[1] = 0.001e10; // 0.1% swap fee
+        fees[2] = 0.001e10; // 0.1% redeem fee
+
+        uint256[] memory precisions = new uint256[](2);
+        precisions[0] = 1;
+        precisions[1] = 1;
+
+        data = abi.encodeCall(
+            SelfPeggingAsset.initialize, (tokens, precisions, fees, 0, lpToken, 100, providers, address(0), 1e10)
+        );
+
+        proxy = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
+        SelfPeggingAsset pool = SelfPeggingAsset(address(proxy));
+
+        pool.setRateChangeSkipPeriod(10 seconds);
+        pool.setDecayPeriod(10 seconds);
+
+        vm.prank(owner);
+        lpToken.addPool(address(pool));
+
+        vm.prank(address(pool));
+        lpToken.addBuffer(100e18);
+
+        rETH.mint(user, 100e18);
+        wstETH.mint(user, 100e18);
+
+        vm.startPrank(user);
+        rETH.approve(address(pool), 100e18);
+        wstETH.approve(address(pool), 100e18);
+
+        uint256[] memory amounts = new uint256[](2);
+        amounts[0] = 100e18;
+        amounts[1] = 100e18;
+        pool.mint(amounts, 0);
+        vm.stopPrank();
+
+        (, uint256 initFee) = pool.getRedeemSingleAmount(10e18, 0);
+        console2.log("Initial fee:", initFee);
+
+        // Change exchange rate
+        provider0.setExchangeRate(0.9e18);
+        (, uint256 volatilityFee) = pool.getRedeemSingleAmount(10e18, 0);
+        console2.log("fee after volatility period:", volatilityFee);
+
+        // during decay period
+        vm.warp(block.timestamp + 9 seconds);
+        (, uint256 beforeSkipFee) = pool.getRedeemSingleAmount(10e18, 0);
+        console2.log("fee before skip period:", beforeSkipFee);
+
+        // do an operation and fee spike
+        vm.startPrank(user);
+        lpToken.approve(address(pool), 10e18);
+        pool.redeemSingle(10e18, 0, 0);
+        vm.stopPrank();
+
+        (, uint256 postOpFeeSpike) = pool.getRedeemSingleAmount(10e18, 0);
+        console2.log("Fee after operation:", postOpFeeSpike);
+
+        bool feeSpikeAfterOp =
+            (postOpFeeSpike >= beforeSkipFee * 995 / 1000) && (postOpFeeSpike <= beforeSkipFee * 1005 / 1000);
+
+        // Change exchange rate further
+        provider0.setExchangeRate(0.8e18);
+        (, uint256 volatilityFee2) = pool.getRedeemSingleAmount(10e18, 0);
+        console2.log("fee after volatility period:", volatilityFee2);
+
+        // during decay period
+        vm.warp(block.timestamp + 9 seconds);
+        (, uint256 beforeSkipFee2) = pool.getRedeemSingleAmount(10e18, 0);
+        console2.log("fee after skip period:", beforeSkipFee2);
+
+        // skip past decay period
+        vm.warp(block.timestamp + 1 hours);
+        (, uint256 afterSkipFee) = pool.getRedeemSingleAmount(10e18, 0);
+        console2.log("fee after skip period:", afterSkipFee);
+
+        // do an operation and fee doesn't spike
+        vm.startPrank(user);
+        lpToken.approve(address(pool), 10e18);
+        pool.redeemSingle(10e18, 0, 0);
+        vm.stopPrank();
+
+        (, uint256 postOpFee) = pool.getRedeemSingleAmount(10e18, 0);
+        console2.log("Fee after operation:", postOpFee);
+
+        bool feeAfterOp = (postOpFee >= afterSkipFee * 995 / 1000) && (postOpFee <= afterSkipFee * 1005 / 1000);
+
+        assertNotEq(volatilityFee, initFee, "fee changed during volatility");
+        assertEq(feeSpikeAfterOp, false, "fee spike out of range after redeem");
+        assertEq(beforeSkipFee2, volatilityFee2, "fee keep spiked before skip");
+        assertLt(afterSkipFee, volatilityFee2, "fee stabilized after skip");
+        assertEq(feeAfterOp, true, "fee stayed within range after redeem");
+    }
+
     function testFuzz_ExchangeRateFee(
         uint256 initialLiquidity,
         uint256 swapAmount,
