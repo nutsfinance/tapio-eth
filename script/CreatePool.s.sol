@@ -10,6 +10,10 @@ import { Pool } from "script/Pool.sol";
 import { SelfPeggingAssetFactory } from "../src/SelfPeggingAssetFactory.sol";
 import { SelfPeggingAsset } from "../src/SelfPeggingAsset.sol";
 import { MockToken } from "../src/mock/MockToken.sol";
+import {RampAController} from "../src/periphery/RampAController.sol";
+import {KeeperController} from "../src/periphery/KeeperController.sol";
+import {IRampAController} from "../src/interfaces/IRampAController.sol";
+import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 
 contract Testnet is Deploy, Setup, Pool {
     function init() internal {
@@ -41,15 +45,34 @@ contract Testnet is Deploy, Setup, Pool {
         usdc = jsonData.USDC;
         usdt = jsonData.USDT;
 
-        (, address selfPeggingAsset,) = createStandardPool();
+        console.log("usdc", usdc);
+        console.log("usdt", usdt);
 
-        uint256 amount = 10_000e18;
+        (, address selfPeggingAsset,) = createStandardPool();
+        console.log("selfPeggingAsset", selfPeggingAsset);
+
+        address rampAController = address(SelfPeggingAsset(selfPeggingAsset).rampAController());
+        console.log("rampAController : ", rampAController);
+        
+        uint256 amount = 10 ether;
 
         MockToken(usdc).mint(DEPLOYER, amount);
         MockToken(usdt).mint(DEPLOYER, amount);
 
         initialMint(amount, amount, SelfPeggingAsset(selfPeggingAsset));
 
+        address keeperController=address(RampAController(rampAController).keeperController());
+
+        console.log("keeperController", keeperController );
+        KeeperController(keeperController).setRampAController(rampAController);
+        KeeperController(keeperController).setSpa(address(selfPeggingAsset));        
+        KeeperController(keeperController).setSwapFeeCap(20,10000);
+
+        KeeperController(keeperController).setRampAController(rampAController);
+        KeeperController(keeperController).setSpa(address(selfPeggingAsset));
+
         vm.stopBroadcast();
+
+
     }
 }

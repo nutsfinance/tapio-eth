@@ -6,6 +6,9 @@ import { console } from "forge-std/console.sol";
 
 import { Deploy } from "script/Deploy.sol";
 import { Setup } from "script/Setup.sol";
+import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
+import {SelfPeggingAsset} from "../src/SelfPeggingAsset.sol";
+import {IRampAController} from "../src/interfaces/IRampAController.sol";
 
 contract Testnet is Deploy, Setup {
     function init() internal {
@@ -43,6 +46,8 @@ contract Testnet is Deploy, Setup {
 
         vm.writeJson(vm.serializeAddress("contracts", "Zap", zap), path);
 
+        vm.writeJson(vm.serializeAddress("contracts", "RampAControllerBeacon", rampAControllerBeacon), path);
+        
         vm.stopBroadcast();
     }
 }

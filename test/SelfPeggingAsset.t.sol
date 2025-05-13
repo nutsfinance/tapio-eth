@@ -13,6 +13,7 @@ import "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 import "../src/misc/ConstantExchangeRateProvider.sol";
 import "../src/mock/MockExchangeRateProvider.sol";
 import { ERC1967Proxy } from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {KeeperController} from "../src/periphery/KeeperController.sol";
 
 contract SelfPeggingAssetTest is Test {
     address owner = address(0x01);
@@ -28,6 +29,7 @@ contract SelfPeggingAssetTest is Test {
     MockToken WETH;
     MockToken frxETH;
     uint256[] precisions;
+    KeeperController keeperController ;
 
     function setUp() public {
         WETH = new MockToken("WETH", "WETH", 18);
@@ -58,12 +60,18 @@ contract SelfPeggingAssetTest is Test {
         IExchangeRateProvider[] memory exchangeRateProviders = new IExchangeRateProvider[](2);
         exchangeRateProviders[0] = exchangeRateProvider;
         exchangeRateProviders[1] = exchangeRateProvider;
+        // this contract is both governance and factory for the pool
+        keeperController = new KeeperController(address(this),address(this));
 
         data = abi.encodeCall(
-            SelfPeggingAsset.initialize, (tokens, precisions, fees, 0, lpToken, A, exchangeRateProviders, address(0), 0)
+            SelfPeggingAsset.initialize, (tokens, precisions, fees, 0, lpToken, A, exchangeRateProviders, address(0), 0,address(keeperController))
         );
 
         proxy = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
+
+        // set this contract as keeper for simulation or maybe add a keeper role to check interactions 
+        keeperController.setKeeper(address(this), true);
+        keeperController.setSpa(address(proxy));
 
         pool = SelfPeggingAsset(address(proxy));
         pool.transferOwnership(owner);
@@ -142,7 +150,7 @@ contract SelfPeggingAssetTest is Test {
 
         data = abi.encodeCall(
             SelfPeggingAsset.initialize,
-            (_tokens, _precisions, _fees, 0, _lpToken, A, exchangeRateProviders, address(0), 0)
+            (_tokens, _precisions, _fees, 0, lpToken, A, exchangeRateProviders, address(0), 0,address(keeperController))
         );
 
         proxy = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
@@ -530,7 +538,7 @@ contract SelfPeggingAssetTest is Test {
 
         data = abi.encodeCall(
             SelfPeggingAsset.initialize,
-            (_tokens, _precisions, _fees, 0, _lpToken, A, exchangeRateProviders, address(0), 0)
+            (_tokens, _precisions, _fees, 0, _lpToken, A, exchangeRateProviders, address(0), 0,address(keeperController))
         );
         proxy = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
         SelfPeggingAsset _pool = SelfPeggingAsset(address(proxy));
@@ -775,7 +783,7 @@ contract SelfPeggingAssetTest is Test {
 
         data = abi.encodeCall(
             SelfPeggingAsset.initialize,
-            (_tokens1, _precisions, _fees, 0, _lpToken1, A, exchangeRateProviders1, address(0), 0)
+            (_tokens1, _precisions, _fees, 0, _lpToken1, A, exchangeRateProviders1, address(0), 0,address(keeperController))
         );
 
         proxy1 = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
@@ -785,7 +793,7 @@ contract SelfPeggingAssetTest is Test {
 
         data = abi.encodeCall(
             SelfPeggingAsset.initialize,
-            (_tokens2, _precisions, _fees, 0, _lpToken2, A, exchangeRateProviders2, address(0), 1e10)
+            (_tokens2, _precisions, _fees, 0, _lpToken2, A, exchangeRateProviders2, address(0), 1e10,address(keeperController))
         );
 
         proxy2 = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
@@ -912,7 +920,7 @@ contract SelfPeggingAssetTest is Test {
 
         data = abi.encodeCall(
             SelfPeggingAsset.initialize,
-            (_tokens1, _precisions, _fees, 0, _lpToken1, A, exchangeRateProviders1, address(0), 1e10)
+            (_tokens1, _precisions, _fees, 0, _lpToken1, A, exchangeRateProviders1, address(0), 1e10,address(keeperController))
         );
 
         proxy1 = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
@@ -923,7 +931,7 @@ contract SelfPeggingAssetTest is Test {
 
         data = abi.encodeCall(
             SelfPeggingAsset.initialize,
-            (_tokens2, _precisions, _fees, 0, _lpToken2, A, exchangeRateProviders2, address(0), 1e10)
+            (_tokens2, _precisions, _fees, 0, _lpToken2, A, exchangeRateProviders2, address(0), 1e10,address(keeperController))
         );
 
         proxy2 = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
@@ -1032,7 +1040,7 @@ contract SelfPeggingAssetTest is Test {
         precisions[1] = 1;
 
         data = abi.encodeCall(
-            SelfPeggingAsset.initialize, (tokens, precisions, fees, 0, lpToken, 100, providers, address(0), 1e10)
+            SelfPeggingAsset.initialize, (tokens, precisions, fees, 0, lpToken, 100, providers, address(0), 1e10,address(keeperController))
         );
 
         proxy = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
@@ -1178,7 +1186,7 @@ contract SelfPeggingAssetTest is Test {
         precisions[1] = 1;
 
         data = abi.encodeCall(
-            SelfPeggingAsset.initialize, (tokens1, precisions, fees, 0, lpToken1, A, providers1, address(0), 0)
+            SelfPeggingAsset.initialize, (tokens1, precisions, fees, 0, lpToken1, A, providers1, address(0), 0,address(keeperController))
         );
         proxy1 = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
         SelfPeggingAsset pool1 = SelfPeggingAsset(address(proxy1));
@@ -1187,7 +1195,7 @@ contract SelfPeggingAssetTest is Test {
 
         data = abi.encodeCall(
             SelfPeggingAsset.initialize,
-            (tokens2, precisions, fees, 0, lpToken2, A, providers2, address(0), exchangeRateFeeFactor)
+            (tokens2, precisions, fees, 0, lpToken2, A, providers2, address(0), exchangeRateFeeFactor,address(keeperController))
         );
         proxy2 = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
         SelfPeggingAsset pool2 = SelfPeggingAsset(address(proxy2));

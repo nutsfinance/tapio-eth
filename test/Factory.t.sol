@@ -78,7 +78,8 @@ contract FactoryTest is Test {
             tokenBType: SelfPeggingAssetFactory.TokenType.Standard,
             tokenBOracle: address(0),
             tokenBRateFunctionSig: new bytes(0),
-            tokenBDecimalsFunctionSig: new bytes(0)
+            tokenBDecimalsFunctionSig: new bytes(0),
+            keeperController:address(0)
         });
 
         vm.recordLogs();
@@ -143,7 +144,8 @@ contract FactoryTest is Test {
             tokenBType: SelfPeggingAssetFactory.TokenType.ERC4626,
             tokenBOracle: address(0),
             tokenBRateFunctionSig: new bytes(0),
-            tokenBDecimalsFunctionSig: new bytes(0)
+            tokenBDecimalsFunctionSig: new bytes(0),
+            keeperController:address(0)
         });
 
         vm.recordLogs();
@@ -210,7 +212,8 @@ contract FactoryTest is Test {
             tokenBType: SelfPeggingAssetFactory.TokenType.Oracle,
             tokenBOracle: address(oracle),
             tokenBRateFunctionSig: abi.encodePacked(MockOracle.rate.selector),
-            tokenBDecimalsFunctionSig: abi.encodePacked(MockOracle.decimals.selector)
+            tokenBDecimalsFunctionSig: abi.encodePacked(MockOracle.decimals.selector),
+            keeperController:address(0)
         });
 
         vm.recordLogs();
@@ -284,7 +287,7 @@ contract FactoryTest is Test {
         IExchangeRateProvider[] memory _exchangeRateProviders;
         vm.expectRevert(Initializable.InvalidInitialization.selector);
         selfPeggingAsset.initialize(
-            _tokens, _precisions, _fees, 0, LPToken(address(0)), 0, _exchangeRateProviders, address(0), 0
+            _tokens, _precisions, _fees, 0, LPToken(address(0)), 0, _exchangeRateProviders, address(0), 0,address(0)
         );
 
         LPToken lpToken = new LPToken();
@@ -297,6 +300,6 @@ contract FactoryTest is Test {
 
         RampAController rampAController = new RampAController();
         vm.expectRevert(Initializable.InvalidInitialization.selector);
-        rampAController.initialize(30 minutes, 0);
+        rampAController.initialize(30 minutes, 0,address(0));
     }
 }

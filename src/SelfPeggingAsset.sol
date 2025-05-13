@@ -187,6 +187,11 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
     mapping(uint256 => TokenFeeStatus) public feeStatusByToken;
 
     /**
+     * @dev This is the address of the KeeperController contract.
+     */
+    address public keeperController;
+
+    /**
      * @notice This event is emitted when a token swap occurs.
      * @param buyer is the address of the account that made the swap.
      * @param swapAmount is the amount of the token swapped by the buyer.
@@ -400,6 +405,8 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
     /// @notice Error thrown when the pool is imbalanced
     error ImbalancedPool(uint256 oldD, uint256 newD);
 
+    error NotKeeperController();
+
     modifier syncRamping() {
         if (address(rampAController) != address(0)) {
             uint256 currentA = getCurrentA();
@@ -408,6 +415,10 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
                 _syncTotalSupply();
             }
         }
+        _;
+    }
+    modifier onlyKeeperController() {
+        if (keeperController != msg.sender) revert NotKeeperController();
         _;
     }
 
@@ -435,7 +446,8 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         uint256 _A,
         IExchangeRateProvider[] memory _exchangeRateProviders,
         address _rampAController,
-        uint256 _exchangeRateFeeFactor
+        uint256 _exchangeRateFeeFactor,
+        address _keeperController
     )
         public
         initializer
@@ -495,6 +507,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
             feeStatusByToken[i] =
                 TokenFeeStatus({ lastRate: initRate, multiplier: FEE_DENOMINATOR, raisedAt: block.timestamp });
         }
+        keeperController = _keeperController;
     }
 
     /**
@@ -837,7 +850,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
      * @dev Updates the swap fee.
      * @param _swapFee The new swap fee.
      */
-    function setSwapFee(uint256 _swapFee) external onlyOwner {
+    function setSwapFee(uint256 _swapFee) external onlyKeeperController {
         require(_swapFee < FEE_DENOMINATOR, LimitExceeded());
         swapFee = _swapFee;
         emit SwapFeeModified(_swapFee);

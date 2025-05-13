@@ -74,7 +74,7 @@ contract ZapTest is Test {
         fees[1] = 0;
         fees[2] = 0;
 
-        data = abi.encodeCall(RampAController.initialize, (100, 30 minutes));
+        data = abi.encodeCall(RampAController.initialize, (100, 30 minutes,address(0)));
         proxy = new ERC1967Proxy(address(new RampAController()), data);
         rampAController = RampAController(address(proxy));
 
@@ -87,7 +87,9 @@ contract ZapTest is Test {
             lpToken,
             100,
             providers,
-            address(rampAController)
+            address(rampAController),
+            0,
+            address(0)
         );
         proxy = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
 
@@ -403,7 +405,7 @@ contract ZapTest is Test {
         fees[1] = 0;
         fees[2] = 0;
 
-        data = abi.encodeCall(RampAController.initialize, (100, 30 minutes));
+        data = abi.encodeCall(RampAController.initialize, (100, 30 minutes,address(0)));
         proxy = new ERC1967Proxy(address(new RampAController()), data);
         RampAController secondRampAController = RampAController(address(proxy));
 
@@ -416,7 +418,9 @@ contract ZapTest is Test {
             secondLpToken,
             100,
             providers,
-            address(secondRampAController)
+            address(secondRampAController),
+            0,
+            address(0)
         );
         proxy = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
         SelfPeggingAsset secondSpa = SelfPeggingAsset(address(proxy));

@@ -12,6 +12,7 @@ contract Config is Script {
 
     address GOVERNOR;
     address DEPLOYER;
+    address INITIAL_KEEPER;
 
     address usdc;
     address usdt;
@@ -22,15 +23,18 @@ contract Config is Script {
     address wlpTokenBeacon;
     address rampAControllerBeacon;
     address zap;
+    address keeperController;
 
     struct JSONData {
         address Factory;
         address LPTokenBeacon;
+        address RampAControllerBeacon;
         address SelfPeggingAssetBeacon;
         address USDC;
         address USDT;
         address WLPTokenBeacon;
         address Zap;
+        
     }
 
     function loadConfig() internal {

@@ -58,6 +58,8 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
         bytes tokenBRateFunctionSig;
         /// @notice Decimals function signature for token B
         bytes tokenBDecimalsFunctionSig;
+
+        address keeperController;
     }
 
     /**
@@ -388,7 +390,8 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
             exchangeRateProviders[1] = IExchangeRateProvider(erc4626ExchangeRate);
         }
 
-        bytes memory rampAControllerInit = abi.encodeCall(RampAController.initialize, (A, minRampTime));
+        bytes memory rampAControllerInit = abi.encodeCall(RampAController.initialize, (A, minRampTime,argument.keeperController));
+        
         BeaconProxy rampAControllerProxy = new BeaconProxy(rampAControllerBeacon, rampAControllerInit);
         RampAController rampAConotroller = RampAController(address(rampAControllerProxy));
 
@@ -403,7 +406,8 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
                 A,
                 exchangeRateProviders,
                 address(rampAControllerProxy),
-                exchangeRateFeeFactor
+                exchangeRateFeeFactor,
+                argument.keeperController
             )
         );
         BeaconProxy selfPeggingAssetProxy = new BeaconProxy(selfPeggingAssetBeacon, selfPeggingAssetInit);

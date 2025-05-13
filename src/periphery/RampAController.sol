@@ -12,20 +12,28 @@ import "../interfaces/IRampAController.sol";
  */
 contract RampAController is IRampAController, Initializable, OwnableUpgradeable {
     // Constants for A parameter limits and precision
-    uint256 private constant MAX_A = 10 ** 6; // as Curve
-    uint256 private constant MAX_A_CHANGE = 2; // Allow 50% changes
     uint256 private constant DEFAULT_RAMP_TIME = 30 minutes;
+
+    // A parameter limits and precision
+    uint256 public MAX_A;// as Curve but modifiable
+    uint256 public MAX_A_CHANGE_NEG ; // Allow currentA/MAX_A_CHANGE_NEG percent decrease but modifiable
+    uint256 public MAX_A_CHANGE_POS ; // Allow currentA/MAX_A_CHANGE_POS percent increase but modifiable
 
     uint256 public override initialA; // when starts
     uint256 public override futureA; // when completes
     uint256 public override initialATime;
     uint256 public override futureATime;
     uint256 public minRampTime;
+    address public keeperController;
+
 
     // Events
     event RampInitiated(uint256 initialA, uint256 futureA, uint256 initialATime, uint256 futureATime);
     event RampStopped(uint256 currentA);
     event MinRampTimeUpdated(uint256 oldValue, uint256 newValue);
+    event MaxAUpdated(uint256 previousAMax,uint256 newAMax);
+    event MaxAChangeIncreased(uint256 previousALimit,uint256 newALimit);
+    event MaxAChangeDecreased(uint256 previousALimit,uint256 newALimit);
 
     // Custom errors
     error InvalidFutureTime();
@@ -44,9 +52,15 @@ contract RampAController is IRampAController, Initializable, OwnableUpgradeable 
      * @notice Initializer for RampAController
      * @param _initialA is the initial value of A
      * @param _minRampTime is min ramp time
+     * @param _keeperController is the address of the keeper controller
      */
-    function initialize(uint256 _initialA, uint256 _minRampTime) external initializer {
+    function initialize(uint256 _initialA, uint256 _minRampTime,address _keeperController) external initializer {
         __Ownable_init(msg.sender);
+        
+        // setting constants in upgradable fashion
+        MAX_A = 10 ** 6; // as Curve but modifiable
+        MAX_A_CHANGE_NEG = 2; // Allow 50% decrease but modifiable
+        MAX_A_CHANGE_POS = 2; // Allow 50% increase but modifiable
 
         if (_initialA == 0 || _initialA > MAX_A) revert AOutOfBounds();
 
@@ -55,6 +69,8 @@ contract RampAController is IRampAController, Initializable, OwnableUpgradeable 
         initialATime = block.timestamp;
         futureATime = block.timestamp;
         minRampTime = _minRampTime == 0 ? DEFAULT_RAMP_TIME : _minRampTime;
+        keeperController = _keeperController;
+
 
         emit MinRampTimeUpdated(0, minRampTime);
     }
@@ -68,6 +84,31 @@ contract RampAController is IRampAController, Initializable, OwnableUpgradeable 
         minRampTime = _minRampTime;
         emit MinRampTimeUpdated(oldValue, _minRampTime);
     }
+
+    /**
+     * @notice Set the new maximum value of A
+     * @dev Can only be called by the owner
+     * @param _AMax is the new maximum value of A
+     */
+    function setAMax(uint256 _AMax) external onlyOwner {
+        emit MaxAUpdated(MAX_A,_AMax);
+        MAX_A=_AMax;
+    }
+
+    /**
+     * @notice Set the maximum change in A
+     * @dev Can only be called by the owner
+     * @param _maxChangeInAIncrease is the new maximum increase in A as a multiplier
+     * @param _maxChangeInADecrease is the new maximum decrease in A as a multiplier
+     */
+    function setAMaxChange(uint256 _maxChangeInAIncrease, uint256 _maxChangeInADecrease) external onlyOwner {
+        
+        emit MaxAChangeIncreased(MAX_A_CHANGE_POS,_maxChangeInAIncrease);
+        MAX_A_CHANGE_POS=_maxChangeInAIncrease;
+        emit MaxAChangeDecreased(MAX_A_CHANGE_NEG,_maxChangeInADecrease);
+        MAX_A_CHANGE_NEG=_maxChangeInADecrease;
+    }
+
 
     /**
      * @notice Initiate a ramp to a new A value
@@ -88,10 +129,10 @@ contract RampAController is IRampAController, Initializable, OwnableUpgradeable 
             if (_futureA > _initialA * maxMultiplier) revert ExcessiveAChange();
         } else if (_futureA > _initialA) {
             // A increasing, check if futureA <= initialA * (1 + 1/MAX_A_CHANGE)
-            if (_futureA * MAX_A_CHANGE > _initialA * (MAX_A_CHANGE + 1)) revert ExcessiveAChange();
+            if (_futureA * MAX_A_CHANGE_POS > _initialA * (MAX_A_CHANGE_POS + 1)) revert ExcessiveAChange();
         } else {
             // A decreasing, check if initialA <= futureA * MAX_A_CHANGE
-            if (_initialA > _futureA * MAX_A_CHANGE) revert ExcessiveAChange();
+            if (_initialA > _futureA * MAX_A_CHANGE_NEG) revert ExcessiveAChange();
         }
 
         initialA = _initialA;
