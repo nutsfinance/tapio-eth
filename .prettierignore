@@ -1,10 +1,9 @@
 # directories
+broadcast
 cache
 coverage
 node_modules
 out
-broadcast/**/dry-run/
-lib
 
 # files
 *.env
@@ -14,3 +13,4 @@ lib
 lcov.info
 package-lock.json
 pnpm-lock.yaml
+yarn.lock

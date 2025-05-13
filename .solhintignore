@@ -1,0 +1,7 @@
+node_modules
+test
+lib
+out
+cache 
+src/mock
+script
