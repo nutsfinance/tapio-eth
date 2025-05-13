@@ -15,6 +15,9 @@ import {KeeperController} from "../src/periphery/KeeperController.sol";
 import {IRampAController} from "../src/interfaces/IRampAController.sol";
 import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 
+
+// Script to add keepers in keeper controller
+
 contract AddKeeper is Deploy, Setup, Pool {
     function init() internal {
         if (vm.envUint("HEX_PRIV_KEY") == 0) revert("No private key found");
