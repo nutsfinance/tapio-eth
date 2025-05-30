@@ -15,6 +15,11 @@ import "../SelfPeggingAsset.sol";
  * @dev UUPS upgradeable. Governor is admin, curator and guardian are roles.
  */
 contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
+    /**
+     * @dev This is the denominator used for formatting ranges
+     */
+    uint256 private constant DENOMINATOR = 1e10;
+
     bytes32 public constant PROTOCOL_OWNER_ROLE = keccak256("PROTOCOL_OWNER_ROLE");
     bytes32 public constant CURATOR_ROLE = keccak256("CURATOR_ROLE");
     bytes32 public constant GUARDIAN_ROLE = keccak256("GUARDIAN_ROLE");
@@ -157,6 +162,8 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
         uint256 cur = spa.offPegFeeMultiplier();
         checkRange(newMultiplier, cur, offPegParams);
 
+        require(newMultiplier >= offPegParams.min, OutOfBounds());
+
         spa.setOffPegFeeMultiplier(newMultiplier);
     }
 
@@ -275,16 +282,16 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
         internal
         pure
     {
+        // Skip percentage checks if explicitly disabled or if current value is zero
+        if (currentValue == 0) return;
+        if (bounds.maxDecreasePct == 0 && bounds.maxIncreasePct == 0) return;
+
         if (newValue < currentValue) {
-            // decreasing
-            uint256 decreasePct = ((currentValue - newValue) * 1e6) / currentValue;
+            uint256 decreasePct = ((currentValue - newValue) * DENOMINATOR) / currentValue;
             require(decreasePct <= bounds.maxDecreasePct, DeltaTooBig());
         } else if (newValue > currentValue) {
-            // increasing
-            uint256 increasePct = ((newValue - currentValue) * 1e6) / currentValue;
+            uint256 increasePct = ((newValue - currentValue) * DENOMINATOR) / currentValue;
             require(increasePct <= bounds.maxIncreasePct, DeltaTooBig());
         }
-
-        require(newValue <= bounds.max, OutOfBounds());
     }
 }

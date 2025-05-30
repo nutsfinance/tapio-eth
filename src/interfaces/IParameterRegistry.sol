@@ -25,14 +25,16 @@ interface IParameterRegistry {
     /**
      * @notice Structure representing bounds for a given parameter.
      * @dev All percentages are expressed in parts-per-million (ppm), i.e., 1e6 = 100%.
-     * @param max The hard cap for the parameter value.
-     * @param maxDecreasePct The maximum decrease allowed per transaction, e.g., 900_000 = -90%.
-     * @param maxIncreasePct The maximum increase allowed per transaction, e.g., 900_000 = +90%.
+     * @param max The maximum hard cap for the parameter value in parameter format.
+     * @param min The minimum hard cap for the parameter value in parameter format.
+     * @param maxDecreasePct The maximum decrease allowed per transaction with 1e10 decimal, e.g., 9e9 = -90%.
+     * @param maxIncreasePct The maximum increase allowed per transaction with 1e10 decimal, e.g., 9e9 = +90%.
      */
     struct Bounds {
         uint256 max;
-        uint32 maxDecreasePct;
-        uint32 maxIncreasePct;
+        uint256 min;
+        uint64 maxDecreasePct;
+        uint64 maxIncreasePct;
     }
 
     /**
