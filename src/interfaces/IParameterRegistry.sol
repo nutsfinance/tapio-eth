@@ -19,7 +19,8 @@ interface IParameterRegistry {
         RateChangeSkipPeriod,
         FeeErrorMargin,
         YieldErrorMargin,
-        MinRampTime
+        MinRampTime,
+        BufferPercent
     }
 
     /**
@@ -88,4 +89,7 @@ interface IParameterRegistry {
 
     /// @return Bounds for the minimum ramp time
     function minRampTimeParams() external view returns (Bounds memory);
+
+    /// @return Bounds for the buffer percentage
+    function bufferPercentParams() external view returns (Bounds memory);
 }

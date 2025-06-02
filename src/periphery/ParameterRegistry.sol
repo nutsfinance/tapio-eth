@@ -120,4 +120,11 @@ contract ParameterRegistry is IParameterRegistry, Ownable {
     function minRampTimeParams() external view returns (Bounds memory) {
         return bounds[ParamKey.MinRampTime];
     }
+
+    /**
+     * @inheritdoc IParameterRegistry
+     */
+    function bufferPercentParams() external view returns (Bounds memory) {
+        return bounds[ParamKey.BufferPercent];
+    }
 }

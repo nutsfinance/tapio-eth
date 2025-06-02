@@ -7,6 +7,7 @@ import "../interfaces/IRampAController.sol";
 import "../interfaces/IParameterRegistry.sol";
 import "../interfaces/IKeeper.sol";
 import "../SelfPeggingAsset.sol";
+import "../LPToken.sol";
 
 /**
  * @title Keeper
@@ -28,6 +29,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
     IParameterRegistry private registry;
     IRampAController private rampAController;
     SelfPeggingAsset private spa;
+    LPToken private lpToken;
 
     error ZeroAddress();
     error OutOfBounds();
@@ -49,7 +51,8 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
         address _guardian,
         IParameterRegistry _registry,
         IRampAController _rampAController,
-        SelfPeggingAsset _spa
+        SelfPeggingAsset _spa,
+        LPToken _lpToken
     )
         public
         initializer
@@ -60,6 +63,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
         require(address(_registry) != address(0), ZeroAddress());
         require(address(_rampAController) != address(0), ZeroAddress());
         require(address(_spa) != address(0), ZeroAddress());
+        require(address(_lpToken) != address(0), ZeroAddress());
 
         __AccessControl_init();
         __UUPSUpgradeable_init();
@@ -67,6 +71,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
         registry = _registry;
         rampAController = _rampAController;
         spa = _spa;
+        lpToken = _lpToken;
 
         // Role assignment
         _grantRole(PROTOCOL_OWNER_ROLE, _owner);
@@ -177,6 +182,18 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
         checkRange(newFeeFactor, cur, exchangeRateFeeParams);
 
         spa.setExchangeRateFeeFactor(newFeeFactor);
+
+    /**
+     * @inheritdoc IKeeper
+     */
+    function setBufferPercent(uint256 newBuffer) external override onlyRole(GOVERNOR_ROLE) {
+        IParameterRegistry.Bounds memory bufferParams = registry.bufferPercentParams();
+
+        uint256 cur = lpToken.bufferPercent();
+        checkBounds(newBuffer, cur, bufferParams);
+
+        lpToken.setBuffer(newBuffer);
+        emit BufferPercentUpdated(msg.sender, cur, newBuffer);
     }
 
     /**
@@ -267,6 +284,13 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
      */
     function getSpa() external view override returns (SelfPeggingAsset) {
         return spa;
+    }
+
+    /**
+     * @inheritdoc IKeeper
+     */
+    function getLpToken() external view override returns (LPToken) {
+        return lpToken;
     }
 
     /**
