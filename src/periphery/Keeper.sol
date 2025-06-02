@@ -101,6 +101,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
         require(newA <= aParams.max, OutOfBounds());
 
         rampAController.rampA(newA, endTime);
+        emit RampAInitiated(msg.sender, curA, newA, endTime);
     }
 
     /**
@@ -113,6 +114,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
         checkRange(newMinRampTime, curMinRampTime, minRampTimeParams);
 
         rampAController.setMinRampTime(newMinRampTime);
+        emit MinRampTimeUpdated(msg.sender, curMinRampTime, newMinRampTime);
     }
 
     /**
@@ -125,6 +127,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
         checkRange(newFee, cur, swapFeeParams);
 
         spa.setSwapFee(newFee);
+        emit SwapFeeUpdated(msg.sender, cur, newFee);
     }
 
     /**
@@ -137,6 +140,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
         checkRange(newFee, cur, mintFeeParams);
 
         spa.setMintFee(newFee);
+        emit MintFeeUpdated(msg.sender, cur, newFee);
     }
 
     /**
@@ -149,6 +153,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
 
         checkRange(newFee, cur, redeemFeeParams);
         spa.setRedeemFee(newFee);
+        emit RedeemFeeUpdated(msg.sender, cur, newFee);
     }
 
     /**
@@ -156,6 +161,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
      */
     function cancelRamp() external override onlyRole(GUARDIAN_ROLE) {
         rampAController.stopRamp();
+        emit RampCancelled(msg.sender);
     }
 
     /**
@@ -170,6 +176,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
         require(newMultiplier >= offPegParams.min, OutOfBounds());
 
         spa.setOffPegFeeMultiplier(newMultiplier);
+        emit OffPegFeeMultiplierUpdated(msg.sender, cur, newMultiplier);
     }
 
     /**
@@ -182,6 +189,8 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
         checkRange(newFeeFactor, cur, exchangeRateFeeParams);
 
         spa.setExchangeRateFeeFactor(newFeeFactor);
+        emit ExchangeRateFeeFactorUpdated(msg.sender, cur, newFeeFactor);
+    }
 
     /**
      * @inheritdoc IKeeper
@@ -206,6 +215,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
         checkRange(newDecayPeriod, cur, decayPeriodParams);
 
         spa.setDecayPeriod(newDecayPeriod);
+        emit DecayPeriodUpdated(msg.sender, cur, newDecayPeriod);
     }
 
     /**
@@ -218,6 +228,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
         checkRange(newSkipPeriod, cur, rateChangeSkipPeriodParams);
 
         spa.setRateChangeSkipPeriod(newSkipPeriod);
+        emit RateChangeSkipPeriodUpdated(msg.sender, cur, newSkipPeriod);
     }
 
     /**
@@ -230,6 +241,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
         checkRange(newMargin, cur, feeErrorMarginParams);
 
         spa.updateFeeErrorMargin(newMargin);
+        emit FeeErrorMarginUpdated(msg.sender, cur, newMargin);
     }
 
     /**
@@ -242,6 +254,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
         checkRange(newMargin, cur, yieldErrorMarginParams);
 
         spa.updateYieldErrorMargin(newMargin);
+        emit YieldErrorMarginUpdated(msg.sender, cur, newMargin);
     }
 
     /**
@@ -249,6 +262,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
      */
     function distributeLoss() external override onlyRole(GOVERNOR_ROLE) {
         spa.distributeLoss();
+        emit LossDistributed(msg.sender);
     }
 
     /**
@@ -256,6 +270,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
      */
     function pause() external override onlyRole(GUARDIAN_ROLE) {
         spa.pause();
+        emit ProtocolPaused(msg.sender);
     }
 
     /**
@@ -263,6 +278,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
      */
     function unpause() external override onlyRole(PROTOCOL_OWNER_ROLE) {
         spa.unpause();
+        emit ProtocolUnpaused(msg.sender);
     }
 
     /**

@@ -11,6 +11,24 @@ import "../LPToken.sol";
  * @notice Interface for the Keeper contract that enforces parameter bounds for curators
  */
 interface IKeeper {
+    // self-descripting events for gov actions
+    event RampAInitiated(address indexed caller, uint256 oldA, uint256 newA, uint256 endTime);
+    event MinRampTimeUpdated(address indexed caller, uint256 oldTime, uint256 newTime);
+    event SwapFeeUpdated(address indexed caller, uint256 oldFee, uint256 newFee);
+    event MintFeeUpdated(address indexed caller, uint256 oldFee, uint256 newFee);
+    event RedeemFeeUpdated(address indexed caller, uint256 oldFee, uint256 newFee);
+    event OffPegFeeMultiplierUpdated(address indexed caller, uint256 oldMultiplier, uint256 newMultiplier);
+    event ExchangeRateFeeFactorUpdated(address indexed caller, uint256 oldFactor, uint256 newFactor);
+    event BufferPercentUpdated(address indexed caller, uint256 oldBuffer, uint256 newBuffer);
+    event DecayPeriodUpdated(address indexed caller, uint256 oldPeriod, uint256 newPeriod);
+    event RateChangeSkipPeriodUpdated(address indexed caller, uint256 oldPeriod, uint256 newPeriod);
+    event FeeErrorMarginUpdated(address indexed caller, uint256 oldMargin, uint256 newMargin);
+    event YieldErrorMarginUpdated(address indexed caller, uint256 oldMargin, uint256 newMargin);
+    event LossDistributed(address indexed caller);
+    event ProtocolPaused(address indexed caller);
+    event ProtocolUnpaused(address indexed caller);
+    event RampCancelled(address indexed caller);
+
     /**
      * @notice Allows curators to gradually ramp the A coefficient within allowed bounds
      * @param newA The target A value
