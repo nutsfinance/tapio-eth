@@ -92,13 +92,13 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
         uint256 curA = rampAController.getA();
         if (curA <= 2) {
             uint256 maxMultiplier = 11 - curA; // 10 for initialA=1, 9 for initialA=2
-            if (newA > curA * maxMultiplier) revert OutOfBounds();
-        } else {
-            if (aParams.maxDecreasePct == 0 && aParams.maxIncreasePct == 0) revert RelativeRangeNotSet();
-            checkRange(newA, curA, aParams);
+            require(newA <= curA * maxMultiplier, OutOfBounds());
+        } else if (aParams.maxDecreasePct == 0 && aParams.maxIncreasePct == 0) {
+            // no relative bounds set
+            revert RelativeRangeNotSet();
         }
 
-        require(newA <= aParams.max, OutOfBounds());
+        checkBounds(newA, curA, aParams);
 
         rampAController.rampA(newA, endTime);
         emit RampAInitiated(msg.sender, curA, newA, endTime);
@@ -111,7 +111,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
         IParameterRegistry.Bounds memory minRampTimeParams = registry.minRampTimeParams();
 
         uint256 curMinRampTime = rampAController.minRampTime();
-        checkRange(newMinRampTime, curMinRampTime, minRampTimeParams);
+        checkBounds(newMinRampTime, curMinRampTime, minRampTimeParams);
 
         rampAController.setMinRampTime(newMinRampTime);
         emit MinRampTimeUpdated(msg.sender, curMinRampTime, newMinRampTime);
@@ -124,7 +124,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
         IParameterRegistry.Bounds memory swapFeeParams = registry.swapFeeParams();
 
         uint256 cur = spa.swapFee();
-        checkRange(newFee, cur, swapFeeParams);
+        checkBounds(newFee, cur, swapFeeParams);
 
         spa.setSwapFee(newFee);
         emit SwapFeeUpdated(msg.sender, cur, newFee);
@@ -137,7 +137,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
         IParameterRegistry.Bounds memory mintFeeParams = registry.mintFeeParams();
 
         uint256 cur = spa.mintFee();
-        checkRange(newFee, cur, mintFeeParams);
+        checkBounds(newFee, cur, mintFeeParams);
 
         spa.setMintFee(newFee);
         emit MintFeeUpdated(msg.sender, cur, newFee);
@@ -150,8 +150,8 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
         IParameterRegistry.Bounds memory redeemFeeParams = registry.redeemFeeParams();
 
         uint256 cur = spa.redeemFee();
+        checkBounds(newFee, cur, redeemFeeParams);
 
-        checkRange(newFee, cur, redeemFeeParams);
         spa.setRedeemFee(newFee);
         emit RedeemFeeUpdated(msg.sender, cur, newFee);
     }
@@ -171,9 +171,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
         IParameterRegistry.Bounds memory offPegParams = registry.offPegParams();
 
         uint256 cur = spa.offPegFeeMultiplier();
-        checkRange(newMultiplier, cur, offPegParams);
-
-        require(newMultiplier >= offPegParams.min, OutOfBounds());
+        checkBounds(newMultiplier, cur, offPegParams);
 
         spa.setOffPegFeeMultiplier(newMultiplier);
         emit OffPegFeeMultiplierUpdated(msg.sender, cur, newMultiplier);
@@ -186,7 +184,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
         IParameterRegistry.Bounds memory exchangeRateFeeParams = registry.exchangeRateFeeParams();
 
         uint256 cur = spa.exchangeRateFeeFactor();
-        checkRange(newFeeFactor, cur, exchangeRateFeeParams);
+        checkBounds(newFeeFactor, cur, exchangeRateFeeParams);
 
         spa.setExchangeRateFeeFactor(newFeeFactor);
         emit ExchangeRateFeeFactorUpdated(msg.sender, cur, newFeeFactor);
@@ -212,7 +210,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
         IParameterRegistry.Bounds memory decayPeriodParams = registry.decayPeriodParams();
 
         uint256 cur = spa.decayPeriod();
-        checkRange(newDecayPeriod, cur, decayPeriodParams);
+        checkBounds(newDecayPeriod, cur, decayPeriodParams);
 
         spa.setDecayPeriod(newDecayPeriod);
         emit DecayPeriodUpdated(msg.sender, cur, newDecayPeriod);
@@ -225,7 +223,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
         IParameterRegistry.Bounds memory rateChangeSkipPeriodParams = registry.rateChangeSkipPeriodParams();
 
         uint256 cur = spa.rateChangeSkipPeriod();
-        checkRange(newSkipPeriod, cur, rateChangeSkipPeriodParams);
+        checkBounds(newSkipPeriod, cur, rateChangeSkipPeriodParams);
 
         spa.setRateChangeSkipPeriod(newSkipPeriod);
         emit RateChangeSkipPeriodUpdated(msg.sender, cur, newSkipPeriod);
@@ -238,7 +236,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
         IParameterRegistry.Bounds memory feeErrorMarginParams = registry.feeErrorMarginParams();
 
         uint256 cur = spa.feeErrorMargin();
-        checkRange(newMargin, cur, feeErrorMarginParams);
+        checkBounds(newMargin, cur, feeErrorMarginParams);
 
         spa.updateFeeErrorMargin(newMargin);
         emit FeeErrorMarginUpdated(msg.sender, cur, newMargin);
@@ -251,7 +249,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
         IParameterRegistry.Bounds memory yieldErrorMarginParams = registry.yieldErrorMarginParams();
 
         uint256 cur = spa.yieldErrorMargin();
-        checkRange(newMargin, cur, yieldErrorMarginParams);
+        checkBounds(newMargin, cur, yieldErrorMarginParams);
 
         spa.updateYieldErrorMargin(newMargin);
         emit YieldErrorMarginUpdated(msg.sender, cur, newMargin);
@@ -314,6 +312,40 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
      */
     function _authorizeUpgrade(address) internal override onlyRole(PROTOCOL_OWNER_ROLE) { }
 
+    /**
+     * @dev Validates if new value is within both absolute and relative bounds
+     * @param newValue The new value to check
+     * @param currentValue The current value for relative bounds checking
+     * @param bounds The bounds object containing min, max, and relative change limits
+     */
+    function checkBounds(
+        uint256 newValue,
+        uint256 currentValue,
+        IParameterRegistry.Bounds memory bounds
+    )
+        internal
+        pure
+    {
+        // Check minimum bound if it's set
+        if (bounds.min > 0) {
+            require(newValue >= bounds.min, OutOfBounds());
+        }
+
+        // Check maximum bound if it's set (max = 0 means no upper limit)
+        if (bounds.max > 0) {
+            require(newValue <= bounds.max, OutOfBounds());
+        }
+
+        // Check relative bounds
+        checkRange(newValue, currentValue, bounds);
+    }
+
+    /**
+     * @dev Checks if new value is within the allowed relative change from current value
+     * @param newValue The new value to check
+     * @param currentValue The current value to compare against
+     * @param bounds The bounds object containing relative change limits
+     */
     function checkRange(
         uint256 newValue,
         uint256 currentValue,
