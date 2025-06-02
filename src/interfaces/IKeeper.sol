@@ -4,6 +4,7 @@ pragma solidity ^0.8.28;
 import "../interfaces/IRampAController.sol";
 import "../SelfPeggingAsset.sol";
 import "./IParameterRegistry.sol";
+import "../LPToken.sol";
 
 /**
  * @title IKeeper
@@ -52,6 +53,12 @@ interface IKeeper {
      * @param newFeeFactor The new exchange rate fee value
      */
     function setExchangeRateFeeFactor(uint256 newFeeFactor) external;
+
+    /**
+     * @notice Set the buffer within allowed bounds
+     * @param newBuffer The new buffer value
+     */
+    function setBufferPercent(uint256 newBuffer) external;
 
     /**
      * @notice Set the decay period
@@ -114,4 +121,10 @@ interface IKeeper {
      * @return The SelfPeggingAsset address
      */
     function getSpa() external view returns (SelfPeggingAsset);
+
+    /**
+     * @notice Get the LPToken being managed
+     * @return The LPToken address
+     */
+    function getLpToken() external view returns (LPToken);
 }
