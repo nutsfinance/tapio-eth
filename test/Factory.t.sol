@@ -31,7 +31,7 @@ contract FactoryTest is Test {
         address lpTokenImplentation = address(new LPToken());
         address wlpTokenImplentation = address(new WLPToken());
         address rampAControllerImplentation = address(new RampAController());
-        address keeperImplentation = address(new Keeper());
+        address keeperImplementation = address(new Keeper());
 
         UpgradeableBeacon beacon = new UpgradeableBeacon(selfPeggingAssetImplentation, governor);
         address selfPeggingAssetBeacon = address(beacon);
@@ -44,9 +44,6 @@ contract FactoryTest is Test {
 
         beacon = new UpgradeableBeacon(rampAControllerImplentation, governor);
         address rampAControllerBeacon = address(beacon);
-
-        beacon = new UpgradeableBeacon(keeperImplentation, governor);
-        address keeperBeacon = address(beacon);
 
         bytes memory data = abi.encodeCall(
             SelfPeggingAssetFactory.initialize,
@@ -63,7 +60,8 @@ contract FactoryTest is Test {
                 lpTokenBeacon,
                 wlpTokenBeacon,
                 rampAControllerBeacon,
-                new ConstantExchangeRateProvider(),
+                keeperImplementation,
+                address(new ConstantExchangeRateProvider()),
                 0,
                 0
             )
@@ -266,7 +264,8 @@ contract FactoryTest is Test {
             address(0),
             address(0),
             address(0),
-            exchangeRateProvider,
+            address(0),
+            address(exchangeRateProvider),
             0,
             0
         );

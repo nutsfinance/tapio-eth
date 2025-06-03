@@ -1,10 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20BurnableUpgradeable.sol";
-import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
-import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
@@ -14,7 +11,6 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "./SelfPeggingAsset.sol";
 import "./LPToken.sol";
 import "./WLPToken.sol";
-import "./misc/ConstantExchangeRateProvider.sol";
 import "./misc/ERC4626ExchangeRate.sol";
 import "./misc/OracleExchangeRate.sol";
 import "./interfaces/IExchangeRateProvider.sol";
@@ -116,7 +112,9 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
     /**
      * @dev Constant exchange rate provider.
      */
-    ConstantExchangeRateProvider public constantExchangeRateProvider;
+    address public constantExchangeRateProvider;
+
+    address public keeperImplementation;
 
     /**
      * @dev Minimum ramp time for the A parameter.
@@ -205,6 +203,12 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
      */
     event BufferPercentUpdated(uint256 bufferPercent);
 
+    /**
+     * @dev This event is emitted when the keeper contract implementation is updated.
+     * @param keeperImplementation is the new address of keeper implementation.
+     */
+    event KeeperImplementationUpdated(address keeperImplementation);
+
     /// @dev Error thrown when the address is invalid
     error InvalidAddress();
 
@@ -237,7 +241,8 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
         address _lpTokenBeacon,
         address _wlpTokenBeacon,
         address _rampAControllerBeacon,
-        ConstantExchangeRateProvider _constantExchangeRateProvider,
+        address _keeperImplementation,
+        address _constantExchangeRateProvider,
         uint256 _exchangeRateFeeFactor,
         uint256 _bufferPercent
     )
@@ -250,7 +255,8 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
         require(_selfPeggingAssetBeacon != address(0), InvalidAddress());
         require(_lpTokenBeacon != address(0), InvalidAddress());
         require(_wlpTokenBeacon != address(0), InvalidAddress());
-        require(address(_constantExchangeRateProvider) != address(0), InvalidAddress());
+        require(_keeperImplementation != address(0), InvalidAddress());
+        require(_constantExchangeRateProvider != address(0), InvalidAddress());
         require(_rampAControllerBeacon != address(0), InvalidAddress());
 
         __Ownable_init(_owner);
@@ -262,6 +268,7 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
         lpTokenBeacon = _lpTokenBeacon;
         wlpTokenBeacon = _wlpTokenBeacon;
         rampAControllerBeacon = _rampAControllerBeacon;
+        keeperImplementation = _keeperImplementation;
         constantExchangeRateProvider = _constantExchangeRateProvider;
 
         mintFee = _mintFee;
@@ -340,9 +347,20 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
         emit ExchangeRateFeeFactorModified(_exchangeRateFeeFactor);
     }
 
+    /**
+     * @dev Set the buffer percentage.
+     */
     function setBufferPercent(uint256 _bufferPercent) external onlyOwner {
         bufferPercent = _bufferPercent;
         emit BufferPercentUpdated(_bufferPercent);
+    }
+
+    /**
+     * @dev Set the keeper implementation.
+     */
+    function setKeeperImplementation(address _keeperImplementation) external onlyOwner {
+        keeperImplementation = _keeperImplementation;
+        emit KeeperImplementationUpdated(keeperImplementation);
     }
 
     /**
@@ -353,8 +371,8 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
         require(argument.tokenB != address(0), InvalidAddress());
         require(argument.tokenA != argument.tokenB, InvalidValue());
 
-        string memory symbolA = ERC20Upgradeable(argument.tokenA).symbol();
-        string memory symbolB = ERC20Upgradeable(argument.tokenB).symbol();
+        string memory symbolA = ERC20(argument.tokenA).symbol();
+        string memory symbolB = ERC20(argument.tokenB).symbol();
         BeaconProxy lpTokenProxy = new BeaconProxy(lpTokenBeacon, new bytes(0));
 
         address[] memory tokens = new address[](2);
@@ -362,8 +380,8 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
         uint256[] memory fees = new uint256[](3);
         tokens[0] = argument.tokenA;
         tokens[1] = argument.tokenB;
-        precisions[0] = 10 ** (18 - ERC20Upgradeable(argument.tokenA).decimals());
-        precisions[1] = 10 ** (18 - ERC20Upgradeable(argument.tokenB).decimals());
+        precisions[0] = 10 ** (18 - ERC20(argument.tokenA).decimals());
+        precisions[1] = 10 ** (18 - ERC20(argument.tokenB).decimals());
         fees[0] = mintFee;
         fees[1] = swapFee;
         fees[2] = redeemFee;
@@ -400,7 +418,7 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
             exchangeRateProviders[1] = IExchangeRateProvider(erc4626ExchangeRate);
         }
 
-        ERC1967Proxy keeperProxy = new ERC1967Proxy(address(new Keeper()), new bytes(0));
+        ERC1967Proxy keeperProxy = new ERC1967Proxy(keeperImplementation, new bytes(0));
         bytes memory rampAControllerInit =
             abi.encodeCall(RampAController.initialize, (A, minRampTime, address(keeperProxy)));
         BeaconProxy rampAControllerProxy = new BeaconProxy(rampAControllerBeacon, rampAControllerInit);

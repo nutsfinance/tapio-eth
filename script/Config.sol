@@ -21,7 +21,7 @@ contract Config is Script {
     address lpTokenBeacon;
     address wlpTokenBeacon;
     address rampAControllerBeacon;
-    address keeperBeacon;
+    address keeperImplementation;
     address parameterRegistryBeacon;
     address zap;
 
