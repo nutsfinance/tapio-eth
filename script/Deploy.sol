@@ -26,7 +26,7 @@ contract Deploy is Config {
         address lpTokenImplentation = address(new LPToken());
         address wlpTokenImplentation = address(new WLPToken());
         address rampAControllerImplentation = address(new RampAController());
-        address keeperImplentation = address(new Keeper());
+        keeperImplementation = address(new Keeper());
 
         UpgradeableBeacon beacon = new UpgradeableBeacon(selfPeggingAssetImplentation, GOVERNOR);
         selfPeggingAssetBeacon = address(beacon);
@@ -39,9 +39,6 @@ contract Deploy is Config {
 
         beacon = new UpgradeableBeacon(rampAControllerImplentation, GOVERNOR);
         rampAControllerBeacon = address(beacon);
-
-        beacon = new UpgradeableBeacon(keeperImplentation, GOVERNOR);
-        keeperBeacon = address(beacon);
     }
 
     function deployFactory() internal {
@@ -64,7 +61,8 @@ contract Deploy is Config {
                 lpTokenBeacon,
                 wlpTokenBeacon,
                 rampAControllerBeacon,
-                new ConstantExchangeRateProvider(),
+                keeperImplementation,
+                address(new ConstantExchangeRateProvider()),
                 0,
                 0
             )
