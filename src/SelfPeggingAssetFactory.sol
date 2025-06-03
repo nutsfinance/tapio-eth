@@ -408,15 +408,6 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
         ParameterRegistry parameterRegistry = new ParameterRegistry(governor, address(selfPeggingAssetProxy));
 
         Keeper keeper = Keeper(address(keeperProxy));
-        keeper.initialize(
-            address(owner()),
-            address(governor),
-            address(governor),
-            address(governor),
-            IParameterRegistry(address(parameterRegistry)),
-            IRampAController(address(rampAControllerProxy)),
-            SelfPeggingAsset(address(selfPeggingAssetProxy))
-        );
 
         SelfPeggingAsset selfPeggingAsset = SelfPeggingAsset(address(selfPeggingAssetProxy));
         selfPeggingAsset.initialize(
@@ -436,6 +427,16 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
         string memory name = string.concat(string.concat(string.concat("Self Pegging Asset ", symbolA), " "), symbolB);
 
         LPToken lpToken = LPToken(address(lpTokenProxy));
+        keeper.initialize(
+            address(owner()),
+            address(governor),
+            address(governor),
+            address(governor),
+            IParameterRegistry(address(parameterRegistry)),
+            IRampAController(address(rampAControllerProxy)),
+            SelfPeggingAsset(address(selfPeggingAssetProxy)),
+            lpToken
+        );
         lpToken.initialize(name, symbol, bufferPercent, address(keeperProxy), address(selfPeggingAsset));
 
         bytes memory wlpTokenInit = abi.encodeCall(WLPToken.initialize, (ILPToken(lpToken)));

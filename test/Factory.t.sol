@@ -167,30 +167,9 @@ contract FactoryTest is Test {
         factory.createPool(arg);
 
         Vm.Log[] memory entries = vm.getRecordedLogs();
-        bytes32 eventSig = keccak256("PoolCreated(address,address,address,address,address,address)");
 
-        address decodedPoolToken;
-        address decodedSelfPeggingAsset;
-        address decodedWrappedPoolToken;
-        address decodedRampAController;
-        address decodedKeeper;
-        address decodedParameterRegistry;
-
-        for (uint256 i = 0; i < entries.length; i++) {
-            Vm.Log memory log = entries[i];
-
-            if (log.topics[0] == eventSig) {
-                (
-                    decodedPoolToken,
-                    decodedSelfPeggingAsset,
-                    decodedWrappedPoolToken,
-                    decodedRampAController,
-                    decodedKeeper,
-                    decodedParameterRegistry
-                ) = abi.decode(log.data, (address, address, address, address, address, address));
-            }
-        }
-
+        (address decodedPoolToken, address decodedSelfPeggingAsset, address decodedWrappedPoolToken,,,) =
+            _decodePoolCreatedEvent(entries);
         SelfPeggingAsset selfPeggingAsset = SelfPeggingAsset(decodedSelfPeggingAsset);
         LPToken poolToken = LPToken(decodedPoolToken);
         WLPToken wrappedPoolToken = WLPToken(decodedWrappedPoolToken);
@@ -242,29 +221,9 @@ contract FactoryTest is Test {
         vm.recordLogs();
         factory.createPool(arg);
         Vm.Log[] memory entries = vm.getRecordedLogs();
-        bytes32 eventSig = keccak256("PoolCreated(address,address,address,address,address,address)");
 
-        address decodedPoolToken;
-        address decodedSelfPeggingAsset;
-        address decodedWrappedPoolToken;
-        address decodedRampAController;
-        address decodedKeeper;
-        address decodedParameterRegistry;
-
-        for (uint256 i = 0; i < entries.length; i++) {
-            Vm.Log memory log = entries[i];
-
-            if (log.topics[0] == eventSig) {
-                (
-                    decodedPoolToken,
-                    decodedSelfPeggingAsset,
-                    decodedWrappedPoolToken,
-                    decodedRampAController,
-                    decodedKeeper,
-                    decodedParameterRegistry
-                ) = abi.decode(log.data, (address, address, address, address, address, address));
-            }
-        }
+        (address decodedPoolToken, address decodedSelfPeggingAsset, address decodedWrappedPoolToken,,,) =
+            _decodePoolCreatedEvent(entries);
 
         SelfPeggingAsset selfPeggingAsset = SelfPeggingAsset(decodedSelfPeggingAsset);
         LPToken poolToken = LPToken(decodedPoolToken);
@@ -333,5 +292,19 @@ contract FactoryTest is Test {
         RampAController rampAController = new RampAController();
         vm.expectRevert(Initializable.InvalidInitialization.selector);
         rampAController.initialize(30 minutes, 0, governor);
+    }
+
+    function _decodePoolCreatedEvent(Vm.Log[] memory entries)
+        internal
+        pure
+        returns (address, address, address, address, address, address)
+    {
+        bytes32 eventSig = keccak256("PoolCreated(address,address,address,address,address,address)");
+        for (uint256 i = 0; i < entries.length; i++) {
+            if (entries[i].topics[0] == eventSig) {
+                return abi.decode(entries[i].data, (address, address, address, address, address, address));
+            }
+        }
+        revert("PoolCreated event not found");
     }
 }
