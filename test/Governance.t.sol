@@ -1,0 +1,250 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.28;
+
+import { Test } from "forge-std/Test.sol";
+import { Vm } from "forge-std/Vm.sol";
+import { console } from "forge-std/console.sol";
+
+import { UpgradeableBeacon } from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
+import { BeaconProxy } from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
+import { ERC1967Proxy } from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+
+import { SelfPeggingAssetFactory } from "../src/SelfPeggingAssetFactory.sol";
+import { MockToken } from "../src/mock/MockToken.sol";
+import { SelfPeggingAsset } from "../src/SelfPeggingAsset.sol";
+import { LPToken } from "../src/LPToken.sol";
+import { WLPToken } from "../src/WLPToken.sol";
+import { RampAController } from "../src/periphery/RampAController.sol";
+import { Keeper } from "../src/periphery/Keeper.sol";
+import { ParameterRegistry } from "../src/periphery/ParameterRegistry.sol";
+import { IParameterRegistry } from "../src/interfaces/IParameterRegistry.sol";
+import { ConstantExchangeRateProvider } from "../src/misc/ConstantExchangeRateProvider.sol";
+
+/*
+ * 1. Correct role assignment on pool creation via factory
+ * 2. AC on keeper + parameter registry
+ * 3. Permission transfer flow (pause / unpause)
+ * 4. Upgradeability (UUPS + Beacon)
+ */
+contract GovernanceTest is Test {
+    address internal protocolOwner = address(0xA0); // Protocol and beacon owner
+    address internal governor = address(0xB0);
+    address internal curator = address(0xC0);
+    address internal guardian = address(0xD0);
+
+    SelfPeggingAssetFactory internal factory;
+    SelfPeggingAsset internal spa;
+    LPToken internal lpToken;
+    RampAController internal rampAController;
+    Keeper internal keeper;
+    ParameterRegistry internal parameterRegistry;
+    UpgradeableBeacon internal spaBeacon;
+
+    function setUp() public {
+        address spaImpl = address(new SelfPeggingAsset());
+        address lpImpl = address(new LPToken());
+        address wlpImpl = address(new WLPToken());
+        address rampImpl = address(new RampAController());
+        address keeperImpl = address(new Keeper());
+
+        spaBeacon = new UpgradeableBeacon(spaImpl, protocolOwner);
+        UpgradeableBeacon lpBeacon = new UpgradeableBeacon(lpImpl, protocolOwner);
+        UpgradeableBeacon wlpBeacon = new UpgradeableBeacon(wlpImpl, protocolOwner);
+        UpgradeableBeacon rampBeacon = new UpgradeableBeacon(rampImpl, protocolOwner);
+
+        ConstantExchangeRateProvider constRate = new ConstantExchangeRateProvider();
+        bytes memory data = abi.encodeCall(
+            SelfPeggingAssetFactory.initialize,
+            (
+                protocolOwner, // owner
+                governor, // governor
+                0, // mint fee
+                0, // swap fee
+                0, // redeem fee
+                0, // offPeg multiplier
+                100, // A
+                30 minutes, // minRampTime
+                address(spaBeacon),
+                address(lpBeacon),
+                address(wlpBeacon),
+                address(rampBeacon),
+                keeperImpl,
+                address(constRate),
+                0, // exchangeRateFeeFactor
+                0 // bufferPercent
+            )
+        );
+        ERC1967Proxy proxy = new ERC1967Proxy(address(new SelfPeggingAssetFactory()), data);
+        factory = SelfPeggingAssetFactory(address(proxy));
+
+        _createPool();
+    }
+
+    function _createPool() internal {
+        MockToken tokenA = new MockToken("TokenA", "A", 18);
+        MockToken tokenB = new MockToken("TokenB", "B", 18);
+
+        SelfPeggingAssetFactory.CreatePoolArgument memory arg = SelfPeggingAssetFactory.CreatePoolArgument({
+            tokenA: address(tokenA),
+            tokenB: address(tokenB),
+            tokenAType: SelfPeggingAssetFactory.TokenType.Standard,
+            tokenAOracle: address(0),
+            tokenARateFunctionSig: new bytes(0),
+            tokenADecimalsFunctionSig: new bytes(0),
+            tokenBType: SelfPeggingAssetFactory.TokenType.Standard,
+            tokenBOracle: address(0),
+            tokenBRateFunctionSig: new bytes(0),
+            tokenBDecimalsFunctionSig: new bytes(0)
+        });
+
+        vm.recordLogs();
+        factory.createPool(arg);
+        Vm.Log[] memory logs_ = vm.getRecordedLogs();
+        (address lp, address _spa,, address ramp, address paramReg, address _keeper) = _decodePoolCreatedEvent(logs_);
+
+        spa = SelfPeggingAsset(_spa);
+        lpToken = LPToken(lp);
+        rampAController = RampAController(ramp);
+        parameterRegistry = ParameterRegistry(paramReg);
+        keeper = Keeper(_keeper);
+
+        // set up roles
+        vm.startPrank(governor);
+        keeper.grantRole(keeper.CURATOR_ROLE(), curator);
+        keeper.grantRole(keeper.GUARDIAN_ROLE(), guardian);
+        keeper.revokeRole(keeper.CURATOR_ROLE(), governor);
+        vm.stopPrank();
+    }
+
+    function _decodePoolCreatedEvent(Vm.Log[] memory entries)
+        internal
+        pure
+        returns (address, address, address, address, address, address)
+    {
+        bytes32 sig = keccak256("PoolCreated(address,address,address,address,address,address)");
+        for (uint256 i; i < entries.length; i++) {
+            if (entries[i].topics[0] == sig) {
+                return abi.decode(entries[i].data, (address, address, address, address, address, address));
+            }
+        }
+        revert("event not found");
+    }
+
+    function test_roleAssignmentOnCreation() external view {
+        assertTrue(keeper.hasRole(keeper.PROTOCOL_OWNER_ROLE(), protocolOwner));
+        assertTrue(keeper.hasRole(keeper.GOVERNOR_ROLE(), governor));
+        assertTrue(keeper.hasRole(keeper.CURATOR_ROLE(), curator));
+        assertTrue(keeper.hasRole(keeper.GUARDIAN_ROLE(), guardian));
+        assertFalse(keeper.hasRole(keeper.CURATOR_ROLE(), governor));
+        assertEq(keeper.getRoleAdmin(keeper.CURATOR_ROLE()), keeper.GOVERNOR_ROLE());
+        assertEq(keeper.getRoleAdmin(keeper.GUARDIAN_ROLE()), keeper.GOVERNOR_ROLE());
+        assertEq(keeper.getRoleAdmin(keeper.GOVERNOR_ROLE()), keeper.PROTOCOL_OWNER_ROLE());
+    }
+
+    function test_onlyCurator_canRampA() external {
+        uint256 newA = 110;
+        uint256 endTime = block.timestamp + 1 days;
+
+        vm.prank(governor);
+        vm.expectRevert();
+        keeper.rampA(newA, endTime);
+        vm.prank(curator);
+        keeper.rampA(newA, endTime);
+    }
+
+    function test_onlyGovernor_canSetSwapFee() external {
+        uint256 newFee = 1e7;
+        vm.expectRevert();
+        vm.prank(curator);
+        keeper.setSwapFee(newFee);
+
+        vm.prank(governor);
+        keeper.setSwapFee(newFee);
+    }
+
+    function test_onlyGuardian_canPause_and_owner_canUnpause() external {
+        // pause
+        vm.prank(guardian);
+        keeper.pause();
+        assertTrue(spa.paused());
+
+        // unpause by non-owner
+        vm.expectRevert();
+        vm.prank(governor);
+        keeper.unpause();
+
+        // unpause by owner
+        vm.prank(protocolOwner);
+        keeper.unpause();
+        assertTrue(!spa.paused());
+    }
+
+    function test_onlyGuardian_canCancelRamp() external {
+        uint256 newA = 110;
+        uint256 endTime = block.timestamp + 1 days;
+        vm.prank(curator);
+        keeper.rampA(newA, endTime);
+
+        // random (non-guardian) cannot cancel ramp
+        address randomAddr = address(0xCAFE);
+        bytes32 guardianRole = keeper.GUARDIAN_ROLE();
+        vm.expectRevert(
+            abi.encodeWithSignature("AccessControlUnauthorizedAccount(address,bytes32)", randomAddr, guardianRole)
+        );
+        vm.prank(randomAddr);
+        keeper.cancelRamp();
+
+        // guardian can cancel
+        vm.prank(guardian);
+        keeper.cancelRamp();
+    }
+
+    function test_parameterRegistry_onlyOwner() external {
+        IParameterRegistry.Bounds memory b =
+            IParameterRegistry.Bounds({ max: 1e8, min: 0, maxDecreasePct: 0, maxIncreasePct: 1e10 });
+
+        // non owner
+        vm.expectRevert();
+        vm.prank(curator);
+        parameterRegistry.setBounds(IParameterRegistry.ParamKey.SwapFee, b);
+
+        // owner (governor)
+        vm.prank(governor);
+        parameterRegistry.setBounds(IParameterRegistry.ParamKey.SwapFee, b);
+    }
+
+    function test_keeperUpgrade_byProtocolOwner() external {
+        // current impl
+        bytes32 slot = bytes32(uint256(keccak256("eip1967.proxy.implementation")) - 1);
+        address oldImpl = address(uint160(uint256(vm.load(address(keeper), slot))));
+        address newImpl = address(new Keeper());
+
+        // unauthorized
+        vm.expectRevert();
+        vm.prank(governor);
+        UUPSUpgradeable(address(keeper)).upgradeToAndCall(newImpl, "");
+
+        // authorized – protocol owner
+        vm.prank(protocolOwner);
+        UUPSUpgradeable(address(keeper)).upgradeToAndCall(newImpl, "");
+        address afterImpl = address(uint160(uint256(vm.load(address(keeper), slot))));
+        assertEq(afterImpl, newImpl);
+        assertTrue(afterImpl != oldImpl);
+    }
+
+    function test_beaconUpgrade_byProtocolOwner() external {
+        address oldImpl = spaBeacon.implementation();
+        address newImpl = address(new SelfPeggingAsset());
+
+        // fail from guardian
+        vm.expectRevert();
+        vm.prank(guardian);
+        spaBeacon.upgradeTo(newImpl);
+
+        vm.prank(protocolOwner);
+        spaBeacon.upgradeTo(newImpl);
+        assertEq(spaBeacon.implementation(), newImpl);
+        assertTrue(oldImpl != newImpl);
+    }
+}
