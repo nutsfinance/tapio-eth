@@ -366,14 +366,17 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
     /**
      * @dev Create a new pool.
      */
-    function createPool(CreatePoolArgument memory argument) external {
+    function createPool(CreatePoolArgument memory argument)
+        external
+        returns (WLPToken wlpToken, Keeper keeper, ParameterRegistry parameterRegistry)
+    {
         require(argument.tokenA != address(0), InvalidAddress());
         require(argument.tokenB != address(0), InvalidAddress());
         require(argument.tokenA != argument.tokenB, InvalidValue());
 
         string memory symbolA = ERC20(argument.tokenA).symbol();
         string memory symbolB = ERC20(argument.tokenB).symbol();
-        BeaconProxy lpTokenProxy = new BeaconProxy(lpTokenBeacon, new bytes(0));
+        LPToken lpToken = LPToken(address(new BeaconProxy(lpTokenBeacon, new bytes(0))));
 
         address[] memory tokens = new address[](2);
         uint256[] memory precisions = new uint256[](2);
@@ -418,55 +421,53 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
             exchangeRateProviders[1] = IExchangeRateProvider(erc4626ExchangeRate);
         }
 
-        ERC1967Proxy keeperProxy = new ERC1967Proxy(keeperImplementation, new bytes(0));
-        bytes memory rampAControllerInit =
-            abi.encodeCall(RampAController.initialize, (A, minRampTime, address(keeperProxy)));
-        BeaconProxy rampAControllerProxy = new BeaconProxy(rampAControllerBeacon, rampAControllerInit);
-        BeaconProxy selfPeggingAssetProxy = new BeaconProxy(selfPeggingAssetBeacon, new bytes(0));
-        ParameterRegistry parameterRegistry = new ParameterRegistry(governor, address(selfPeggingAssetProxy));
+        keeper = Keeper(address(new ERC1967Proxy(keeperImplementation, new bytes(0))));
 
-        Keeper keeper = Keeper(address(keeperProxy));
+        bytes memory rampAControllerInit = abi.encodeCall(RampAController.initialize, (A, minRampTime, address(keeper)));
+        IRampAController rampAController =
+            IRampAController(address(new BeaconProxy(rampAControllerBeacon, rampAControllerInit)));
+        SelfPeggingAsset selfPeggingAsset =
+            SelfPeggingAsset(address(new BeaconProxy(selfPeggingAssetBeacon, new bytes(0))));
+        parameterRegistry = new ParameterRegistry(governor, address(selfPeggingAsset));
 
-        SelfPeggingAsset selfPeggingAsset = SelfPeggingAsset(address(selfPeggingAssetProxy));
         selfPeggingAsset.initialize(
             tokens,
             precisions,
             fees,
             offPegFeeMultiplier,
-            LPToken(address(lpTokenProxy)),
+            lpToken,
             A,
             exchangeRateProviders,
-            address(rampAControllerProxy),
+            address(rampAController),
             exchangeRateFeeFactor,
-            address(keeperProxy)
+            address(keeper)
         );
 
         string memory symbol = string.concat(string.concat(string.concat("SPA-", symbolA), "-"), symbolB);
         string memory name = string.concat(string.concat(string.concat("Self Pegging Asset ", symbolA), " "), symbolB);
 
-        LPToken lpToken = LPToken(address(lpTokenProxy));
         keeper.initialize(
             address(owner()),
             address(governor),
             address(governor),
             address(governor),
             IParameterRegistry(address(parameterRegistry)),
-            IRampAController(address(rampAControllerProxy)),
-            SelfPeggingAsset(address(selfPeggingAssetProxy)),
+            rampAController,
+            selfPeggingAsset,
             lpToken
         );
-        lpToken.initialize(name, symbol, bufferPercent, address(keeperProxy), address(selfPeggingAsset));
+        lpToken.initialize(name, symbol, bufferPercent, address(keeper), address(selfPeggingAsset));
 
-        bytes memory wlpTokenInit = abi.encodeCall(WLPToken.initialize, (ILPToken(lpToken)));
-        BeaconProxy wlpTokenProxy = new BeaconProxy(wlpTokenBeacon, wlpTokenInit);
+        bytes memory wlpTokenInit = abi.encodeCall(WLPToken.initialize, (lpToken));
+        wlpToken = WLPToken(address(new BeaconProxy(wlpTokenBeacon, wlpTokenInit)));
 
         emit PoolCreated(
-            address(lpTokenProxy),
-            address(selfPeggingAssetProxy),
-            address(wlpTokenProxy),
-            address(rampAControllerProxy),
+            address(lpToken),
+            address(selfPeggingAsset),
+            address(wlpToken),
+            address(rampAController),
             address(parameterRegistry),
-            address(keeperProxy)
+            address(keeper)
         );
     }
 
