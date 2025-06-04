@@ -1,61 +1,60 @@
 # Full reference https://github.com/foundry-rs/foundry/tree/master/crates/config
 
 [profile.default]
-  auto_detect_solc = false
-  block_timestamp = 1_680_220_800 # March 31, 2023 at 00:00 GMT
-  bytecode_hash = "none"
-  evm_version = "shanghai"
-  fuzz = { runs = 1_000 }
-  gas_reports = ["*"]
-  optimizer = true
-  optimizer_runs = 200
-  out = "out"
-  script = "script"
-  solc = "0.8.28"
-  src = "src"
-  test = "test"
-  remappings = [
-    "@chainlink/contracts/=node_modules/@chainlink/contracts/src/v0.8/",
-    "@openzeppelin/contracts-upgradeable/=node_modules/@openzeppelin/contracts-upgradeable/",
-    "@openzeppelin/contracts/=node_modules/@openzeppelin/contracts/",
-    "forge-std/=node_modules/forge-std/src/",
-  ]
-  fs_permissions = [{ access = "read-write", path = "./"}]
-  via_ir = true
+auto_detect_solc = false
+block_timestamp = 1_680_220_800 # March 31, 2023 at 00:00 GMT
+bytecode_hash = "none"
+evm_version = "shanghai"
+fuzz = { runs = 10_000 }
+gas_reports = ["*"]
+optimizer = true
+optimizer_runs = 200
+out = "out"
+script = "script"
+solc = "0.8.28"
+src = "src"
+test = "test"
+remappings = [
+  "@chainlink/contracts/=node_modules/@chainlink/contracts/src/v0.8/",
+  "@openzeppelin/contracts-upgradeable/=node_modules/@openzeppelin/contracts-upgradeable/",
+  "@openzeppelin/contracts/=node_modules/@openzeppelin/contracts/",
+  "forge-std/=node_modules/forge-std/src/",
+]
+fs_permissions = [{ access = "read-write", path = "./" }]
+via_ir = true
 
 [profile.ci]
-  fuzz = { runs = 10_000 }
-  verbosity = 4
+fuzz = { runs = 10_000 }
+verbosity = 4
 
 [fmt]
-  bracket_spacing = true
-  int_types = "long"
-  line_length = 120
-  multiline_func_header = "all"
-  number_underscore = "thousands"
-  quote_style = "double"
-  tab_width = 4
-  wrap_comments = true
-  single_line_statement_blocks = "preserve"
+bracket_spacing = true
+int_types = "long"
+line_length = 120
+multiline_func_header = "all"
+number_underscore = "thousands"
+quote_style = "double"
+tab_width = 4
+wrap_comments = true
+single_line_statement_blocks = "preserve"
 
 [rpc_endpoints]
-  arbitrum = "https://arb1.arbitrum.io/rpc"
-  base = "https://mainnet.base.org"
-  mainnet = "https://ethereum.blockpi.network/v1/rpc/public"
-  optimism = "https://mainnet.optimism.io"
-  sepolia = "https://ethereum-sepolia.blockpi.network/v1/rpc/public"
-  basesepolia = "https://sepolia.base.org"
-  arbitrumsepolia = "https://sepolia-rollup.arbitrum.io/rpc"
-  opsepolia = "https://sepolia.optimism.io"
-  monadtestnet = "https://testnet-rpc.monad.xyz"
-  bera-bepolia = "https://bepolia.rpc.berachain.com"
-  hyper-testnet = "https://rpc.hyperliquid-testnet.xyz/evm"
+arbitrum = "https://arb1.arbitrum.io/rpc"
+base = "https://mainnet.base.org"
+mainnet = "https://ethereum.blockpi.network/v1/rpc/public"
+optimism = "https://mainnet.optimism.io"
+sepolia = "https://ethereum-sepolia.blockpi.network/v1/rpc/public"
+basesepolia = "https://sepolia.base.org"
+arbitrumsepolia = "https://sepolia-rollup.arbitrum.io/rpc"
+opsepolia = "https://sepolia.optimism.io"
+monadtestnet = "https://testnet-rpc.monad.xyz"
+bera-bepolia = "https://bepolia.rpc.berachain.com"
+hyper-testnet = "https://rpc.hyperliquid-testnet.xyz/evm"
 
 [etherscan]
-  arbitrumsepolia =  { key = "${ETHERSCAN_ARBITRUM_KEY}", chain = 421614 }
-  basesepolia = { key = "${ETHERSCAN_BASE_KEY}", chain = 84532 }
-  opsepolia = { key = "${ETHERSCAN_OP_KEY}", chain = 11155420 }
-  arbitrum =  { key = "${ETHERSCAN_ARBITRUM_KEY}", chain = 42161 }
-  base = { key = "${ETHERSCAN_BASE_KEY}", chain = 8453 }
-  optimism = { key = "${ETHERSCAN_OP_KEY}", chain = 10 }
-  
+arbitrumsepolia = { key = "${ETHERSCAN_ARBITRUM_KEY}", chain = 421614 }
+basesepolia = { key = "${ETHERSCAN_BASE_KEY}", chain = 84532 }
+opsepolia = { key = "${ETHERSCAN_OP_KEY}", chain = 11155420 }
+arbitrum = { key = "${ETHERSCAN_ARBITRUM_KEY}", chain = 42161 }
+base = { key = "${ETHERSCAN_BASE_KEY}", chain = 8453 }
+optimism = { key = "${ETHERSCAN_OP_KEY}", chain = 10 }
