@@ -146,16 +146,24 @@ contract GovernanceTest is Test {
         uint256 newA = 110;
         uint256 endTime = block.timestamp + 1 days;
 
+        bytes32 curatorRole = keeper.CURATOR_ROLE();
+        vm.expectRevert(
+            abi.encodeWithSignature("AccessControlUnauthorizedAccount(address,bytes32)", governor, curatorRole)
+        );
         vm.prank(governor);
-        vm.expectRevert();
         keeper.rampA(newA, endTime);
+
         vm.prank(curator);
         keeper.rampA(newA, endTime);
     }
 
     function test_onlyGovernor_canSetSwapFee() external {
         uint256 newFee = 1e7;
-        vm.expectRevert();
+
+        bytes32 governorRole = keeper.GOVERNOR_ROLE();
+        vm.expectRevert(
+            abi.encodeWithSignature("AccessControlUnauthorizedAccount(address,bytes32)", curator, governorRole)
+        );
         vm.prank(curator);
         keeper.setSwapFee(newFee);
 
@@ -170,7 +178,10 @@ contract GovernanceTest is Test {
         assertTrue(spa.paused());
 
         // unpause by non-owner
-        vm.expectRevert();
+        bytes32 protocolOwnerRole = keeper.PROTOCOL_OWNER_ROLE();
+        vm.expectRevert(
+            abi.encodeWithSignature("AccessControlUnauthorizedAccount(address,bytes32)", governor, protocolOwnerRole)
+        );
         vm.prank(governor);
         keeper.unpause();
 
@@ -204,8 +215,8 @@ contract GovernanceTest is Test {
         IParameterRegistry.Bounds memory b =
             IParameterRegistry.Bounds({ max: 1e8, min: 0, maxDecreasePct: 0, maxIncreasePct: 1e10 });
 
-        // non owner
-        vm.expectRevert();
+        // non owner (governor)
+        vm.expectRevert(abi.encodeWithSignature("OwnableUnauthorizedAccount(address)", curator));
         vm.prank(curator);
         parameterRegistry.setBounds(IParameterRegistry.ParamKey.SwapFee, b);
 
@@ -221,7 +232,10 @@ contract GovernanceTest is Test {
         address newImpl = address(new Keeper());
 
         // unauthorized
-        vm.expectRevert();
+        bytes32 protocolOwnerRole = keeper.PROTOCOL_OWNER_ROLE();
+        vm.expectRevert(
+            abi.encodeWithSignature("AccessControlUnauthorizedAccount(address,bytes32)", governor, protocolOwnerRole)
+        );
         vm.prank(governor);
         UUPSUpgradeable(address(keeper)).upgradeToAndCall(newImpl, "");
 
@@ -238,7 +252,7 @@ contract GovernanceTest is Test {
         address newImpl = address(new SelfPeggingAsset());
 
         // fail from guardian
-        vm.expectRevert();
+        vm.expectRevert(abi.encodeWithSignature("OwnableUnauthorizedAccount(address)", guardian));
         vm.prank(guardian);
         spaBeacon.upgradeTo(newImpl);
 
