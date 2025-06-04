@@ -40,7 +40,7 @@ contract ParameterRegistry is IParameterRegistry, Ownable {
      * @inheritdoc IParameterRegistry
      */
     function setBounds(ParamKey key, Bounds calldata newBounds) external onlyOwner {
-        emit BoundsUpdated(msg.sender, key, bounds[key], newBounds);
+        emit BoundsUpdated(key, bounds[key], newBounds);
         bounds[key] = newBounds;
     }
 

@@ -101,7 +101,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
         checkBounds(newA, curA, aParams);
 
         rampAController.rampA(newA, endTime);
-        emit RampAInitiated(msg.sender, curA, newA, endTime);
+        emit RampAInitiated(curA, newA, endTime);
     }
 
     /**
@@ -114,7 +114,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
         checkBounds(newMinRampTime, curMinRampTime, minRampTimeParams);
 
         rampAController.setMinRampTime(newMinRampTime);
-        emit MinRampTimeUpdated(msg.sender, curMinRampTime, newMinRampTime);
+        emit MinRampTimeUpdated(curMinRampTime, newMinRampTime);
     }
 
     /**
@@ -127,7 +127,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
         checkBounds(newFee, cur, swapFeeParams);
 
         spa.setSwapFee(newFee);
-        emit SwapFeeUpdated(msg.sender, cur, newFee);
+        emit SwapFeeUpdated(cur, newFee);
     }
 
     /**
@@ -140,7 +140,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
         checkBounds(newFee, cur, mintFeeParams);
 
         spa.setMintFee(newFee);
-        emit MintFeeUpdated(msg.sender, cur, newFee);
+        emit MintFeeUpdated(cur, newFee);
     }
 
     /**
@@ -153,7 +153,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
         checkBounds(newFee, cur, redeemFeeParams);
 
         spa.setRedeemFee(newFee);
-        emit RedeemFeeUpdated(msg.sender, cur, newFee);
+        emit RedeemFeeUpdated(cur, newFee);
     }
 
     /**
@@ -161,7 +161,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
      */
     function cancelRamp() external override onlyRole(GUARDIAN_ROLE) {
         rampAController.stopRamp();
-        emit RampCancelled(msg.sender);
+        emit RampCancelled();
     }
 
     /**
@@ -174,7 +174,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
         checkBounds(newMultiplier, cur, offPegParams);
 
         spa.setOffPegFeeMultiplier(newMultiplier);
-        emit OffPegFeeMultiplierUpdated(msg.sender, cur, newMultiplier);
+        emit OffPegFeeMultiplierUpdated(cur, newMultiplier);
     }
 
     /**
@@ -187,7 +187,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
         checkBounds(newFeeFactor, cur, exchangeRateFeeParams);
 
         spa.setExchangeRateFeeFactor(newFeeFactor);
-        emit ExchangeRateFeeFactorUpdated(msg.sender, cur, newFeeFactor);
+        emit ExchangeRateFeeFactorUpdated(cur, newFeeFactor);
     }
 
     /**
@@ -200,7 +200,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
         checkBounds(newBuffer, cur, bufferParams);
 
         lpToken.setBuffer(newBuffer);
-        emit BufferPercentUpdated(msg.sender, cur, newBuffer);
+        emit BufferPercentUpdated(cur, newBuffer);
     }
 
     /**
@@ -213,7 +213,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
         checkBounds(newDecayPeriod, cur, decayPeriodParams);
 
         spa.setDecayPeriod(newDecayPeriod);
-        emit DecayPeriodUpdated(msg.sender, cur, newDecayPeriod);
+        emit DecayPeriodUpdated(cur, newDecayPeriod);
     }
 
     /**
@@ -226,7 +226,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
         checkBounds(newSkipPeriod, cur, rateChangeSkipPeriodParams);
 
         spa.setRateChangeSkipPeriod(newSkipPeriod);
-        emit RateChangeSkipPeriodUpdated(msg.sender, cur, newSkipPeriod);
+        emit RateChangeSkipPeriodUpdated(cur, newSkipPeriod);
     }
 
     /**
@@ -239,7 +239,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
         checkBounds(newMargin, cur, feeErrorMarginParams);
 
         spa.updateFeeErrorMargin(newMargin);
-        emit FeeErrorMarginUpdated(msg.sender, cur, newMargin);
+        emit FeeErrorMarginUpdated(cur, newMargin);
     }
 
     /**
@@ -252,7 +252,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
         checkBounds(newMargin, cur, yieldErrorMarginParams);
 
         spa.updateYieldErrorMargin(newMargin);
-        emit YieldErrorMarginUpdated(msg.sender, cur, newMargin);
+        emit YieldErrorMarginUpdated(cur, newMargin);
     }
 
     /**
@@ -260,7 +260,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
      */
     function distributeLoss() external override onlyRole(GOVERNOR_ROLE) {
         spa.distributeLoss();
-        emit LossDistributed(msg.sender);
+        emit LossDistributed();
     }
 
     /**
@@ -268,7 +268,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
      */
     function pause() external override onlyRole(GUARDIAN_ROLE) {
         spa.pause();
-        emit ProtocolPaused(msg.sender);
+        emit ProtocolPaused();
     }
 
     /**
@@ -276,7 +276,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
      */
     function unpause() external override onlyRole(PROTOCOL_OWNER_ROLE) {
         spa.unpause();
-        emit ProtocolUnpaused(msg.sender);
+        emit ProtocolUnpaused();
     }
 
     /**
