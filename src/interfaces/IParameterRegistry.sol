@@ -40,12 +40,11 @@ interface IParameterRegistry {
 
     /**
      * @notice Emitted when parameter bounds are updated.
-     * @param caller The address of governor that performed the update.
      * @param key The parameter key that was updated.
      * @param oldParams The old bounds before the update.
      * @param newParams The new bounds after the update.
      */
-    event BoundsUpdated(address indexed caller, ParamKey key, Bounds oldParams, Bounds newParams);
+    event BoundsUpdated(ParamKey key, Bounds oldParams, Bounds newParams);
 
     error ZeroAddress();
 
