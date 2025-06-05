@@ -45,27 +45,26 @@ contract FactoryTest is Test {
         beacon = new UpgradeableBeacon(rampAControllerImplentation, governor);
         address rampAControllerBeacon = address(beacon);
 
-        bytes memory data = abi.encodeCall(
-            SelfPeggingAssetFactory.initialize,
-            (
-                governor,
-                governor,
-                0,
-                0,
-                0,
-                0,
-                100,
-                30 minutes,
-                selfPeggingAssetBeacon,
-                lpTokenBeacon,
-                wlpTokenBeacon,
-                rampAControllerBeacon,
-                keeperImplementation,
-                address(new ConstantExchangeRateProvider()),
-                0,
-                0
-            )
+        SelfPeggingAssetFactory.InitializeArgument memory args = SelfPeggingAssetFactory.InitializeArgument(
+            governor,
+            governor,
+            0,
+            0,
+            0,
+            0,
+            100,
+            30 minutes,
+            selfPeggingAssetBeacon,
+            lpTokenBeacon,
+            wlpTokenBeacon,
+            rampAControllerBeacon,
+            keeperImplementation,
+            address(new ConstantExchangeRateProvider()),
+            0,
+            0
         );
+
+        bytes memory data = abi.encodeCall(SelfPeggingAssetFactory.initialize, (args));
         ERC1967Proxy proxy = new ERC1967Proxy(address(new SelfPeggingAssetFactory()), data);
         factory = SelfPeggingAssetFactory(address(proxy));
     }
@@ -250,8 +249,7 @@ contract FactoryTest is Test {
         SelfPeggingAssetFactory factory = new SelfPeggingAssetFactory();
         ConstantExchangeRateProvider exchangeRateProvider = new ConstantExchangeRateProvider();
 
-        vm.expectRevert(Initializable.InvalidInitialization.selector);
-        factory.initialize(
+        SelfPeggingAssetFactory.InitializeArgument memory args = SelfPeggingAssetFactory.InitializeArgument(
             governor,
             governor,
             0,
@@ -269,6 +267,9 @@ contract FactoryTest is Test {
             0,
             0
         );
+
+        vm.expectRevert(Initializable.InvalidInitialization.selector);
+        factory.initialize(args);
 
         SelfPeggingAsset selfPeggingAsset = new SelfPeggingAsset();
         address[] memory _tokens;

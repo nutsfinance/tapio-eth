@@ -46,27 +46,26 @@ contract Deploy is Config {
         console.log("deploy-factory-logs");
         console.log("---------------");
 
-        bytes memory data = abi.encodeCall(
-            SelfPeggingAssetFactory.initialize,
-            (
-                GOVERNOR,
-                GOVERNOR,
-                0,
-                0,
-                0,
-                0,
-                100,
-                30 minutes,
-                selfPeggingAssetBeacon,
-                lpTokenBeacon,
-                wlpTokenBeacon,
-                rampAControllerBeacon,
-                keeperImplementation,
-                address(new ConstantExchangeRateProvider()),
-                0,
-                0
-            )
+        SelfPeggingAssetFactory.InitializeArgument memory args = SelfPeggingAssetFactory.InitializeArgument(
+            GOVERNOR,
+            GOVERNOR,
+            0,
+            0,
+            0,
+            0,
+            100,
+            30 minutes,
+            selfPeggingAssetBeacon,
+            lpTokenBeacon,
+            wlpTokenBeacon,
+            rampAControllerBeacon,
+            keeperImplementation,
+            address(new ConstantExchangeRateProvider()),
+            0,
+            0
         );
+
+        bytes memory data = abi.encodeCall(SelfPeggingAssetFactory.initialize, (args));
         ERC1967Proxy proxy = new ERC1967Proxy(address(new SelfPeggingAssetFactory()), data);
 
         factory = SelfPeggingAssetFactory(address(proxy));

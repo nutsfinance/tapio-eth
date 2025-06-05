@@ -35,6 +35,26 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
         ERC4626
     }
 
+    /// @notice Parameters for initailizing the factory
+    struct InitializeArgument {
+        address owner;
+        address governor;
+        uint256 mintFee;
+        uint256 swapFee;
+        uint256 redeemFee;
+        uint256 offPegFeeMultiplier;
+        uint256 A;
+        uint256 minRampTime;
+        address selfPeggingAssetBeacon;
+        address lpTokenBeacon;
+        address wlpTokenBeacon;
+        address rampAControllerBeacon;
+        address keeperImplementation;
+        address constantExchangeRateProvider;
+        uint256 exchangeRateFeeFactor;
+        uint256 bufferPercent;
+    }
+
     /// @notice Parameters for creating a new pool
     struct CreatePoolArgument {
         /// @notice Address of token A
@@ -228,57 +248,37 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
     /**
      * @dev Initializes the StableSwap Application contract.
      */
-    function initialize(
-        address _owner,
-        address _governor,
-        uint256 _mintFee,
-        uint256 _swapFee,
-        uint256 _redeemFee,
-        uint256 _offPegFeeMultiplier,
-        uint256 _A,
-        uint256 _minRampTime,
-        address _selfPeggingAssetBeacon,
-        address _lpTokenBeacon,
-        address _wlpTokenBeacon,
-        address _rampAControllerBeacon,
-        address _keeperImplementation,
-        address _constantExchangeRateProvider,
-        uint256 _exchangeRateFeeFactor,
-        uint256 _bufferPercent
-    )
-        public
-        initializer
-    {
-        require(_owner != address(0), InvalidAddress());
-        require(_governor != address(0), InvalidAddress());
-        require(_A > 0, InvalidValue());
-        require(_selfPeggingAssetBeacon != address(0), InvalidAddress());
-        require(_lpTokenBeacon != address(0), InvalidAddress());
-        require(_wlpTokenBeacon != address(0), InvalidAddress());
-        require(_keeperImplementation != address(0), InvalidAddress());
-        require(_constantExchangeRateProvider != address(0), InvalidAddress());
-        require(_rampAControllerBeacon != address(0), InvalidAddress());
+    function initialize(InitializeArgument memory argument) public initializer {
+        require(argument.owner != address(0), InvalidAddress());
+        require(argument.governor != address(0), InvalidAddress());
+        require(argument.A > 0, InvalidValue());
+        require(argument.selfPeggingAssetBeacon != address(0), InvalidAddress());
+        require(argument.lpTokenBeacon != address(0), InvalidAddress());
+        require(argument.wlpTokenBeacon != address(0), InvalidAddress());
+        require(argument.keeperImplementation != address(0), InvalidAddress());
+        require(argument.constantExchangeRateProvider != address(0), InvalidAddress());
+        require(argument.rampAControllerBeacon != address(0), InvalidAddress());
 
-        __Ownable_init(_owner);
+        __Ownable_init(argument.owner);
         __UUPSUpgradeable_init();
 
-        governor = _governor;
+        governor = argument.governor;
 
-        selfPeggingAssetBeacon = _selfPeggingAssetBeacon;
-        lpTokenBeacon = _lpTokenBeacon;
-        wlpTokenBeacon = _wlpTokenBeacon;
-        rampAControllerBeacon = _rampAControllerBeacon;
-        keeperImplementation = _keeperImplementation;
-        constantExchangeRateProvider = _constantExchangeRateProvider;
+        selfPeggingAssetBeacon = argument.selfPeggingAssetBeacon;
+        lpTokenBeacon = argument.lpTokenBeacon;
+        wlpTokenBeacon = argument.wlpTokenBeacon;
+        rampAControllerBeacon = argument.rampAControllerBeacon;
+        keeperImplementation = argument.keeperImplementation;
+        constantExchangeRateProvider = argument.constantExchangeRateProvider;
 
-        mintFee = _mintFee;
-        swapFee = _swapFee;
-        redeemFee = _redeemFee;
-        A = _A;
-        offPegFeeMultiplier = _offPegFeeMultiplier;
-        minRampTime = _minRampTime;
-        exchangeRateFeeFactor = _exchangeRateFeeFactor;
-        bufferPercent = _bufferPercent;
+        mintFee = argument.mintFee;
+        swapFee = argument.swapFee;
+        redeemFee = argument.redeemFee;
+        A = argument.A;
+        offPegFeeMultiplier = argument.offPegFeeMultiplier;
+        minRampTime = argument.minRampTime;
+        exchangeRateFeeFactor = argument.exchangeRateFeeFactor;
+        bufferPercent = argument.bufferPercent;
     }
 
     /**
