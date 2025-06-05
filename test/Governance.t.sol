@@ -54,27 +54,25 @@ contract GovernanceTest is Test {
         UpgradeableBeacon rampBeacon = new UpgradeableBeacon(rampImpl, protocolOwner);
 
         ConstantExchangeRateProvider constRate = new ConstantExchangeRateProvider();
-        bytes memory data = abi.encodeCall(
-            SelfPeggingAssetFactory.initialize,
-            (
-                protocolOwner, // owner
-                governor, // governor
-                0, // mint fee
-                0, // swap fee
-                0, // redeem fee
-                0, // offPeg multiplier
-                100, // A
-                30 minutes, // minRampTime
-                address(spaBeacon),
-                address(lpBeacon),
-                address(wlpBeacon),
-                address(rampBeacon),
-                keeperImpl,
-                address(constRate),
-                0, // exchangeRateFeeFactor
-                0 // bufferPercent
-            )
+        SelfPeggingAssetFactory.InitializeArgument memory arg = SelfPeggingAssetFactory.InitializeArgument(
+            protocolOwner, // owner
+            governor, // governor
+            0, // mint fee
+            0, // swap fee
+            0, // redeem fee
+            0, // offPeg multiplier
+            100, // A
+            30 minutes, // minRampTime
+            address(spaBeacon),
+            address(lpBeacon),
+            address(wlpBeacon),
+            address(rampBeacon),
+            keeperImpl,
+            address(constRate),
+            0, // exchangeRateFeeFactor
+            0 // bufferPercent
         );
+        bytes memory data = abi.encodeCall(SelfPeggingAssetFactory.initialize, (arg));
         ERC1967Proxy proxy = new ERC1967Proxy(address(new SelfPeggingAssetFactory()), data);
         factory = SelfPeggingAssetFactory(address(proxy));
 

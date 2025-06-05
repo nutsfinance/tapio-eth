@@ -58,27 +58,26 @@ contract KeeperFuzzTest is Test {
         beacon = new UpgradeableBeacon(rampAControllerImplentation, governor);
         address rampAControllerBeacon = address(beacon);
 
-        bytes memory data = abi.encodeCall(
-            SelfPeggingAssetFactory.initialize,
-            (
-                owner,
-                governor,
-                0,
-                0,
-                0,
-                0,
-                100,
-                30 minutes,
-                selfPeggingAssetBeacon,
-                lpTokenBeacon,
-                wlpTokenBeacon,
-                rampAControllerBeacon,
-                keeperImplementation,
-                address(new ConstantExchangeRateProvider()),
-                0,
-                0
-            )
+        SelfPeggingAssetFactory.InitializeArgument memory args = SelfPeggingAssetFactory.InitializeArgument(
+            owner,
+            governor,
+            0,
+            0,
+            0,
+            0,
+            100,
+            30 minutes,
+            selfPeggingAssetBeacon,
+            lpTokenBeacon,
+            wlpTokenBeacon,
+            rampAControllerBeacon,
+            keeperImplementation,
+            address(new ConstantExchangeRateProvider()),
+            0,
+            0
         );
+
+        bytes memory data = abi.encodeCall(SelfPeggingAssetFactory.initialize, args);
 
         SelfPeggingAssetFactory.CreatePoolArgument memory arg = SelfPeggingAssetFactory.CreatePoolArgument({
             tokenA: address(tokenA),
