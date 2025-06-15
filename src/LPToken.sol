@@ -119,6 +119,11 @@ contract LPToken is Initializable, OwnableUpgradeable, ILPToken {
     event BufferDecreased(uint256, uint256);
 
     /**
+     * @notice Emitted when Buffer is withdrawn to Treasury
+     */
+    event BufferWithdrawn(address indexed to, uint256 amount, uint256 bufferLeft);
+
+    /**
      * @notice Emitted when there is negative rebase.
      */
     event NegativelyRebased(uint256, uint256);
@@ -407,6 +412,22 @@ contract LPToken is Initializable, OwnableUpgradeable, ILPToken {
 
         bufferAmount += _amount;
         emit BufferIncreased(_amount, bufferAmount);
+    }
+
+    /**
+     * @notice Withdraw `_amount` from Buffer and mint LP shares to `_to`
+     * Callable only by Governor via Keeper (which is owner)
+     * @param _to Recipient address that will receive newly–minted shares
+     * @param _amount Token amount to withdraw
+     */
+    function withdrawBuffer(address _to, uint256 _amount) external onlyOwner {
+        require(_amount != 0, InvalidAmount());
+        require(_amount <= bufferAmount, InsufficientBuffer());
+        require(_to != address(0), ZeroAddress());
+
+        bufferAmount -= _amount;
+        _mintShares(_to, _amount);
+        emit BufferWithdrawn(_to, _amount, bufferAmount);
     }
 
     /**

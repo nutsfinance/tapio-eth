@@ -29,6 +29,8 @@ interface IKeeper {
     event ProtocolPaused();
     event ProtocolUnpaused();
     event RampCancelled();
+    event TreasuryChanged(address indexed oldTreasury, address indexed newTreasury);
+    event AdminFeeWithdrawn(address indexed to, uint256 amount, uint256 bufferLeft);
 
     /**
      * @notice Allows curators to gradually ramp the A coefficient within allowed bounds

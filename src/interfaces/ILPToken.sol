@@ -45,6 +45,9 @@ interface ILPToken is IERC20 {
     // @dev Add to buffer
     function addBuffer(uint256 _amount) external;
 
+    // @dev Withdraw from buffer
+    function withdrawBuffer(address _to, uint256 _amount) external;
+
     /// @dev Name of the token
     function name() external view returns (string memory);
 

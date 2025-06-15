@@ -31,6 +31,9 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
     SelfPeggingAsset private spa;
     LPToken private lpToken;
 
+    // Address that receives withdrawn LP tokens from Buffer
+    address public treasury;
+
     error ZeroAddress();
     error OutOfBounds();
     error DeltaTooBig();
@@ -81,6 +84,9 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
         _setRoleAdmin(GUARDIAN_ROLE, GOVERNOR_ROLE);
         _setRoleAdmin(CURATOR_ROLE, GOVERNOR_ROLE);
         _setRoleAdmin(GOVERNOR_ROLE, PROTOCOL_OWNER_ROLE);
+
+        // initialise treasury as governor by default
+        treasury = _governor;
     }
 
     /**
@@ -275,6 +281,24 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
     function distributeLoss() external override onlyRole(GOVERNOR_ROLE) {
         spa.distributeLoss();
         emit LossDistributed();
+    }
+
+    /**
+     * @notice Set treasury address that will receive withdrawn LP tokens from Buffer
+     */
+    function setTreasury(address newTreasury) external onlyRole(GOVERNOR_ROLE) {
+        require(newTreasury != address(0), ZeroAddress());
+        emit TreasuryChanged(treasury, newTreasury);
+        treasury = newTreasury;
+    }
+
+    /**
+     * @notice Withdraw Buffer through LPToken and send newly-minted LP tokens to Treasury
+     * @param amount Amount of tokens to withdraw (18-decimals)
+     */
+    function withdrawAdminFee(uint256 amount) external onlyRole(GOVERNOR_ROLE) {
+        lpToken.withdrawBuffer(treasury, amount);
+        emit AdminFeeWithdrawn(treasury, amount, lpToken.bufferAmount());
     }
 
     /**
