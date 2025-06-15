@@ -423,7 +423,6 @@ contract LPToken is Initializable, OwnableUpgradeable, ILPToken {
     function withdrawBuffer(address _to, uint256 _amount) external onlyOwner {
         require(_amount != 0, InvalidAmount());
         require(_amount <= bufferAmount, InsufficientBuffer());
-        require(_to != address(0), ZeroAddress());
 
         bufferAmount -= _amount;
         _mintShares(_to, _amount);

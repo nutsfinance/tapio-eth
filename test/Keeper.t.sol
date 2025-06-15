@@ -35,11 +35,14 @@ contract KeeperFuzzTest is Test {
     WLPToken wlpToken;
     Keeper keeper;
 
+    MockToken tokenA;
+    MockToken tokenB;
+
     uint256 constant DENOMINATOR = 1e10;
 
     function setUp() public {
-        MockToken tokenA = new MockToken("test 1", "T1", 18);
-        MockToken tokenB = new MockToken("test 2", "T2", 18);
+        tokenA = new MockToken("test 1", "T1", 18);
+        tokenB = new MockToken("test 2", "T2", 18);
 
         address selfPeggingAssetImplentation = address(new SelfPeggingAsset());
         address lpTokenImplentation = address(new LPToken());
@@ -110,6 +113,40 @@ contract KeeperFuzzTest is Test {
         keeper.grantRole(keeper.CURATOR_ROLE(), governor);
         keeper.grantRole(keeper.GUARDIAN_ROLE(), governor);
         vm.stopPrank();
+    }
+
+    function testWithdrawBuffer() public {
+        tokenA.mint(owner, 100e18);
+        tokenB.mint(owner, 100e18);
+
+        uint256[] memory _amounts = new uint256[](2);
+        _amounts[0] = 100e18;
+        _amounts[1] = 100e18;
+        vm.startPrank(owner);
+        tokenA.approve(address(spa), type(uint256).max);
+        tokenB.approve(address(spa), type(uint256).max);
+        spa.donateD(_amounts, 0);
+        vm.stopPrank();
+
+        uint256 currentBuffer = lpToken.bufferAmount();
+
+        vm.startPrank(governor);
+        vm.expectRevert();
+        keeper.withdrawAdminFee(currentBuffer + 1);
+
+        vm.expectRevert();
+        keeper.withdrawAdminFee(0);
+
+        uint256 beforeWithdraw = lpToken.balanceOf(governor);
+        keeper.withdrawAdminFee(currentBuffer);
+
+        assertApproxEqRel(
+            currentBuffer,
+            lpToken.balanceOf(governor) - beforeWithdraw,
+            1e8, // ± 0.0000000100000000%
+            "full withdraw does not match"
+        );
+        assertEq(0, lpToken.bufferAmount());
     }
 
     function testParamFuzz(
