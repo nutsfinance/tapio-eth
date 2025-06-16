@@ -116,17 +116,7 @@ contract KeeperFuzzTest is Test {
     }
 
     function testWithdrawBuffer() public {
-        tokenA.mint(owner, 100e18);
-        tokenB.mint(owner, 100e18);
-
-        uint256[] memory _amounts = new uint256[](2);
-        _amounts[0] = 100e18;
-        _amounts[1] = 100e18;
-        vm.startPrank(owner);
-        tokenA.approve(address(spa), type(uint256).max);
-        tokenB.approve(address(spa), type(uint256).max);
-        spa.donateD(_amounts, 0);
-        vm.stopPrank();
+        _createBuffer(100e18);
 
         uint256 currentBuffer = lpToken.bufferAmount();
 
@@ -147,6 +137,55 @@ contract KeeperFuzzTest is Test {
             "full withdraw does not match"
         );
         assertEq(0, lpToken.bufferAmount());
+    }
+
+    function testWithdrawBufferStateInvariant() public {
+        _createBuffer(100e18);
+
+        uint256 curBuffer = lpToken.bufferAmount();
+        uint256 snapshotD = spa.totalSupply();
+        uint256 globalBefore = lpToken.totalSupply() + curBuffer;
+
+        uint256 withdrawAmt = curBuffer / 2;
+        if (withdrawAmt == 0) withdrawAmt = 1;
+
+        uint256 governorBefore = lpToken.balanceOf(governor);
+        vm.startPrank(governor);
+        keeper.withdrawAdminFee(withdrawAmt);
+        vm.stopPrank();
+
+        assertEq(spa.totalSupply(), snapshotD, "SPA totalSupply broken");
+        assertEq(lpToken.totalSupply() + lpToken.bufferAmount(), globalBefore, "Global LP supply broken");
+        // 1000 dead shares
+        assertApproxEqRel(lpToken.balanceOf(governor) - governorBefore, withdrawAmt, 1e4, "Minted amount no match");
+    }
+
+    function testWithdrawBufferFuzz(uint256 amount) public {
+        _createBuffer(100e18);
+
+        uint256 curBuffer = lpToken.bufferAmount();
+        uint256 minWithdraw = lpToken.NUMBER_OF_DEAD_SHARES() + 1;
+        // if (minWithdraw > curBuffer) minWithdraw = 2;
+        if (minWithdraw > curBuffer) minWithdraw = 1;
+        amount = bound(amount, minWithdraw, curBuffer);
+
+        uint256 supplyBefore = lpToken.totalSupply();
+        uint256 globalBefore = lpToken.totalSupply() + curBuffer;
+        uint256 governorBefore = lpToken.balanceOf(governor);
+
+        vm.startPrank(governor);
+        keeper.withdrawAdminFee(amount);
+        vm.stopPrank();
+
+        assertEq(lpToken.bufferAmount(), curBuffer - amount, "Buffer broken");
+        uint256 expectedMinted = amount;
+        if (supplyBefore == 0) {
+            uint256 dead = lpToken.NUMBER_OF_DEAD_SHARES();
+            if (amount <= dead) return;
+            expectedMinted = amount - dead;
+        }
+        assertApproxEqRel(lpToken.balanceOf(governor) - governorBefore, expectedMinted, 1e4, "Treasury broken");
+        assertEq(lpToken.totalSupply() + lpToken.bufferAmount(), globalBefore, "No match");
     }
 
     function testParamFuzz(
@@ -339,5 +378,21 @@ contract KeeperFuzzTest is Test {
         if (paramType == 10) return rampAController.getA();
         if (paramType == 11) return rampAController.minRampTime();
         revert("Invalid ParamType");
+    }
+
+    // Helper for buffer creation
+    function _createBuffer(uint256 amount) internal {
+        tokenA.mint(owner, amount);
+        tokenB.mint(owner, amount);
+
+        uint256[] memory _amounts = new uint256[](2);
+        _amounts[0] = amount;
+        _amounts[1] = amount;
+
+        vm.startPrank(owner);
+        tokenA.approve(address(spa), type(uint256).max);
+        tokenB.approve(address(spa), type(uint256).max);
+        spa.donateD(_amounts, 0);
+        vm.stopPrank();
     }
 }
