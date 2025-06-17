@@ -36,52 +36,56 @@ contract GovernanceTest is Test {
     SelfPeggingAssetFactory internal factory;
     SelfPeggingAsset internal spa;
     LPToken internal lpToken;
+    WLPToken wlpToken;
     RampAController internal rampAController;
     Keeper internal keeper;
     ParameterRegistry internal parameterRegistry;
     UpgradeableBeacon internal spaBeacon;
+    MockToken tokenA;
+    MockToken tokenB;
 
     function setUp() public {
-        address spaImpl = address(new SelfPeggingAsset());
-        address lpImpl = address(new LPToken());
-        address wlpImpl = address(new WLPToken());
-        address rampImpl = address(new RampAController());
-        address keeperImpl = address(new Keeper());
+        tokenA = new MockToken("test 1", "T1", 18);
+        tokenB = new MockToken("test 2", "T2", 18);
 
-        spaBeacon = new UpgradeableBeacon(spaImpl, protocolOwner);
-        UpgradeableBeacon lpBeacon = new UpgradeableBeacon(lpImpl, protocolOwner);
-        UpgradeableBeacon wlpBeacon = new UpgradeableBeacon(wlpImpl, protocolOwner);
-        UpgradeableBeacon rampBeacon = new UpgradeableBeacon(rampImpl, protocolOwner);
+        address selfPeggingAssetImplentation = address(new SelfPeggingAsset());
+        address lpTokenImplentation = address(new LPToken());
+        address wlpTokenImplentation = address(new WLPToken());
+        address rampAControllerImplentation = address(new RampAController());
+        address keeperImplementation = address(new Keeper());
+        UpgradeableBeacon beacon = new UpgradeableBeacon(selfPeggingAssetImplentation, protocolOwner);
+        spaBeacon = beacon;
+        address selfPeggingAssetBeacon = address(beacon);
 
-        ConstantExchangeRateProvider constRate = new ConstantExchangeRateProvider();
-        SelfPeggingAssetFactory.InitializeArgument memory arg = SelfPeggingAssetFactory.InitializeArgument(
-            protocolOwner, // owner
-            governor, // governor
-            0, // mint fee
-            0, // swap fee
-            0, // redeem fee
-            0, // offPeg multiplier
-            100, // A
-            30 minutes, // minRampTime
-            address(spaBeacon),
-            address(lpBeacon),
-            address(wlpBeacon),
-            address(rampBeacon),
-            keeperImpl,
-            address(constRate),
-            0, // exchangeRateFeeFactor
-            0 // bufferPercent
+        beacon = new UpgradeableBeacon(lpTokenImplentation, governor);
+        address lpTokenBeacon = address(beacon);
+
+        beacon = new UpgradeableBeacon(wlpTokenImplentation, governor);
+        address wlpTokenBeacon = address(beacon);
+
+        beacon = new UpgradeableBeacon(rampAControllerImplentation, governor);
+        address rampAControllerBeacon = address(beacon);
+
+        SelfPeggingAssetFactory.InitializeArgument memory args = SelfPeggingAssetFactory.InitializeArgument(
+            protocolOwner,
+            governor,
+            0,
+            0,
+            0,
+            0,
+            100,
+            30 minutes,
+            selfPeggingAssetBeacon,
+            lpTokenBeacon,
+            wlpTokenBeacon,
+            rampAControllerBeacon,
+            keeperImplementation,
+            address(new ConstantExchangeRateProvider()),
+            0,
+            0
         );
-        bytes memory data = abi.encodeCall(SelfPeggingAssetFactory.initialize, (arg));
-        ERC1967Proxy proxy = new ERC1967Proxy(address(new SelfPeggingAssetFactory()), data);
-        factory = SelfPeggingAssetFactory(address(proxy));
 
-        _createPool();
-    }
-
-    function _createPool() internal {
-        MockToken tokenA = new MockToken("TokenA", "A", 18);
-        MockToken tokenB = new MockToken("TokenB", "B", 18);
+        bytes memory data = abi.encodeCall(SelfPeggingAssetFactory.initialize, args);
 
         SelfPeggingAssetFactory.CreatePoolArgument memory arg = SelfPeggingAssetFactory.CreatePoolArgument({
             tokenA: address(tokenA),
@@ -96,16 +100,19 @@ contract GovernanceTest is Test {
             tokenBDecimalsFunctionSig: new bytes(0)
         });
 
-        vm.recordLogs();
-        factory.createPool(arg);
-        Vm.Log[] memory logs_ = vm.getRecordedLogs();
-        (address lp, address _spa,, address ramp, address paramReg, address _keeper) = _decodePoolCreatedEvent(logs_);
+        vm.startPrank(protocolOwner);
 
-        spa = SelfPeggingAsset(_spa);
-        lpToken = LPToken(lp);
-        rampAController = RampAController(ramp);
-        parameterRegistry = ParameterRegistry(paramReg);
-        keeper = Keeper(_keeper);
+        ERC1967Proxy proxy = new ERC1967Proxy(address(new SelfPeggingAssetFactory()), data);
+        factory = SelfPeggingAssetFactory(address(proxy));
+
+        (wlpToken, keeper, parameterRegistry) = factory.createPool(arg);
+
+        lpToken = LPToken(wlpToken.asset());
+        spa = SelfPeggingAsset(lpToken.pool());
+        rampAController = RampAController(address(spa.rampAController()));
+
+        keeper.grantRole(keeper.GOVERNOR_ROLE(), governor);
+        vm.stopPrank();
 
         // set up roles
         vm.startPrank(governor);
@@ -153,6 +160,32 @@ contract GovernanceTest is Test {
 
         vm.prank(curator);
         keeper.rampA(newA, endTime);
+    }
+
+    function test_onlyGovernor_canSetTreasury() external {
+        bytes32 governorRole = keeper.GOVERNOR_ROLE();
+        vm.expectRevert(
+            abi.encodeWithSignature("AccessControlUnauthorizedAccount(address,bytes32)", curator, governorRole)
+        );
+        vm.prank(curator);
+        keeper.setTreasury(curator);
+
+        vm.prank(governor);
+        keeper.setTreasury(curator);
+    }
+
+    function test_onlyGovernor_canWithdrawAdminFee() external {
+        _createBuffer(100e18);
+
+        bytes32 governorRole = keeper.GOVERNOR_ROLE();
+        vm.expectRevert(
+            abi.encodeWithSignature("AccessControlUnauthorizedAccount(address,bytes32)", curator, governorRole)
+        );
+        vm.prank(curator);
+        keeper.withdrawAdminFee(10e18);
+
+        vm.prank(governor);
+        keeper.withdrawAdminFee(10e18);
     }
 
     function test_onlyGovernor_canSetSwapFee() external {
@@ -258,5 +291,21 @@ contract GovernanceTest is Test {
         spaBeacon.upgradeTo(newImpl);
         assertEq(spaBeacon.implementation(), newImpl);
         assertTrue(oldImpl != newImpl);
+    }
+
+    // Helper for buffer creation
+    function _createBuffer(uint256 amount) internal {
+        tokenA.mint(protocolOwner, amount);
+        tokenB.mint(protocolOwner, amount);
+
+        uint256[] memory _amounts = new uint256[](2);
+        _amounts[0] = amount;
+        _amounts[1] = amount;
+
+        vm.startPrank(protocolOwner);
+        tokenA.approve(address(spa), type(uint256).max);
+        tokenB.approve(address(spa), type(uint256).max);
+        spa.donateD(_amounts, 0);
+        vm.stopPrank();
     }
 }
