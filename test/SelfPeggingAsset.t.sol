@@ -576,7 +576,7 @@ contract SelfPeggingAssetTest is Test {
 
         // Drop the exchange rate by 90% so that the pool is in loss and buffer can't cover the loss
         rETHExchangeRateProvider.newRate(0.2e18);
-        vm.expectRevert();
+        vm.expectRevert(abi.encodeWithSignature("InsufficientBuffer()"));
         _pool.rebase();
 
         // Trigger negative rebase

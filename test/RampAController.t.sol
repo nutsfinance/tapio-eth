@@ -390,7 +390,7 @@ contract RampAControllerTest is Test {
 
         // shold not able to update without access
         vm.prank(address(1));
-        vm.expectRevert();
+        vm.expectRevert(abi.encodeWithSignature("OwnableUnauthorizedAccount(address)", address(1)));
         controller.setMinRampTime(1);
 
         vm.prank(owner);

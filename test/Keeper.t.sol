@@ -121,10 +121,10 @@ contract KeeperFuzzTest is Test {
         uint256 currentBuffer = lpToken.bufferAmount();
 
         vm.startPrank(governor);
-        vm.expectRevert();
+        vm.expectRevert(abi.encodeWithSignature("InsufficientBuffer()"));
         keeper.withdrawAdminFee(currentBuffer + 1);
 
-        vm.expectRevert();
+        vm.expectRevert(abi.encodeWithSignature("InvalidAmount()"));
         keeper.withdrawAdminFee(0);
 
         uint256 beforeWithdraw = lpToken.balanceOf(governor);
@@ -137,6 +137,9 @@ contract KeeperFuzzTest is Test {
             "full withdraw does not match"
         );
         assertEq(0, lpToken.bufferAmount());
+
+        vm.expectRevert(abi.encodeWithSignature("InsufficientBuffer()"));
+        keeper.withdrawAdminFee(1);
     }
 
     function testWithdrawBufferStateInvariant() public {
