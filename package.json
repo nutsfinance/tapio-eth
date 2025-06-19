@@ -28,6 +28,6 @@
     "prettier:check": "prettier --check \"**/*.{json,md,yml}\" --ignore-path \".prettierignore\"",
     "prettier:write": "prettier --write \"**/*.{json,md,yml}\" --ignore-path \".prettierignore\"",
     "test": "forge test",
-    "test:coverage:report": "forge coverage --ir-minimum --report lcov && genhtml lcov.info --branch-coverage --output-dir coverage --ignore-errors inconsistent,category"
+    "test:coverage:report": "forge coverage --ir-minimum --no-match-coverage \"(script|test|node_modules|src/mock/|src/misc/)\" --report lcov && genhtml lcov.info --branch-coverage --output-dir coverage --ignore-errors inconsistent,category"
   }
 }
