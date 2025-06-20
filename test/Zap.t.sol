@@ -463,9 +463,7 @@ contract ZapTest is Test {
         token1.approve(address(zap), amounts[0]);
         token2.approve(address(zap), amounts[1]);
 
-        vm.expectRevert(
-            abi.encodeWithSignature("InsufficientAllowance(uint256,uint256)", 0, 2e22)
-        );
+        vm.expectRevert(abi.encodeWithSignature("InsufficientAllowance(uint256,uint256)", 0, 2e22));
         zap.zapIn(address(spa), address(secondWlpToken), user1, MIN_AMOUNT, amounts);
 
         vm.stopPrank();
