@@ -5,8 +5,8 @@ import "forge-std/Test.sol";
 import "../src/periphery/RampAController.sol";
 import "../src/interfaces/IRampAController.sol";
 import "../src/SelfPeggingAsset.sol";
-import "../src/interfaces/ILPToken.sol";
-import "../src/LPToken.sol";
+import "../src/interfaces/ISPAToken.sol";
+import "../src/SPAToken.sol";
 import "../src/mock/MockExchangeRateProvider.sol";
 import "../src/mock/MockToken.sol";
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
@@ -14,7 +14,7 @@ import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 contract RampAControllerTest is Test {
     RampAController public controller;
     SelfPeggingAsset public spa;
-    LPToken public lpToken;
+    SPAToken public spaToken;
     MockExchangeRateProvider[] public providers;
 
     uint256 public constant INITIAL_A = 200;
@@ -59,8 +59,8 @@ contract RampAControllerTest is Test {
             abi.encodeCall(RampAController.initialize, (INITIAL_A, MIN_RAMP_TIME, address(this)));
         ERC1967Proxy rampAControllerProxy = new ERC1967Proxy(address(new RampAController()), rampAControllerData);
 
-        ERC1967Proxy lpTokenProxy = new ERC1967Proxy(address(new LPToken()), new bytes(0));
-        lpToken = LPToken(address(lpTokenProxy));
+        ERC1967Proxy lpTokenProxy = new ERC1967Proxy(address(new SPAToken()), new bytes(0));
+        spaToken = SPAToken(address(lpTokenProxy));
 
         bytes memory spaData = abi.encodeCall(
             SelfPeggingAsset.initialize,
@@ -69,7 +69,7 @@ contract RampAControllerTest is Test {
                 precisions,
                 fees,
                 offPegFeeMultiplier,
-                lpToken,
+                spaToken,
                 INITIAL_A,
                 providerArray,
                 address(rampAControllerProxy),
@@ -80,7 +80,7 @@ contract RampAControllerTest is Test {
         ERC1967Proxy spaProxy = new ERC1967Proxy(address(new SelfPeggingAsset()), spaData);
         spa = SelfPeggingAsset(address(spaProxy));
 
-        lpToken.initialize("LP Token", "TLP", 5e8, owner, address(spa));
+        spaToken.initialize("SPA Token", "TSPA", 5e8, owner, address(spa));
 
         controller = RampAController(address(rampAControllerProxy));
 
@@ -190,7 +190,7 @@ contract RampAControllerTest is Test {
         MockToken(tokens[0]).approve(address(spa), type(uint256).max);
         MockToken(tokens[1]).approve(address(spa), type(uint256).max);
 
-        uint256 lpAmount = spa.mint(initialAmounts, 0);
+        uint256 spaAmount = spa.mint(initialAmounts, 0);
         uint256 newA = 150;
         uint256 endTime = block.timestamp + 1 hours;
         controller.rampA(newA, endTime);
@@ -199,8 +199,8 @@ contract RampAControllerTest is Test {
         uint256[] memory minAmounts = new uint256[](2);
         minAmounts[0] = 0;
         minAmounts[1] = 0;
-        lpToken.approve(address(spa), lpAmount / 2);
-        spa.redeemProportion(lpAmount / 2, minAmounts);
+        spaToken.approve(address(spa), spaAmount / 2);
+        spa.redeemProportion(spaAmount / 2, minAmounts);
         uint256 finalTotalSupply = spa.totalSupply();
 
         assertGe(finalTotalSupply, 0);
@@ -330,8 +330,8 @@ contract RampAControllerTest is Test {
         providerArray[0] = providers[0];
         providerArray[1] = providers[1];
 
-        ERC1967Proxy lpTokenProxy = new ERC1967Proxy(address(new LPToken()), new bytes(0));
-        LPToken newLpToken = LPToken(address(lpTokenProxy));
+        ERC1967Proxy spaTokenProxy = new ERC1967Proxy(address(new SPAToken()), new bytes(0));
+        SPAToken newSpaToken = SPAToken(address(spaTokenProxy));
 
         bytes memory spaData = abi.encodeCall(
             SelfPeggingAsset.initialize,
@@ -340,7 +340,7 @@ contract RampAControllerTest is Test {
                 precisions,
                 fees,
                 offPegFeeMultiplier,
-                newLpToken,
+                newSpaToken,
                 1, // initialA
                 providerArray,
                 address(lowAController),
@@ -352,7 +352,7 @@ contract RampAControllerTest is Test {
         ERC1967Proxy spaProxy = new ERC1967Proxy(address(new SelfPeggingAsset()), spaData);
         SelfPeggingAsset lowASpa = SelfPeggingAsset(address(spaProxy));
 
-        newLpToken.initialize("LP Token Low A", "TLPA", 5e8, owner, address(lowASpa));
+        newSpaToken.initialize("SPA Token Low A", "TSPA", 5e8, owner, address(lowASpa));
 
         MockToken(tokens[0]).mint(address(this), 1000e18);
         MockToken(tokens[1]).mint(address(this), 1000e18);

@@ -4,22 +4,22 @@ pragma solidity ^0.8.28;
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20PermitUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC4626Upgradeable.sol";
 import { SafeERC20, IERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "./interfaces/ILPToken.sol";
+import "./interfaces/ISPAToken.sol";
 
 /**
- * @title LPToken token wrapper with static balances.
+ * @title SPAToken token wrapper with static balances.
  * @dev It's an ERC4626 standard token that represents the account's share of the total
- * supply of lpToken tokens. WLPToken token's balance only changes on transfers,
- * unlike lpToken that is also changed when staking rewards and swap fee are generated.
+ * supply of SPA tokens. WSPAToken token's balance only changes on transfers,
+ * unlike spaToken that is also changed when staking rewards and swap fee are generated.
  * It's a "power user" token for DeFi protocols which don't
  * support rebasable tokens.
- * The contract is also a trustless wrapper that accepts lpToken tokens and mints
- * wlpToken in return. Then the user unwraps, the contract burns user's wlpToken
- * and sends user locked lpToken in return.
+ * The contract is also a trustless wrapper that accepts spaToken tokens and mints
+ * WSPAToken in return. Then the user unwraps, the contract burns user's WSPAToken
+ * and sends user locked SPA tokens in return.
  *
  */
-contract WLPToken is ERC4626Upgradeable {
-    ILPToken public lpToken;
+contract WSPAToken is ERC4626Upgradeable {
+    ISPAToken public spaToken;
 
     error ZeroAmount();
     error InsufficientAllowance();
@@ -28,23 +28,23 @@ contract WLPToken is ERC4626Upgradeable {
         _disableInitializers();
     }
 
-    function initialize(ILPToken _lpToken) public initializer {
-        lpToken = _lpToken;
+    function initialize(ISPAToken _spaToken) public initializer {
+        spaToken = _spaToken;
 
         __ERC20_init(name(), symbol());
-        __ERC4626_init(IERC20(address(_lpToken)));
+        __ERC4626_init(IERC20(address(_spaToken)));
     }
 
     /**
-     * @dev Deposits lpToken into the vault in exchange for shares.
-     * @param assets Amount of lpToken to deposit.
+     * @dev Deposits spaToken into the vault in exchange for shares.
+     * @param assets Amount of spaToken to deposit.
      * @param receiver Address to receive the minted shares.
      * @return shares Amount of shares minted.
      */
     function deposit(uint256 assets, address receiver) public override returns (uint256 shares) {
         require(assets > 0, ZeroAmount());
         shares = convertToShares(assets);
-        lpToken.transferFrom(msg.sender, address(this), assets);
+        spaToken.transferFrom(msg.sender, address(this), assets);
         _mint(receiver, shares);
         emit Deposit(msg.sender, receiver, assets, shares);
     }
@@ -53,7 +53,7 @@ contract WLPToken is ERC4626Upgradeable {
      * @dev Mints shares for a given amount of assets deposited.
      * @param shares Amount of shares to mint.
      * @param receiver Address to receive the minted shares.
-     * @return assets The amount of lpToken deposited.
+     * @return assets The amount of spaToken deposited.
      */
     function mint(uint256 shares, address receiver) public override returns (uint256 assets) {
         require(shares > 0, ZeroAmount());
@@ -62,7 +62,7 @@ contract WLPToken is ERC4626Upgradeable {
         assets = convertToAssets(shares);
 
         // Transfer the required assets from the user to the vault
-        lpToken.transferFrom(msg.sender, address(this), assets);
+        spaToken.transferFrom(msg.sender, address(this), assets);
 
         // Mint the shares to the receiver
         _mint(receiver, shares);
@@ -71,9 +71,9 @@ contract WLPToken is ERC4626Upgradeable {
     }
 
     /**
-     * @dev Withdraws lpToken from the vault in exchange for burning shares.
-     * @param assets Amount of lpToken to withdraw.
-     * @param receiver Address to receive the lpToken.
+     * @dev Withdraws spaToken from the vault in exchange for burning shares.
+     * @param assets Amount of spaToken to withdraw.
+     * @param receiver Address to receive the spaToken.
      * @param owner Address whose shares will be burned.
      * @return shares Burned shares corresponding to the assets withdrawn.
      */
@@ -86,16 +86,16 @@ contract WLPToken is ERC4626Upgradeable {
             _approve(owner, msg.sender, allowed - shares);
         }
         _burn(owner, shares);
-        lpToken.transfer(receiver, assets);
+        spaToken.transfer(receiver, assets);
         emit Withdraw(msg.sender, receiver, owner, assets, shares);
     }
 
     /**
-     * @dev Redeems shares for lpToken.
+     * @dev Redeems shares for spaToken.
      * @param shares Amount of shares to redeem.
-     * @param receiver Address to receive the lpToken.
+     * @param receiver Address to receive the spaToken.
      * @param owner Address whose shares will be burned.
-     * @return assets Amount of lpToken withdrawn.
+     * @return assets Amount of spaToken withdrawn.
      */
     function redeem(uint256 shares, address receiver, address owner) public override returns (uint256 assets) {
         require(shares > 0, ZeroAmount());
@@ -106,7 +106,7 @@ contract WLPToken is ERC4626Upgradeable {
             _approve(owner, msg.sender, allowed - shares);
         }
         _burn(owner, shares);
-        lpToken.transfer(receiver, assets);
+        spaToken.transfer(receiver, assets);
         emit Withdraw(msg.sender, receiver, owner, assets, shares);
     }
 
@@ -115,7 +115,7 @@ contract WLPToken is ERC4626Upgradeable {
      * @return The name of the token.
      */
     function name() public view override(ERC20Upgradeable, IERC20Metadata) returns (string memory) {
-        return string(abi.encodePacked("Wrapped ", lpToken.name()));
+        return string(abi.encodePacked("Wrapped ", spaToken.name()));
     }
 
     /**
@@ -123,31 +123,31 @@ contract WLPToken is ERC4626Upgradeable {
      * @return The symbol of the token.
      */
     function symbol() public view override(ERC20Upgradeable, IERC20Metadata) returns (string memory) {
-        return string(abi.encodePacked("w", lpToken.symbol()));
+        return string(abi.encodePacked("w", spaToken.symbol()));
     }
 
     /**
-     * @dev Converts an amount of lpToken to the equivalent amount of shares.
-     * @param assets Amount of lpToken.
+     * @dev Converts an amount of spaToken to the equivalent amount of shares.
+     * @param assets Amount of spaToken.
      * @return The equivalent shares.
      */
     function convertToShares(uint256 assets) public view override returns (uint256) {
-        return lpToken.getSharesByPeggedToken(assets);
+        return spaToken.getSharesByPeggedToken(assets);
     }
 
     /**
-     * @dev Converts an amount of shares to the equivalent amount of lpToken.
+     * @dev Converts an amount of shares to the equivalent amount of spaToken.
      * @param shares Amount of shares.
-     * @return The equivalent lpToken.
+     * @return The equivalent spaToken.
      */
     function convertToAssets(uint256 shares) public view override returns (uint256) {
-        return lpToken.getPeggedTokenByShares(shares);
+        return spaToken.getPeggedTokenByShares(shares);
     }
 
     /**
      * @dev Returns the maximum amount of assets that can be withdrawn by `owner`.
      * @param owner Address of the account.
-     * @return The maximum amount of lpToken that can be withdrawn.
+     * @return The maximum amount of spaToken that can be withdrawn.
      */
     function maxWithdraw(address owner) public view override returns (uint256) {
         // Convert the owner's balance of shares to assets
@@ -156,7 +156,7 @@ contract WLPToken is ERC4626Upgradeable {
 
     /**
      * @dev Simulates the amount of shares that would be minted for a given amount of assets.
-     * @param assets Amount of lpToken to deposit.
+     * @param assets Amount of spaToken to deposit.
      * @return The number of shares that would be minted.
      */
     function previewDeposit(uint256 assets) public view override returns (uint256) {

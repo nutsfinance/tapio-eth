@@ -4,7 +4,7 @@ pragma solidity ^0.8.28;
 import "../interfaces/IRampAController.sol";
 import "../SelfPeggingAsset.sol";
 import "./IParameterRegistry.sol";
-import "../LPToken.sol";
+import "../SPAToken.sol";
 
 /**
  * @title IKeeper
@@ -150,8 +150,8 @@ interface IKeeper {
     function getSpa() external view returns (SelfPeggingAsset);
 
     /**
-     * @notice Get the LPToken being managed
-     * @return The LPToken address
+     * @notice Get the SPA token being managed
+     * @return The SPA token address
      */
-    function getLpToken() external view returns (LPToken);
+    function getSpaToken() external view returns (SPAToken);
 }

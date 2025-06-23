@@ -4,7 +4,7 @@ pragma solidity ^0.8.28;
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
-import "./interfaces/ILPToken.sol";
+import "./interfaces/ISPAToken.sol";
 
 error InsufficientAllowance(uint256 currentAllowance, uint256 amount);
 error InsufficientBalance(uint256 currentBalance, uint256 amount);
@@ -13,16 +13,16 @@ error InsufficientBalance(uint256 currentBalance, uint256 amount);
  * @title Interest-bearing ERC20-like token for Tapio protocol
  * @author Nuts Finance Developer
  * @notice ERC20 token minted by the StableSwap pools.
- * @dev LPToken is ERC20 rebase token minted by StableSwap pools for liquidity providers.
- * LPToken balances are dynamic and represent the holder's share in the total amount
- * of lpToken controlled by the protocol. Account shares aren't normalized, so the
+ * @dev SPA token is ERC20 rebase token minted by StableSwap pools for liquidity providers.
+ * SPA token balances are dynamic and represent the holder's share in the total amount
+ * of SPA tokens controlled by the protocol. Account shares aren't normalized, so the
  * contract also stores the sum of all shares to calculate each account's token balance
  * which equals to:
  *
  *   shares[account] * _totalSupply / _totalShares
- * where the _totalSupply is the total supply of lpToken controlled by the protocol.
+ * where the _totalSupply is the total supply of spaToken controlled by the protocol.
  */
-contract LPToken is Initializable, OwnableUpgradeable, ILPToken {
+contract SPAToken is Initializable, OwnableUpgradeable, ISPAToken {
     /**
      * @dev Constant value representing an infinite allowance.
      */
@@ -44,7 +44,7 @@ contract LPToken is Initializable, OwnableUpgradeable, ILPToken {
     uint256 public totalShares;
 
     /**
-     * @dev The total supply of lpToken
+     * @dev The total supply of spaToken
      */
     uint256 public totalSupply;
 
@@ -157,8 +157,8 @@ contract LPToken is Initializable, OwnableUpgradeable, ILPToken {
     /// @notice Error thrown when the address is zero.
     error ZeroAddress();
 
-    /// @notice Error thrown when transferring to the lpToken contract.
-    error TransferToLPTokenContract();
+    /// @notice Error thrown when transferring to the spaToken contract.
+    error TransferToSPATokenContract();
 
     /// @notice Error thrown when minting to the zero address.
     error MintToZeroAddr();
@@ -347,7 +347,7 @@ contract LPToken is Initializable, OwnableUpgradeable, ILPToken {
 
     /**
      * @notice This function is called only by a stableSwap pool to increase
-     * the total supply of LPToken by the staking rewards and the swap fee.
+     * the total supply of SPAToken by the staking rewards and the swap fee.
      */
     function addTotalSupply(uint256 _amount) external {
         require(msg.sender == pool, NoPool());
@@ -379,7 +379,7 @@ contract LPToken is Initializable, OwnableUpgradeable, ILPToken {
 
     /**
      * @notice This function is called only by a stableSwap pool to decrease
-     * the total supply of LPToken by lost amount.
+     * the total supply of SPAToken by lost amount.
      * @param _amount The amount of lost tokens.
      * @param isBuffer The flag to indicate whether to use the buffer or not.
      * @param withDebt The flag to indicate whether to add the lost amount to the buffer bad debt or not.
@@ -404,7 +404,7 @@ contract LPToken is Initializable, OwnableUpgradeable, ILPToken {
 
     /**
      * @notice This function is called only by a stableSwap pool to increase
-     * the total supply of LPToken
+     * the total supply of SPAToken
      */
     function addBuffer(uint256 _amount) external {
         require(msg.sender == pool, NoPool());
@@ -415,7 +415,7 @@ contract LPToken is Initializable, OwnableUpgradeable, ILPToken {
     }
 
     /**
-     * @notice Withdraw `_amount` from Buffer and mint LP shares to `_to`
+     * @notice Withdraw `_amount` from Buffer and mint SPAToken shares to `_to`
      * Callable only by Governor via Keeper (which is owner)
      * @param _to Recipient address that will receive newly–minted shares
      * @param _amount Token amount to withdraw
@@ -447,7 +447,7 @@ contract LPToken is Initializable, OwnableUpgradeable, ILPToken {
 
     /**
      * @dev Balances are dynamic and equal the `_account`'s share in the amount of the
-     * total lpToken controlled by the protocol. See `sharesOf`.
+     * total spaToken controlled by the protocol. See `sharesOf`.
      * @return the amount of tokens owned by the `_account`.
      */
     function balanceOf(address _account) external view returns (uint256) {
@@ -479,7 +479,7 @@ contract LPToken is Initializable, OwnableUpgradeable, ILPToken {
     }
 
     /**
-     * @return the amount of lpToken that corresponds to `_sharesAmount` token shares.
+     * @return the amount of spaToken that corresponds to `_sharesAmount` token shares.
      */
     function getPeggedTokenByShares(uint256 _sharesAmount) public view returns (uint256) {
         if (totalShares == 0) {
@@ -490,13 +490,13 @@ contract LPToken is Initializable, OwnableUpgradeable, ILPToken {
     }
 
     /**
-     * @return the amount of shares that corresponds to `_lpTokenAmount` protocol-controlled lpToken.
+     * @return the amount of shares that corresponds to `_spaTokenAmount` protocol-controlled spaToken.
      */
-    function getSharesByPeggedToken(uint256 _lpTokenAmount) public view returns (uint256) {
+    function getSharesByPeggedToken(uint256 _spaTokenAmount) public view returns (uint256) {
         if (totalSupply == 0) {
             return 0;
         } else {
-            return (_lpTokenAmount * totalShares) / totalSupply;
+            return (_spaTokenAmount * totalShares) / totalSupply;
         }
     }
 
@@ -549,7 +549,7 @@ contract LPToken is Initializable, OwnableUpgradeable, ILPToken {
     function _transferShares(address _sender, address _recipient, uint256 _sharesAmount) internal {
         require(_sender != address(0), ZeroAddress());
         require(_recipient != address(0), ZeroAddress());
-        require(_recipient != address(this), TransferToLPTokenContract());
+        require(_recipient != address(this), TransferToSPATokenContract());
 
         uint256 currentSenderShares = shares[_sender];
 

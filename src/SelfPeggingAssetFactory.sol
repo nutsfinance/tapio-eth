@@ -9,8 +9,8 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 import "./SelfPeggingAsset.sol";
-import "./LPToken.sol";
-import "./WLPToken.sol";
+import "./SPAToken.sol";
+import "./WSPAToken.sol";
 import "./misc/ERC4626ExchangeRate.sol";
 import "./misc/OracleExchangeRate.sol";
 import "./interfaces/IExchangeRateProvider.sol";
@@ -46,8 +46,8 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
         uint256 A;
         uint256 minRampTime;
         address selfPeggingAssetBeacon;
-        address lpTokenBeacon;
-        address wlpTokenBeacon;
+        address spaTokenBeacon;
+        address wspaTokenBeacon;
         address rampAControllerBeacon;
         address keeperImplementation;
         address constantExchangeRateProvider;
@@ -115,14 +115,14 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
     address public selfPeggingAssetBeacon;
 
     /**
-     * @dev Beacon for the LPToken implementation.
+     * @dev Beacon for the SPAToken implementation.
      */
-    address public lpTokenBeacon;
+    address public spaTokenBeacon;
 
     /**
-     * @dev Beacon for the WLPToken implementation.
+     * @dev Beacon for the WSPAToken implementation.
      */
-    address public wlpTokenBeacon;
+    address public wspaTokenBeacon;
 
     /**
      * @dev Beacon for the RampAController implementation.
@@ -147,7 +147,7 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
     uint256 public exchangeRateFeeFactor;
 
     /**
-     * @dev The buffer percent for the LPToken.
+     * @dev The buffer percent for the SPAToken.
      */
     uint256 public bufferPercent;
 
@@ -253,8 +253,8 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
         require(argument.governor != address(0), InvalidAddress());
         require(argument.A > 0, InvalidValue());
         require(argument.selfPeggingAssetBeacon != address(0), InvalidAddress());
-        require(argument.lpTokenBeacon != address(0), InvalidAddress());
-        require(argument.wlpTokenBeacon != address(0), InvalidAddress());
+        require(argument.spaTokenBeacon != address(0), InvalidAddress());
+        require(argument.wspaTokenBeacon != address(0), InvalidAddress());
         require(argument.keeperImplementation != address(0), InvalidAddress());
         require(argument.constantExchangeRateProvider != address(0), InvalidAddress());
         require(argument.rampAControllerBeacon != address(0), InvalidAddress());
@@ -265,8 +265,8 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
         governor = argument.governor;
 
         selfPeggingAssetBeacon = argument.selfPeggingAssetBeacon;
-        lpTokenBeacon = argument.lpTokenBeacon;
-        wlpTokenBeacon = argument.wlpTokenBeacon;
+        spaTokenBeacon = argument.spaTokenBeacon;
+        wspaTokenBeacon = argument.wspaTokenBeacon;
         rampAControllerBeacon = argument.rampAControllerBeacon;
         keeperImplementation = argument.keeperImplementation;
         constantExchangeRateProvider = argument.constantExchangeRateProvider;
@@ -368,7 +368,7 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
      */
     function createPool(CreatePoolArgument memory argument)
         external
-        returns (WLPToken wlpToken, Keeper keeper, ParameterRegistry parameterRegistry)
+        returns (WSPAToken wspaToken, Keeper keeper, ParameterRegistry parameterRegistry)
     {
         require(argument.tokenA != address(0), InvalidAddress());
         require(argument.tokenB != address(0), InvalidAddress());
@@ -376,7 +376,7 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
 
         string memory symbolA = ERC20(argument.tokenA).symbol();
         string memory symbolB = ERC20(argument.tokenB).symbol();
-        LPToken lpToken = LPToken(address(new BeaconProxy(lpTokenBeacon, new bytes(0))));
+        SPAToken spaToken = SPAToken(address(new BeaconProxy(spaTokenBeacon, new bytes(0))));
 
         address[] memory tokens = new address[](2);
         uint256[] memory precisions = new uint256[](2);
@@ -435,7 +435,7 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
             precisions,
             fees,
             offPegFeeMultiplier,
-            lpToken,
+            spaToken,
             A,
             exchangeRateProviders,
             address(rampAController),
@@ -454,17 +454,17 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
             IParameterRegistry(address(parameterRegistry)),
             rampAController,
             selfPeggingAsset,
-            lpToken
+            spaToken
         );
-        lpToken.initialize(name, symbol, bufferPercent, address(keeper), address(selfPeggingAsset));
+        spaToken.initialize(name, symbol, bufferPercent, address(keeper), address(selfPeggingAsset));
 
-        bytes memory wlpTokenInit = abi.encodeCall(WLPToken.initialize, (lpToken));
-        wlpToken = WLPToken(address(new BeaconProxy(wlpTokenBeacon, wlpTokenInit)));
+        bytes memory wspaTokenInit = abi.encodeCall(WSPAToken.initialize, (spaToken));
+        wspaToken = WSPAToken(address(new BeaconProxy(wspaTokenBeacon, wspaTokenInit)));
 
         emit PoolCreated(
-            address(lpToken),
+            address(spaToken),
             address(selfPeggingAsset),
-            address(wlpToken),
+            address(wspaToken),
             address(rampAController),
             address(parameterRegistry),
             address(keeper)

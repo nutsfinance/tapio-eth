@@ -4,11 +4,11 @@ pragma solidity ^0.8.28;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
- * @title ILPToken interface
+ * @title SPAToken interface
  * @author Nuts Finance Developer
- * @notice Interface for LP Token
+ * @notice Interface for SPAToken
  */
-interface ILPToken is IERC20 {
+interface ISPAToken is IERC20 {
     /// @dev Increase the allowance of the spender
     function increaseAllowance(address _spender, uint256 _addedValue) external returns (bool);
 

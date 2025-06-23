@@ -2,11 +2,11 @@
 pragma solidity ^0.8.28;
 
 import "forge-std/Test.sol";
-import "../src/LPToken.sol";
+import "../src/SPAToken.sol";
 import { ERC1967Proxy } from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
-contract LPTokenTest is Test {
-    LPToken public lpToken;
+contract spaTokenTest is Test {
+    SPAToken public spaToken;
     address public governance;
     address public pool1;
     address public pool2;
@@ -22,22 +22,22 @@ contract LPTokenTest is Test {
         user2 = makeAddr("user2");
         user3 = makeAddr("user3");
 
-        bytes memory data = abi.encodeCall(LPToken.initialize, ("Tapio ETH", "lpToken", 0, governance, pool1));
+        bytes memory data = abi.encodeCall(SPAToken.initialize, ("Tapio ETH", "spaToken", 0, governance, pool1));
 
-        ERC1967Proxy proxy = new ERC1967Proxy(address(new LPToken()), data);
-        lpToken = LPToken(address(proxy));
-        assertEq(lpToken.pool(), pool1);
+        ERC1967Proxy proxy = new ERC1967Proxy(address(new SPAToken()), data);
+        spaToken = SPAToken(address(proxy));
+        assertEq(spaToken.pool(), pool1);
     }
 
     function test_MintSharesSingleUser() public {
         uint256 amount = 1_000_000_000_000_000_000_000;
         vm.prank(pool1);
-        lpToken.mintShares(user1, amount);
+        spaToken.mintShares(user1, amount);
 
-        assertEq(lpToken.totalSupply(), amount);
-        assertEq(lpToken.totalShares(), amount);
-        assertEq(lpToken.sharesOf(user1), amount - lpToken.NUMBER_OF_DEAD_SHARES());
-        assertEq(lpToken.balanceOf(user1), amount - lpToken.NUMBER_OF_DEAD_SHARES());
+        assertEq(spaToken.totalSupply(), amount);
+        assertEq(spaToken.totalShares(), amount);
+        assertEq(spaToken.sharesOf(user1), amount - spaToken.NUMBER_OF_DEAD_SHARES());
+        assertEq(spaToken.balanceOf(user1), amount - spaToken.NUMBER_OF_DEAD_SHARES());
     }
 
     function test_MintSharesMultipleUsers() public {
@@ -46,21 +46,21 @@ contract LPTokenTest is Test {
         uint256 amount3 = 3_000_000_000_000_000_000_000;
 
         vm.prank(pool1);
-        lpToken.mintShares(user1, amount1);
+        spaToken.mintShares(user1, amount1);
         vm.prank(pool1);
-        lpToken.mintShares(user2, amount2);
+        spaToken.mintShares(user2, amount2);
         vm.prank(pool1);
-        lpToken.mintShares(user3, amount3);
+        spaToken.mintShares(user3, amount3);
 
         uint256 totalAmount = amount1 + amount2 + amount3;
-        assertEq(lpToken.totalSupply(), totalAmount);
-        assertEq(lpToken.totalShares(), totalAmount);
-        assertEq(lpToken.sharesOf(user1), amount1 - lpToken.NUMBER_OF_DEAD_SHARES());
-        assertEq(lpToken.balanceOf(user1), amount1 - lpToken.NUMBER_OF_DEAD_SHARES());
-        assertEq(lpToken.sharesOf(user2), amount2);
-        assertEq(lpToken.balanceOf(user2), amount2);
-        assertEq(lpToken.sharesOf(user3), amount3);
-        assertEq(lpToken.balanceOf(user3), amount3);
+        assertEq(spaToken.totalSupply(), totalAmount);
+        assertEq(spaToken.totalShares(), totalAmount);
+        assertEq(spaToken.sharesOf(user1), amount1 - spaToken.NUMBER_OF_DEAD_SHARES());
+        assertEq(spaToken.balanceOf(user1), amount1 - spaToken.NUMBER_OF_DEAD_SHARES());
+        assertEq(spaToken.sharesOf(user2), amount2);
+        assertEq(spaToken.balanceOf(user2), amount2);
+        assertEq(spaToken.sharesOf(user3), amount3);
+        assertEq(spaToken.balanceOf(user3), amount3);
     }
 
     function test_BurnSharesSingleUser() public {
@@ -68,16 +68,16 @@ contract LPTokenTest is Test {
         uint256 amount2 = 500_000_000_000_000_000_000;
 
         vm.prank(pool1);
-        lpToken.mintShares(user1, amount1);
+        spaToken.mintShares(user1, amount1);
 
         vm.prank(user1);
-        lpToken.burnShares(amount2);
+        spaToken.burnShares(amount2);
 
         uint256 deltaAmount = amount1 - amount2;
-        assertEq(lpToken.totalSupply(), deltaAmount);
-        assertEq(lpToken.totalShares(), deltaAmount);
-        assertEq(lpToken.sharesOf(user1), deltaAmount - lpToken.NUMBER_OF_DEAD_SHARES());
-        assertEq(lpToken.balanceOf(user1), deltaAmount - lpToken.NUMBER_OF_DEAD_SHARES());
+        assertEq(spaToken.totalSupply(), deltaAmount);
+        assertEq(spaToken.totalShares(), deltaAmount);
+        assertEq(spaToken.sharesOf(user1), deltaAmount - spaToken.NUMBER_OF_DEAD_SHARES());
+        assertEq(spaToken.balanceOf(user1), deltaAmount - spaToken.NUMBER_OF_DEAD_SHARES());
     }
 
     function test_AddTotalSupply() public {
@@ -87,19 +87,19 @@ contract LPTokenTest is Test {
         uint256 totalAmount = amount1 + amount2;
 
         vm.prank(pool1);
-        lpToken.mintShares(user, amount1);
+        spaToken.mintShares(user, amount1);
 
         vm.prank(pool1);
-        lpToken.addTotalSupply(amount2);
+        spaToken.addTotalSupply(amount2);
 
-        assertEq(lpToken.totalSupply(), totalAmount);
-        assertEq(lpToken.totalShares(), amount1);
-        assertEq(lpToken.totalRewards(), amount2);
-        assertEq(lpToken.sharesOf(user), amount1 - lpToken.NUMBER_OF_DEAD_SHARES());
+        assertEq(spaToken.totalSupply(), totalAmount);
+        assertEq(spaToken.totalShares(), amount1);
+        assertEq(spaToken.totalRewards(), amount2);
+        assertEq(spaToken.sharesOf(user), amount1 - spaToken.NUMBER_OF_DEAD_SHARES());
 
         /// 1000 shares worth of supply goes to address(0) when amount 1 was minted
         ///
-        assertEq(lpToken.balanceOf(user), (amount1 - lpToken.NUMBER_OF_DEAD_SHARES()) + (amount2 - 500 wei));
+        assertEq(spaToken.balanceOf(user), (amount1 - spaToken.NUMBER_OF_DEAD_SHARES()) + (amount2 - 500 wei));
     }
 
     function testApprove() public {
@@ -109,10 +109,10 @@ contract LPTokenTest is Test {
 
         // User approves spender
         vm.prank(user);
-        lpToken.approve(spender, amount);
+        spaToken.approve(spender, amount);
 
         // Check that the allowance is updated correctly
-        assertEq(lpToken.allowance(user, spender), amount);
+        assertEq(spaToken.allowance(user, spender), amount);
     }
 
     function test_IncreaseAllowance() public {
@@ -124,14 +124,14 @@ contract LPTokenTest is Test {
 
         // User approves spender with an initial amount
         vm.prank(user);
-        lpToken.approve(spender, amount1);
+        spaToken.approve(spender, amount1);
 
         // User increases the allowance
         vm.prank(user);
-        lpToken.increaseAllowance(spender, amount2);
+        spaToken.increaseAllowance(spender, amount2);
 
         // Check that the total allowance is updated correctly
-        assertEq(lpToken.allowance(user, spender), totalAmount);
+        assertEq(spaToken.allowance(user, spender), totalAmount);
     }
 
     function test_Approve() public {
@@ -141,10 +141,10 @@ contract LPTokenTest is Test {
 
         // User approves spender
         vm.prank(user);
-        lpToken.approve(spender, amount);
+        spaToken.approve(spender, amount);
 
         // Check that the allowance is updated correctly
-        assertEq(lpToken.allowance(user, spender), amount);
+        assertEq(spaToken.allowance(user, spender), amount);
     }
 
     function test_DecreaseAllowance() public {
@@ -157,14 +157,14 @@ contract LPTokenTest is Test {
 
         // User approves spender
         vm.prank(user);
-        lpToken.approve(spender, amount1);
+        spaToken.approve(spender, amount1);
 
         // User decreases the allowance
         vm.prank(user);
-        lpToken.decreaseAllowance(spender, amount2);
+        spaToken.decreaseAllowance(spender, amount2);
 
         // Assert the updated allowance
-        assertEq(lpToken.allowance(user, spender), totalAmount);
+        assertEq(spaToken.allowance(user, spender), totalAmount);
     }
 
     function test_TransferShares() public {
@@ -174,19 +174,19 @@ contract LPTokenTest is Test {
 
         // Pool mints shares to user1
         vm.prank(pool1);
-        lpToken.mintShares(user1, amount1);
+        spaToken.mintShares(user1, amount1);
 
         // User1 transfers shares to user2
         vm.prank(user1);
-        lpToken.transferShares(user2, amount2);
+        spaToken.transferShares(user2, amount2);
 
         // Assertions
-        assertEq(lpToken.totalSupply(), amount1);
-        assertEq(lpToken.totalShares(), amount1);
-        assertEq(lpToken.sharesOf(user1), deltaAmount - lpToken.NUMBER_OF_DEAD_SHARES());
-        assertEq(lpToken.sharesOf(user2), amount2);
-        assertEq(lpToken.balanceOf(user1), deltaAmount - lpToken.NUMBER_OF_DEAD_SHARES());
-        assertEq(lpToken.balanceOf(user2), amount2);
+        assertEq(spaToken.totalSupply(), amount1);
+        assertEq(spaToken.totalShares(), amount1);
+        assertEq(spaToken.sharesOf(user1), deltaAmount - spaToken.NUMBER_OF_DEAD_SHARES());
+        assertEq(spaToken.sharesOf(user2), amount2);
+        assertEq(spaToken.balanceOf(user1), deltaAmount - spaToken.NUMBER_OF_DEAD_SHARES());
+        assertEq(spaToken.balanceOf(user2), amount2);
     }
 
     function test_TransferSharesFrom() public {
@@ -198,23 +198,23 @@ contract LPTokenTest is Test {
 
         // Pool mints shares to user1
         vm.prank(pool1);
-        lpToken.mintShares(user1, amount1);
+        spaToken.mintShares(user1, amount1);
 
         // User1 approves spender
         vm.prank(user1);
-        lpToken.approve(spender, amount1);
+        spaToken.approve(spender, amount1);
 
         // Spender transfers shares from user1 to user2
         vm.prank(spender);
-        lpToken.transferSharesFrom(user1, user2, amount2);
+        spaToken.transferSharesFrom(user1, user2, amount2);
 
         // Assertions
-        assertEq(lpToken.totalSupply(), amount1);
-        assertEq(lpToken.totalShares(), amount1);
-        assertEq(lpToken.sharesOf(user1), deltaAmount - lpToken.NUMBER_OF_DEAD_SHARES());
-        assertEq(lpToken.sharesOf(user2), amount2);
-        assertEq(lpToken.balanceOf(user1), deltaAmount - lpToken.NUMBER_OF_DEAD_SHARES());
-        assertEq(lpToken.balanceOf(user2), amount2);
-        assertEq(lpToken.allowance(user1, spender), deltaAmount);
+        assertEq(spaToken.totalSupply(), amount1);
+        assertEq(spaToken.totalShares(), amount1);
+        assertEq(spaToken.sharesOf(user1), deltaAmount - spaToken.NUMBER_OF_DEAD_SHARES());
+        assertEq(spaToken.sharesOf(user2), amount2);
+        assertEq(spaToken.balanceOf(user1), deltaAmount - spaToken.NUMBER_OF_DEAD_SHARES());
+        assertEq(spaToken.balanceOf(user2), amount2);
+        assertEq(spaToken.allowance(user1, spender), deltaAmount);
     }
 }

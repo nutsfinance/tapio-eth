@@ -7,7 +7,7 @@ import "../interfaces/IRampAController.sol";
 import "../interfaces/IParameterRegistry.sol";
 import "../interfaces/IKeeper.sol";
 import "../SelfPeggingAsset.sol";
-import "../LPToken.sol";
+import "../SPAToken.sol";
 
 /**
  * @title Keeper
@@ -29,9 +29,9 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
     IParameterRegistry private registry;
     IRampAController private rampAController;
     SelfPeggingAsset private spa;
-    LPToken private lpToken;
+    SPAToken private spaToken;
 
-    // Address that receives withdrawn LP tokens from Buffer
+    // Address that receives withdrawn SPA tokens from Buffer
     address public treasury;
 
     error ZeroAddress();
@@ -55,7 +55,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
         IParameterRegistry _registry,
         IRampAController _rampAController,
         SelfPeggingAsset _spa,
-        LPToken _lpToken
+        SPAToken _spaToken
     )
         public
         initializer
@@ -66,7 +66,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
         require(address(_registry) != address(0), ZeroAddress());
         require(address(_rampAController) != address(0), ZeroAddress());
         require(address(_spa) != address(0), ZeroAddress());
-        require(address(_lpToken) != address(0), ZeroAddress());
+        require(address(_spaToken) != address(0), ZeroAddress());
 
         __AccessControl_init();
         __UUPSUpgradeable_init();
@@ -74,7 +74,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
         registry = _registry;
         rampAController = _rampAController;
         spa = _spa;
-        lpToken = _lpToken;
+        spaToken = _spaToken;
 
         // Role assignment
         _grantRole(PROTOCOL_OWNER_ROLE, _owner);
@@ -202,10 +202,10 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
     function setBufferPercent(uint256 newBuffer) external override onlyRole(GOVERNOR_ROLE) {
         IParameterRegistry.Bounds memory bufferParams = registry.bufferPercentParams();
 
-        uint256 cur = lpToken.bufferPercent();
+        uint256 cur = spaToken.bufferPercent();
         checkBounds(newBuffer, cur, bufferParams);
 
-        lpToken.setBuffer(newBuffer);
+        spaToken.setBuffer(newBuffer);
         emit BufferPercentUpdated(cur, newBuffer);
     }
 
@@ -213,13 +213,13 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
      * @inheritdoc IKeeper
      */
     function setTokenSymbol(string calldata newSymbol) external override onlyRole(GOVERNOR_ROLE) {
-        string memory cur = lpToken.symbol();
+        string memory cur = spaToken.symbol();
         require(
             bytes(newSymbol).length > 0 && keccak256(abi.encodePacked(cur)) != keccak256(abi.encodePacked(newSymbol)),
             WrongSymbol()
         );
 
-        lpToken.setSymbol(newSymbol);
+        spaToken.setSymbol(newSymbol);
         emit TokenSymbolUpdated(cur, newSymbol);
     }
 
@@ -284,7 +284,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
     }
 
     /**
-     * @notice Set treasury address that will receive withdrawn LP tokens from Buffer
+     * @notice Set treasury address that will receive withdrawn SPA tokens from Buffer
      */
     function setTreasury(address newTreasury) external onlyRole(GOVERNOR_ROLE) {
         require(newTreasury != address(0), ZeroAddress());
@@ -293,12 +293,12 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
     }
 
     /**
-     * @notice Withdraw Buffer through LPToken and send newly-minted LP tokens to Treasury
+     * @notice Withdraw Buffer through SPAToken and send newly-minted SPA tokens to Treasury
      * @param amount Amount of tokens to withdraw (18-decimals)
      */
     function withdrawAdminFee(uint256 amount) external onlyRole(GOVERNOR_ROLE) {
-        lpToken.withdrawBuffer(treasury, amount);
-        emit AdminFeeWithdrawn(treasury, amount, lpToken.bufferAmount());
+        spaToken.withdrawBuffer(treasury, amount);
+        emit AdminFeeWithdrawn(treasury, amount, spaToken.bufferAmount());
     }
 
     /**
@@ -341,8 +341,8 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
     /**
      * @inheritdoc IKeeper
      */
-    function getLpToken() external view override returns (LPToken) {
-        return lpToken;
+    function getSpaToken() external view override returns (SPAToken) {
+        return spaToken;
     }
 
     /**

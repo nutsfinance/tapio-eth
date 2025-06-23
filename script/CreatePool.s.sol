@@ -36,8 +36,8 @@ contract Testnet is Deploy, Setup, Pool {
 
         factory = SelfPeggingAssetFactory(jsonData.Factory);
         selfPeggingAssetBeacon = jsonData.SelfPeggingAssetBeacon;
-        lpTokenBeacon = jsonData.LPTokenBeacon;
-        wlpTokenBeacon = jsonData.WLPTokenBeacon;
+        spaTokenBeacon = jsonData.SPATokenBeacon;
+        wspaTokenBeacon = jsonData.WSPATokenBeacon;
         usdc = jsonData.USDC;
         usdt = jsonData.USDT;
 

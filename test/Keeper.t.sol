@@ -8,8 +8,8 @@ import { console } from "forge-std/console.sol";
 import { SelfPeggingAssetFactory } from "../src/SelfPeggingAssetFactory.sol";
 import { MockToken } from "../src/mock/MockToken.sol";
 import { SelfPeggingAsset } from "../src/SelfPeggingAsset.sol";
-import { LPToken } from "../src/LPToken.sol";
-import { WLPToken } from "../src/WLPToken.sol";
+import { SPAToken } from "../src/SPAToken.sol";
+import { WSPAToken } from "../src/WSPAToken.sol";
 import { ParameterRegistry, IParameterRegistry } from "../src/periphery/ParameterRegistry.sol";
 import { Keeper } from "../src/periphery/Keeper.sol";
 import "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
@@ -31,8 +31,8 @@ contract KeeperFuzzTest is Test {
     ParameterRegistry parameterRegistry;
     RampAController rampAController;
     SelfPeggingAsset spa;
-    LPToken lpToken;
-    WLPToken wlpToken;
+    SPAToken spaToken;
+    WSPAToken wspaToken;
     Keeper keeper;
 
     MockToken tokenA;
@@ -45,18 +45,18 @@ contract KeeperFuzzTest is Test {
         tokenB = new MockToken("test 2", "T2", 18);
 
         address selfPeggingAssetImplentation = address(new SelfPeggingAsset());
-        address lpTokenImplentation = address(new LPToken());
-        address wlpTokenImplentation = address(new WLPToken());
+        address spaTokenImplentation = address(new SPAToken());
+        address wspaTokenImplentation = address(new WSPAToken());
         address rampAControllerImplentation = address(new RampAController());
         address keeperImplementation = address(new Keeper());
         UpgradeableBeacon beacon = new UpgradeableBeacon(selfPeggingAssetImplentation, governor);
         address selfPeggingAssetBeacon = address(beacon);
 
-        beacon = new UpgradeableBeacon(lpTokenImplentation, governor);
-        address lpTokenBeacon = address(beacon);
+        beacon = new UpgradeableBeacon(spaTokenImplentation, governor);
+        address spaTokenBeacon = address(beacon);
 
-        beacon = new UpgradeableBeacon(wlpTokenImplentation, governor);
-        address wlpTokenBeacon = address(beacon);
+        beacon = new UpgradeableBeacon(wspaTokenImplentation, governor);
+        address wspaTokenBeacon = address(beacon);
 
         beacon = new UpgradeableBeacon(rampAControllerImplentation, governor);
         address rampAControllerBeacon = address(beacon);
@@ -71,8 +71,8 @@ contract KeeperFuzzTest is Test {
             100,
             30 minutes,
             selfPeggingAssetBeacon,
-            lpTokenBeacon,
-            wlpTokenBeacon,
+            spaTokenBeacon,
+            wspaTokenBeacon,
             rampAControllerBeacon,
             keeperImplementation,
             address(new ConstantExchangeRateProvider()),
@@ -100,10 +100,10 @@ contract KeeperFuzzTest is Test {
         ERC1967Proxy proxy = new ERC1967Proxy(address(new SelfPeggingAssetFactory()), data);
         factory = SelfPeggingAssetFactory(address(proxy));
 
-        (wlpToken, keeper, parameterRegistry) = factory.createPool(arg);
+        (wspaToken, keeper, parameterRegistry) = factory.createPool(arg);
 
-        lpToken = LPToken(wlpToken.asset());
-        spa = SelfPeggingAsset(lpToken.pool());
+        spaToken = SPAToken(wspaToken.asset());
+        spa = SelfPeggingAsset(spaToken.pool());
         rampAController = RampAController(address(spa.rampAController()));
 
         keeper.grantRole(keeper.GOVERNOR_ROLE(), governor);
@@ -118,7 +118,7 @@ contract KeeperFuzzTest is Test {
     function testWithdrawBuffer() public {
         _createBuffer(100e18);
 
-        uint256 currentBuffer = lpToken.bufferAmount();
+        uint256 currentBuffer = spaToken.bufferAmount();
 
         vm.startPrank(governor);
         vm.expectRevert(abi.encodeWithSignature("InsufficientBuffer()"));
@@ -127,16 +127,16 @@ contract KeeperFuzzTest is Test {
         vm.expectRevert(abi.encodeWithSignature("InvalidAmount()"));
         keeper.withdrawAdminFee(0);
 
-        uint256 beforeWithdraw = lpToken.balanceOf(governor);
+        uint256 beforeWithdraw = spaToken.balanceOf(governor);
         keeper.withdrawAdminFee(currentBuffer);
 
         assertApproxEqRel(
             currentBuffer,
-            lpToken.balanceOf(governor) - beforeWithdraw,
+            spaToken.balanceOf(governor) - beforeWithdraw,
             1e8, // ± 0.0000000100000000%
             "full withdraw does not match"
         );
-        assertEq(0, lpToken.bufferAmount());
+        assertEq(0, spaToken.bufferAmount());
 
         vm.expectRevert(abi.encodeWithSignature("InsufficientBuffer()"));
         keeper.withdrawAdminFee(1);
@@ -145,50 +145,50 @@ contract KeeperFuzzTest is Test {
     function testWithdrawBufferStateInvariant() public {
         _createBuffer(100e18);
 
-        uint256 curBuffer = lpToken.bufferAmount();
+        uint256 curBuffer = spaToken.bufferAmount();
         uint256 snapshotD = spa.totalSupply();
-        uint256 globalBefore = lpToken.totalSupply() + curBuffer;
+        uint256 globalBefore = spaToken.totalSupply() + curBuffer;
 
         uint256 withdrawAmt = curBuffer / 2;
         if (withdrawAmt == 0) withdrawAmt = 1;
 
-        uint256 governorBefore = lpToken.balanceOf(governor);
+        uint256 governorBefore = spaToken.balanceOf(governor);
         vm.startPrank(governor);
         keeper.withdrawAdminFee(withdrawAmt);
         vm.stopPrank();
 
         assertEq(spa.totalSupply(), snapshotD, "SPA totalSupply broken");
-        assertEq(lpToken.totalSupply() + lpToken.bufferAmount(), globalBefore, "Global LP supply broken");
+        assertEq(spaToken.totalSupply() + spaToken.bufferAmount(), globalBefore, "Global SPA supply broken");
         // 1000 dead shares
-        assertApproxEqRel(lpToken.balanceOf(governor) - governorBefore, withdrawAmt, 1e4, "Minted amount no match");
+        assertApproxEqRel(spaToken.balanceOf(governor) - governorBefore, withdrawAmt, 1e4, "Minted amount no match");
     }
 
     function testWithdrawBufferFuzz(uint256 amount) public {
         _createBuffer(100e18);
 
-        uint256 curBuffer = lpToken.bufferAmount();
-        uint256 minWithdraw = lpToken.NUMBER_OF_DEAD_SHARES() + 1;
+        uint256 curBuffer = spaToken.bufferAmount();
+        uint256 minWithdraw = spaToken.NUMBER_OF_DEAD_SHARES() + 1;
         // if (minWithdraw > curBuffer) minWithdraw = 2;
         if (minWithdraw > curBuffer) minWithdraw = 1;
         amount = bound(amount, minWithdraw, curBuffer);
 
-        uint256 supplyBefore = lpToken.totalSupply();
-        uint256 globalBefore = lpToken.totalSupply() + curBuffer;
-        uint256 governorBefore = lpToken.balanceOf(governor);
+        uint256 supplyBefore = spaToken.totalSupply();
+        uint256 globalBefore = spaToken.totalSupply() + curBuffer;
+        uint256 governorBefore = spaToken.balanceOf(governor);
 
         vm.startPrank(governor);
         keeper.withdrawAdminFee(amount);
         vm.stopPrank();
 
-        assertEq(lpToken.bufferAmount(), curBuffer - amount, "Buffer broken");
+        assertEq(spaToken.bufferAmount(), curBuffer - amount, "Buffer broken");
         uint256 expectedMinted = amount;
         if (supplyBefore == 0) {
-            uint256 dead = lpToken.NUMBER_OF_DEAD_SHARES();
+            uint256 dead = spaToken.NUMBER_OF_DEAD_SHARES();
             if (amount <= dead) return;
             expectedMinted = amount - dead;
         }
-        assertApproxEqRel(lpToken.balanceOf(governor) - governorBefore, expectedMinted, 1e4, "Treasury broken");
-        assertEq(lpToken.totalSupply() + lpToken.bufferAmount(), globalBefore, "No match");
+        assertApproxEqRel(spaToken.balanceOf(governor) - governorBefore, expectedMinted, 1e4, "Treasury broken");
+        assertEq(spaToken.totalSupply() + spaToken.bufferAmount(), globalBefore, "No match");
     }
 
     function testParamFuzz(
@@ -373,7 +373,7 @@ contract KeeperFuzzTest is Test {
         if (paramType == 2) return spa.redeemFee();
         if (paramType == 3) return spa.offPegFeeMultiplier();
         if (paramType == 4) return spa.exchangeRateFeeFactor();
-        if (paramType == 5) return lpToken.bufferPercent();
+        if (paramType == 5) return spaToken.bufferPercent();
         if (paramType == 6) return spa.decayPeriod();
         if (paramType == 7) return spa.rateChangeSkipPeriod();
         if (paramType == 8) return spa.feeErrorMargin();

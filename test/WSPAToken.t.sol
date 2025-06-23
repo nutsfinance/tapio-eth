@@ -2,13 +2,13 @@
 pragma solidity ^0.8.28;
 
 import "forge-std/Test.sol";
-import "../src/LPToken.sol";
-import "../src/WLPToken.sol";
+import "../src/SPAToken.sol";
+import "../src/WSPAToken.sol";
 import { ERC1967Proxy } from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 contract WLPTokenTest is Test {
-    LPToken public lpToken;
-    WLPToken public wlpToken;
+    SPAToken public lpToken;
+    WSPAToken public wlpToken;
 
     address public owner;
     address public governance;
@@ -25,15 +25,15 @@ contract WLPTokenTest is Test {
 
         vm.startPrank(owner);
 
-        bytes memory data = abi.encodeCall(LPToken.initialize, ("Tapio ETH", "TapETH", 0, owner, address(pool1)));
+        bytes memory data = abi.encodeCall(SPAToken.initialize, ("Tapio ETH", "TapETH", 0, owner, address(pool1)));
 
-        ERC1967Proxy proxy = new ERC1967Proxy(address(new LPToken()), data);
-        lpToken = LPToken(address(proxy));
+        ERC1967Proxy proxy = new ERC1967Proxy(address(new SPAToken()), data);
+        lpToken = SPAToken(address(proxy));
 
-        data = abi.encodeCall(WLPToken.initialize, (lpToken));
+        data = abi.encodeCall(WSPAToken.initialize, (lpToken));
 
-        proxy = new ERC1967Proxy(address(new WLPToken()), data);
-        wlpToken = WLPToken(address(proxy));
+        proxy = new ERC1967Proxy(address(new WSPAToken()), data);
+        wlpToken = WSPAToken(address(proxy));
 
         vm.stopPrank();
     }

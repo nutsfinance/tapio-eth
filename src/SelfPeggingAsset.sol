@@ -8,7 +8,7 @@ import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 import "./interfaces/IExchangeRateProvider.sol";
-import "./interfaces/ILPToken.sol";
+import "./interfaces/ISPAToken.sol";
 import "./interfaces/IRampAController.sol";
 import "./periphery/RampAController.sol";
 
@@ -114,7 +114,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
     /**
      * @dev This is the address of the ERC20 token contract that represents the SelfPeggingAsset pool token.
      */
-    ILPToken public poolToken;
+    ISPAToken public poolToken;
 
     /**
      * @dev The total supply of pool token minted by the swap.
@@ -215,14 +215,14 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
     /**
      * @dev This event is emitted when transaction fees are collected by the SelfPeggingAsset contract.
      * @param feeAmount is the amount of fee collected.
-     * @param totalSupply is the total supply of LP token.
+     * @param totalSupply is the total supply of SPA token.
      */
     event FeeCollected(uint256 feeAmount, uint256 totalSupply);
 
     /**
      * @dev This event is emitted when yield is collected by the SelfPeggingAsset contract.
      * @param feeAmount is the amount of yield collected.
-     * @param totalSupply is the total supply of LP token.
+     * @param totalSupply is the total supply of SPA token.
      */
     event YieldCollected(uint256 feeAmount, uint256 totalSupply);
 
@@ -401,7 +401,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         uint256[] memory _precisions,
         uint256[] memory _fees,
         uint256 _offPegFeeMultiplier,
-        ILPToken _poolToken,
+        ISPAToken _poolToken,
         uint256 _A,
         IExchangeRateProvider[] memory _exchangeRateProviders,
         address _rampAController,
@@ -951,7 +951,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
     }
 
     /**
-     * @notice This function allows to rebase LPToken by increasing his total supply
+     * @notice This function allows to rebase SPAToken by increasing his total supply
      * from the current stableSwap pool by the staking rewards and the swap fee.
      */
     function rebase() external returns (uint256) {
