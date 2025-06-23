@@ -5,8 +5,8 @@ import "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 import { stdJson } from "forge-std/StdJson.sol";
 import { console } from "forge-std/console.sol";
 import { SelfPeggingAsset } from "../src/SelfPeggingAsset.sol";
-import { LPToken } from "../src/LPToken.sol";
-import { WLPToken } from "../src/WLPToken.sol";
+import { SPAToken } from "../src/SPAToken.sol";
+import { WSPAToken } from "../src/WSPAToken.sol";
 import { SelfPeggingAssetFactory } from "../src/SelfPeggingAssetFactory.sol";
 import { Config } from "script/Config.sol";
 import { ERC1967Proxy } from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
@@ -22,22 +22,22 @@ contract Deploy is Config {
         console.log("deploy-beacon-logs");
         console.log("---------------");
 
-        address selfPeggingAssetImplentation = address(new SelfPeggingAsset());
-        address lpTokenImplentation = address(new LPToken());
-        address wlpTokenImplentation = address(new WLPToken());
-        address rampAControllerImplentation = address(new RampAController());
+        address selfPeggingAssetImplementation = address(new SelfPeggingAsset());
+        address spaTokenImplementation = address(new SPAToken());
+        address wspaTokenImplementation = address(new WSPAToken());
+        address rampAControllerImplementation = address(new RampAController());
         keeperImplementation = address(new Keeper());
 
-        UpgradeableBeacon beacon = new UpgradeableBeacon(selfPeggingAssetImplentation, GOVERNOR);
+        UpgradeableBeacon beacon = new UpgradeableBeacon(selfPeggingAssetImplementation, GOVERNOR);
         selfPeggingAssetBeacon = address(beacon);
 
-        beacon = new UpgradeableBeacon(lpTokenImplentation, GOVERNOR);
-        lpTokenBeacon = address(beacon);
+        beacon = new UpgradeableBeacon(spaTokenImplementation, GOVERNOR);
+        spaTokenBeacon = address(beacon);
 
-        beacon = new UpgradeableBeacon(wlpTokenImplentation, GOVERNOR);
-        wlpTokenBeacon = address(beacon);
+        beacon = new UpgradeableBeacon(wspaTokenImplementation, GOVERNOR);
+        wspaTokenBeacon = address(beacon);
 
-        beacon = new UpgradeableBeacon(rampAControllerImplentation, GOVERNOR);
+        beacon = new UpgradeableBeacon(rampAControllerImplementation, GOVERNOR);
         rampAControllerBeacon = address(beacon);
     }
 
@@ -56,8 +56,8 @@ contract Deploy is Config {
             100,
             30 minutes,
             selfPeggingAssetBeacon,
-            lpTokenBeacon,
-            wlpTokenBeacon,
+            spaTokenBeacon,
+            wspaTokenBeacon,
             rampAControllerBeacon,
             keeperImplementation,
             address(new ConstantExchangeRateProvider()),

@@ -10,8 +10,8 @@ import { MockToken } from "../src/mock/MockToken.sol";
 import { MockERC4626Token } from "../src/mock/MockERC4626Token.sol";
 import { MockOracle } from "../src/mock/MockOracle.sol";
 import { SelfPeggingAsset } from "../src/SelfPeggingAsset.sol";
-import { LPToken } from "../src/LPToken.sol";
-import { WLPToken } from "../src/WLPToken.sol";
+import { SPAToken } from "../src/SPAToken.sol";
+import { WSPAToken } from "../src/WSPAToken.sol";
 import { RampAController } from "../src/periphery/RampAController.sol";
 import { Keeper } from "../src/periphery/Keeper.sol";
 import { ParameterRegistry } from "../src/periphery/ParameterRegistry.sol";
@@ -28,19 +28,19 @@ contract FactoryTest is Test {
 
     function setUp() public virtual {
         address selfPeggingAssetImplentation = address(new SelfPeggingAsset());
-        address lpTokenImplentation = address(new LPToken());
-        address wlpTokenImplentation = address(new WLPToken());
+        address spaTokenImplentation = address(new SPAToken());
+        address wspaTokenImplentation = address(new WSPAToken());
         address rampAControllerImplentation = address(new RampAController());
         address keeperImplementation = address(new Keeper());
 
         UpgradeableBeacon beacon = new UpgradeableBeacon(selfPeggingAssetImplentation, governor);
         address selfPeggingAssetBeacon = address(beacon);
 
-        beacon = new UpgradeableBeacon(lpTokenImplentation, governor);
-        address lpTokenBeacon = address(beacon);
+        beacon = new UpgradeableBeacon(spaTokenImplentation, governor);
+        address spaTokenBeacon = address(beacon);
 
-        beacon = new UpgradeableBeacon(wlpTokenImplentation, governor);
-        address wlpTokenBeacon = address(beacon);
+        beacon = new UpgradeableBeacon(wspaTokenImplentation, governor);
+        address wspaTokenBeacon = address(beacon);
 
         beacon = new UpgradeableBeacon(rampAControllerImplentation, governor);
         address rampAControllerBeacon = address(beacon);
@@ -55,8 +55,8 @@ contract FactoryTest is Test {
             100,
             30 minutes,
             selfPeggingAssetBeacon,
-            lpTokenBeacon,
-            wlpTokenBeacon,
+            spaTokenBeacon,
+            wspaTokenBeacon,
             rampAControllerBeacon,
             keeperImplementation,
             address(new ConstantExchangeRateProvider()),
@@ -114,8 +114,8 @@ contract FactoryTest is Test {
         }
 
         SelfPeggingAsset selfPeggingAsset = SelfPeggingAsset(decodedSelfPeggingAsset);
-        LPToken poolToken = LPToken(decodedPoolToken);
-        WLPToken wrappedPoolToken = WLPToken(decodedWrappedPoolToken);
+        SPAToken spaToken = SPAToken(decodedPoolToken);
+        WSPAToken wspaToken = WSPAToken(decodedWrappedPoolToken);
 
         vm.startPrank(initialMinter);
         tokenA.mint(initialMinter, 100e18);
@@ -132,8 +132,8 @@ contract FactoryTest is Test {
 
         selfPeggingAsset.mint(amounts, 0);
 
-        assertEq(poolToken.balanceOf(initialMinter), 200e18 - 1000 wei);
-        assertNotEq(address(wrappedPoolToken), address(0));
+        assertEq(spaToken.balanceOf(initialMinter), 200e18 - 1000 wei);
+        assertNotEq(address(wspaToken), address(0));
     }
 
     function test_CreatePoolERC4626ExchangeRate() external {
@@ -168,8 +168,8 @@ contract FactoryTest is Test {
         (address decodedPoolToken, address decodedSelfPeggingAsset, address decodedWrappedPoolToken,,,) =
             _decodePoolCreatedEvent(entries);
         SelfPeggingAsset selfPeggingAsset = SelfPeggingAsset(decodedSelfPeggingAsset);
-        LPToken poolToken = LPToken(decodedPoolToken);
-        WLPToken wrappedPoolToken = WLPToken(decodedWrappedPoolToken);
+        SPAToken spaToken = SPAToken(decodedPoolToken);
+        WSPAToken wspaToken = WSPAToken(decodedWrappedPoolToken);
 
         vm.startPrank(initialMinter);
         tokenA.mint(initialMinter, 100e18);
@@ -192,8 +192,8 @@ contract FactoryTest is Test {
 
         selfPeggingAsset.mint(amounts, 0);
 
-        assertEq(poolToken.balanceOf(initialMinter), 200e18 - 1000 wei);
-        assertNotEq(address(wrappedPoolToken), address(0));
+        assertEq(spaToken.balanceOf(initialMinter), 200e18 - 1000 wei);
+        assertNotEq(address(wspaToken), address(0));
     }
 
     function test_CreatePoolOracleExchangeRate() external {
@@ -223,8 +223,8 @@ contract FactoryTest is Test {
             _decodePoolCreatedEvent(entries);
 
         SelfPeggingAsset selfPeggingAsset = SelfPeggingAsset(decodedSelfPeggingAsset);
-        LPToken poolToken = LPToken(decodedPoolToken);
-        WLPToken wrappedPoolToken = WLPToken(decodedWrappedPoolToken);
+        SPAToken spaToken = SPAToken(decodedPoolToken);
+        WSPAToken wspaToken = WSPAToken(decodedWrappedPoolToken);
 
         vm.startPrank(initialMinter);
         tokenA.mint(initialMinter, 100e18);
@@ -241,12 +241,12 @@ contract FactoryTest is Test {
 
         selfPeggingAsset.mint(amounts, 0);
 
-        assertEq(poolToken.balanceOf(initialMinter), 200e18 - 1000 wei);
-        assertNotEq(address(wrappedPoolToken), address(0));
+        assertEq(spaToken.balanceOf(initialMinter), 200e18 - 1000 wei);
+        assertNotEq(address(wspaToken), address(0));
     }
 
     function test_disableDirectInitialisation() external {
-        SelfPeggingAssetFactory factory = new SelfPeggingAssetFactory();
+        SelfPeggingAssetFactory factoryImpl = new SelfPeggingAssetFactory();
         ConstantExchangeRateProvider exchangeRateProvider = new ConstantExchangeRateProvider();
 
         SelfPeggingAssetFactory.InitializeArgument memory args = SelfPeggingAssetFactory.InitializeArgument(
@@ -269,7 +269,7 @@ contract FactoryTest is Test {
         );
 
         vm.expectRevert(Initializable.InvalidInitialization.selector);
-        factory.initialize(args);
+        factoryImpl.initialize(args);
 
         SelfPeggingAsset selfPeggingAsset = new SelfPeggingAsset();
         address[] memory _tokens;
@@ -278,16 +278,16 @@ contract FactoryTest is Test {
         IExchangeRateProvider[] memory _exchangeRateProviders;
         vm.expectRevert(Initializable.InvalidInitialization.selector);
         selfPeggingAsset.initialize(
-            _tokens, _precisions, _fees, 0, LPToken(address(0)), 0, _exchangeRateProviders, address(0), 0, governor
+            _tokens, _precisions, _fees, 0, SPAToken(address(0)), 0, _exchangeRateProviders, address(0), 0, governor
         );
 
-        LPToken lpToken = new LPToken();
+        SPAToken spaToken = new SPAToken();
         vm.expectRevert(Initializable.InvalidInitialization.selector);
-        lpToken.initialize("", "", 0, address(0), address(0));
+        spaToken.initialize("", "", 0, address(0), address(0));
 
-        WLPToken wlpToken = new WLPToken();
+        WSPAToken wspaToken = new WSPAToken();
         vm.expectRevert(Initializable.InvalidInitialization.selector);
-        wlpToken.initialize(LPToken(address(0)));
+        wspaToken.initialize(SPAToken(address(0)));
 
         RampAController rampAController = new RampAController();
         vm.expectRevert(Initializable.InvalidInitialization.selector);

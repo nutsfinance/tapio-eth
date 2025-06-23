@@ -12,8 +12,8 @@ import { SelfPeggingAsset } from "../src/SelfPeggingAsset.sol";
 import { MockToken } from "../src/mock/MockToken.sol";
 import { UpgradeableBeacon } from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 import { SelfPeggingAsset } from "../src/SelfPeggingAsset.sol";
-import { LPToken } from "../src/LPToken.sol";
-import { WLPToken } from "../src/WLPToken.sol";
+import { SPAToken } from "../src/SPAToken.sol";
+import { WSPAToken } from "../src/WSPAToken.sol";
 import { SelfPeggingAssetFactory } from "../src/SelfPeggingAssetFactory.sol";
 import { ERC1967Proxy } from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
@@ -42,17 +42,17 @@ contract Upgrade is Deploy, Setup, Pool {
 
         factory = SelfPeggingAssetFactory(jsonData.Factory);
         selfPeggingAssetBeacon = jsonData.SelfPeggingAssetBeacon;
-        lpTokenBeacon = jsonData.LPTokenBeacon;
-        wlpTokenBeacon = jsonData.WLPTokenBeacon;
+        spaTokenBeacon = jsonData.SPATokenBeacon;
+        wspaTokenBeacon = jsonData.WSPATokenBeacon;
 
         // Upgrade
-        LPToken lpTokenImpl = new LPToken();
-        WLPToken wlpTokenImpl = new WLPToken();
+        SPAToken spaTokenImpl = new SPAToken();
+        WSPAToken wspaTokenImpl = new WSPAToken();
         SelfPeggingAsset selfPeggingAssetImpl = new SelfPeggingAsset();
         SelfPeggingAssetFactory factoryImpl = SelfPeggingAssetFactory(factory);
 
-        UpgradeableBeacon(lpTokenBeacon).upgradeTo(address(lpTokenImpl));
-        UpgradeableBeacon(wlpTokenBeacon).upgradeTo(address(wlpTokenImpl));
+        UpgradeableBeacon(spaTokenBeacon).upgradeTo(address(spaTokenImpl));
+        UpgradeableBeacon(wspaTokenBeacon).upgradeTo(address(wspaTokenImpl));
         UpgradeableBeacon(selfPeggingAssetBeacon).upgradeTo(address(selfPeggingAssetImpl));
         factory.upgradeToAndCall(address(factoryImpl), bytes(""));
 

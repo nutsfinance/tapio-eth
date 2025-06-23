@@ -13,8 +13,8 @@ import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils
 import { SelfPeggingAssetFactory } from "../src/SelfPeggingAssetFactory.sol";
 import { MockToken } from "../src/mock/MockToken.sol";
 import { SelfPeggingAsset } from "../src/SelfPeggingAsset.sol";
-import { LPToken } from "../src/LPToken.sol";
-import { WLPToken } from "../src/WLPToken.sol";
+import { SPAToken } from "../src/SPAToken.sol";
+import { WSPAToken } from "../src/WSPAToken.sol";
 import { RampAController } from "../src/periphery/RampAController.sol";
 import { Keeper } from "../src/periphery/Keeper.sol";
 import { ParameterRegistry } from "../src/periphery/ParameterRegistry.sol";
@@ -35,8 +35,8 @@ contract GovernanceTest is Test {
 
     SelfPeggingAssetFactory internal factory;
     SelfPeggingAsset internal spa;
-    LPToken internal lpToken;
-    WLPToken wlpToken;
+    SPAToken internal spaToken;
+    WSPAToken internal wspaToken;
     RampAController internal rampAController;
     Keeper internal keeper;
     ParameterRegistry internal parameterRegistry;
@@ -49,19 +49,19 @@ contract GovernanceTest is Test {
         tokenB = new MockToken("test 2", "T2", 18);
 
         address selfPeggingAssetImplentation = address(new SelfPeggingAsset());
-        address lpTokenImplentation = address(new LPToken());
-        address wlpTokenImplentation = address(new WLPToken());
+        address spaTokenImplentation = address(new SPAToken());
+        address wspaTokenImplentation = address(new WSPAToken());
         address rampAControllerImplentation = address(new RampAController());
         address keeperImplementation = address(new Keeper());
         UpgradeableBeacon beacon = new UpgradeableBeacon(selfPeggingAssetImplentation, protocolOwner);
         spaBeacon = beacon;
         address selfPeggingAssetBeacon = address(beacon);
 
-        beacon = new UpgradeableBeacon(lpTokenImplentation, governor);
-        address lpTokenBeacon = address(beacon);
+        beacon = new UpgradeableBeacon(spaTokenImplentation, governor);
+        address spaTokenBeacon = address(beacon);
 
-        beacon = new UpgradeableBeacon(wlpTokenImplentation, governor);
-        address wlpTokenBeacon = address(beacon);
+        beacon = new UpgradeableBeacon(wspaTokenImplentation, governor);
+        address wspaTokenBeacon = address(beacon);
 
         beacon = new UpgradeableBeacon(rampAControllerImplentation, governor);
         address rampAControllerBeacon = address(beacon);
@@ -76,8 +76,8 @@ contract GovernanceTest is Test {
             100,
             30 minutes,
             selfPeggingAssetBeacon,
-            lpTokenBeacon,
-            wlpTokenBeacon,
+            spaTokenBeacon,
+            wspaTokenBeacon,
             rampAControllerBeacon,
             keeperImplementation,
             address(new ConstantExchangeRateProvider()),
@@ -105,10 +105,10 @@ contract GovernanceTest is Test {
         ERC1967Proxy proxy = new ERC1967Proxy(address(new SelfPeggingAssetFactory()), data);
         factory = SelfPeggingAssetFactory(address(proxy));
 
-        (wlpToken, keeper, parameterRegistry) = factory.createPool(arg);
+        (wspaToken, keeper, parameterRegistry) = factory.createPool(arg);
 
-        lpToken = LPToken(wlpToken.asset());
-        spa = SelfPeggingAsset(lpToken.pool());
+        spaToken = SPAToken(wspaToken.asset());
+        spa = SelfPeggingAsset(spaToken.pool());
         rampAController = RampAController(address(spa.rampAController()));
 
         keeper.grantRole(keeper.GOVERNOR_ROLE(), governor);

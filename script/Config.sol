@@ -18,8 +18,8 @@ contract Config is Script {
 
     SelfPeggingAssetFactory factory;
     address selfPeggingAssetBeacon;
-    address lpTokenBeacon;
-    address wlpTokenBeacon;
+    address spaTokenBeacon;
+    address wspaTokenBeacon;
     address rampAControllerBeacon;
     address keeperImplementation;
     address parameterRegistryBeacon;
@@ -27,15 +27,15 @@ contract Config is Script {
 
     struct JSONData {
         address Factory;
-        address LPTokenBeacon;
+        address SPATokenBeacon;
         address SelfPeggingAssetBeacon;
         address USDC;
         address USDT;
-        address WLPTokenBeacon;
+        address WSPATokenBeacon;
         address Zap;
     }
 
-    function loadConfig() internal {
+    function loadConfig() internal view {
         if (!testnet) {
             // POPULATE ADDRESSES BASED ON CHAIN ID
             // usdc = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
@@ -43,7 +43,7 @@ contract Config is Script {
         }
     }
 
-    function getNetworkName(uint256 chainId) internal view returns (string memory) {
+    function getNetworkName(uint256 chainId) internal pure returns (string memory) {
         if (chainId == 84_532) return "basesepolia";
         else if (chainId == 421_614) return "arbitrumsepolia";
         else if (chainId == 11_155_420) return "opsepolia";
