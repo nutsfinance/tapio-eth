@@ -59,8 +59,8 @@ contract RampAControllerTest is Test {
             abi.encodeCall(RampAController.initialize, (INITIAL_A, MIN_RAMP_TIME, address(this)));
         ERC1967Proxy rampAControllerProxy = new ERC1967Proxy(address(new RampAController()), rampAControllerData);
 
-        ERC1967Proxy lpTokenProxy = new ERC1967Proxy(address(new SPAToken()), new bytes(0));
-        spaToken = SPAToken(address(lpTokenProxy));
+        ERC1967Proxy spaTokenProxy = new ERC1967Proxy(address(new SPAToken()), new bytes(0));
+        spaToken = SPAToken(address(spaTokenProxy));
 
         bytes memory spaData = abi.encodeCall(
             SelfPeggingAsset.initialize,

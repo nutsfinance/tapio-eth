@@ -141,7 +141,7 @@ contract SelfPeggingAssetTest is Test {
         proxy = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
         SelfPeggingAsset _pool = SelfPeggingAsset(address(proxy));
 
-        _spaToken.initialize("LP Token", "LPT", 5e8, owner, address(_pool));
+        _spaToken.initialize("SPA Token", "SPAT", 5e8, owner, address(_pool));
 
         uint256[] memory amounts = new uint256[](2);
         amounts[0] = 110e18;
@@ -761,7 +761,7 @@ contract SelfPeggingAssetTest is Test {
 
         proxy1 = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
         SelfPeggingAsset _pool1 = SelfPeggingAsset(address(proxy1));
-        _spaToken1.initialize("LP Token", "LPT", 5e8, owner, address(_pool1));
+        _spaToken1.initialize("SPA Token", "SPAT", 5e8, owner, address(_pool1));
 
         data = abi.encodeCall(
             SelfPeggingAsset.initialize,
@@ -771,7 +771,7 @@ contract SelfPeggingAssetTest is Test {
         proxy2 = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
         SelfPeggingAsset _pool2 = SelfPeggingAsset(address(proxy2));
 
-        _spaToken2.initialize("LP Token", "LPT", 5e8, owner, address(_pool2));
+        _spaToken2.initialize("SPA Token", "SPAT", 5e8, owner, address(_pool2));
 
         vm.prank(address(_pool1));
         _spaToken1.addBuffer(100e18);
@@ -888,7 +888,7 @@ contract SelfPeggingAssetTest is Test {
 
         proxy1 = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
         SelfPeggingAsset _pool1 = SelfPeggingAsset(address(proxy1));
-        _spaToken1.initialize("LP Token", "LPT", 5e8, owner, address(_pool1));
+        _spaToken1.initialize("SPA Token", "SPAT", 5e8, owner, address(_pool1));
 
         vm.prank(owner);
         _pool1.setRateChangeSkipPeriod(10 seconds);
@@ -901,7 +901,7 @@ contract SelfPeggingAssetTest is Test {
         proxy2 = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
         SelfPeggingAsset _pool2 = SelfPeggingAsset(address(proxy2));
 
-        _spaToken2.initialize("LP Token", "LPT", 5e8, owner, address(_pool2));
+        _spaToken2.initialize("SPA Token", "SPAT", 5e8, owner, address(_pool2));
 
         vm.prank(address(_pool1));
         _spaToken1.addBuffer(100e18);
