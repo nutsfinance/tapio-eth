@@ -6,9 +6,9 @@ import "../src/SPAToken.sol";
 import "../src/WSPAToken.sol";
 import { ERC1967Proxy } from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
-contract WLPTokenTest is Test {
-    SPAToken public lpToken;
-    WSPAToken public wlpToken;
+contract WSPATokenTest is Test {
+    SPAToken public spaToken;
+    WSPAToken public wspaToken;
 
     address public owner;
     address public governance;
@@ -28,12 +28,12 @@ contract WLPTokenTest is Test {
         bytes memory data = abi.encodeCall(SPAToken.initialize, ("Tapio ETH", "TapETH", 0, owner, address(pool1)));
 
         ERC1967Proxy proxy = new ERC1967Proxy(address(new SPAToken()), data);
-        lpToken = SPAToken(address(proxy));
+        spaToken = SPAToken(address(proxy));
 
-        data = abi.encodeCall(WSPAToken.initialize, (lpToken));
+        data = abi.encodeCall(WSPAToken.initialize, (spaToken));
 
         proxy = new ERC1967Proxy(address(new WSPAToken()), data);
-        wlpToken = WSPAToken(address(proxy));
+        wspaToken = WSPAToken(address(proxy));
 
         vm.stopPrank();
     }
@@ -44,31 +44,31 @@ contract WLPTokenTest is Test {
         uint256 amountToWrap = 300_000_000_000_000_000_000;
 
         uint256 targetTotalSupply = amount1 + amount2;
-        uint256 wlpTokenTargetAmount = (amountToWrap * amount1) / targetTotalSupply;
+        uint256 wspaTokenTargetAmount = (amountToWrap * amount1) / targetTotalSupply;
 
         // Mint shares to user
         vm.prank(pool1);
-        lpToken.mintShares(user, amount1);
+        spaToken.mintShares(user, amount1);
 
         // Increase total supply
         vm.prank(pool1);
-        lpToken.addTotalSupply(amount2);
+        spaToken.addTotalSupply(amount2);
 
-        // Approve wlpToken contract
+        // Approve wspaToken contract
         vm.prank(user);
-        lpToken.approve(address(wlpToken), amountToWrap);
+        spaToken.approve(address(wspaToken), amountToWrap);
 
         // Wrap tokens
         vm.prank(user);
-        wlpToken.deposit(amountToWrap, user);
+        wspaToken.deposit(amountToWrap, user);
 
         // Assertions
-        assertEq(lpToken.totalSupply(), targetTotalSupply);
-        assertEq(lpToken.totalShares(), amount1);
-        assertEq(lpToken.sharesOf(user), amount1 - wlpTokenTargetAmount - lpToken.NUMBER_OF_DEAD_SHARES());
-        assertEq(lpToken.sharesOf(address(wlpToken)), wlpTokenTargetAmount);
-        assertEq(lpToken.balanceOf(address(wlpToken)), amountToWrap);
-        assertEq(wlpToken.balanceOf(user), wlpTokenTargetAmount);
+        assertEq(spaToken.totalSupply(), targetTotalSupply);
+        assertEq(spaToken.totalShares(), amount1);
+        assertEq(spaToken.sharesOf(user), amount1 - wspaTokenTargetAmount - spaToken.NUMBER_OF_DEAD_SHARES());
+        assertEq(spaToken.sharesOf(address(wspaToken)), wspaTokenTargetAmount);
+        assertEq(spaToken.balanceOf(address(wspaToken)), amountToWrap);
+        assertEq(wspaToken.balanceOf(user), wspaTokenTargetAmount);
     }
 
     function testRedeem() public {
@@ -77,36 +77,36 @@ contract WLPTokenTest is Test {
         uint256 amountToWrap = 300_000_000_000_000_000_000;
 
         uint256 targetTotalSupply = amount1 + amount2;
-        uint256 wlpTokenTargetAmount = (amountToWrap * amount1) / targetTotalSupply;
+        uint256 wspaTokenTargetAmount = (amountToWrap * amount1) / targetTotalSupply;
 
         // Mint shares to user
         vm.prank(pool1);
-        lpToken.mintShares(user, amount1);
+        spaToken.mintShares(user, amount1);
 
         // Increase total supply
         vm.prank(pool1);
-        lpToken.addTotalSupply(amount2);
+        spaToken.addTotalSupply(amount2);
 
-        // Approve wlpToken contract
+        // Approve wspaToken contract
         vm.prank(user);
-        lpToken.approve(address(wlpToken), amountToWrap);
+        spaToken.approve(address(wspaToken), amountToWrap);
 
         // Wrap tokens
         vm.prank(user);
-        wlpToken.deposit(amountToWrap, user);
+        wspaToken.deposit(amountToWrap, user);
 
         // Unwrap tokens
         vm.prank(user);
-        wlpToken.redeem(wlpTokenTargetAmount, user, user);
+        wspaToken.redeem(wspaTokenTargetAmount, user, user);
 
         // Assertions
-        assertEq(lpToken.totalSupply(), targetTotalSupply);
-        assertEq(lpToken.totalShares(), amount1);
-        assertEq(lpToken.sharesOf(user), amount1 - lpToken.NUMBER_OF_DEAD_SHARES());
-        assertEq(lpToken.sharesOf(address(wlpToken)), 0);
-        assertEq(lpToken.balanceOf(address(wlpToken)), 0);
-        assertEq(wlpToken.balanceOf(user), 0);
-        assertEq(wlpToken.totalAssets(), 0);
+        assertEq(spaToken.totalSupply(), targetTotalSupply);
+        assertEq(spaToken.totalShares(), amount1);
+        assertEq(spaToken.sharesOf(user), amount1 - spaToken.NUMBER_OF_DEAD_SHARES());
+        assertEq(spaToken.sharesOf(address(wspaToken)), 0);
+        assertEq(spaToken.balanceOf(address(wspaToken)), 0);
+        assertEq(wspaToken.balanceOf(user), 0);
+        assertEq(wspaToken.totalAssets(), 0);
     }
 
     function testWithdraw() public {
@@ -115,36 +115,36 @@ contract WLPTokenTest is Test {
         uint256 amountToWrap = 300_000_000_000_000_000_000;
 
         uint256 targetTotalSupply = amount1 + amount2;
-        uint256 wlpTokenTargetAmount = (amountToWrap * amount1) / targetTotalSupply;
+        uint256 wspaTokenTargetAmount = (amountToWrap * amount1) / targetTotalSupply;
 
         // Mint shares to user
         vm.prank(pool1);
-        lpToken.mintShares(user, amount1);
+        spaToken.mintShares(user, amount1);
 
         // Increase total supply
         vm.prank(pool1);
-        lpToken.addTotalSupply(amount2);
+        spaToken.addTotalSupply(amount2);
 
-        // Approve wlpToken contract
+        // Approve wspaToken contract
         vm.prank(user);
-        lpToken.approve(address(wlpToken), amountToWrap);
+        spaToken.approve(address(wspaToken), amountToWrap);
 
         // Wrap tokens
         vm.prank(user);
-        wlpToken.deposit(amountToWrap, user);
+        wspaToken.deposit(amountToWrap, user);
 
         // Unwrap tokens
-        uint256 assets = wlpToken.convertToAssets(wlpTokenTargetAmount);
+        uint256 assets = wspaToken.convertToAssets(wspaTokenTargetAmount);
         vm.prank(user);
-        wlpToken.withdraw(assets, user, user);
+        wspaToken.withdraw(assets, user, user);
 
         // Assertions
-        assertEq(lpToken.totalSupply(), targetTotalSupply);
-        assertEq(lpToken.totalShares(), amount1);
-        assertEq(lpToken.sharesOf(user), amount1 - lpToken.NUMBER_OF_DEAD_SHARES());
-        assertEq(lpToken.sharesOf(address(wlpToken)), 0);
-        assertEq(lpToken.balanceOf(address(wlpToken)), 0);
-        assertEq(wlpToken.balanceOf(user), 0);
-        assertEq(wlpToken.totalAssets(), 0);
+        assertEq(spaToken.totalSupply(), targetTotalSupply);
+        assertEq(spaToken.totalShares(), amount1);
+        assertEq(spaToken.sharesOf(user), amount1 - spaToken.NUMBER_OF_DEAD_SHARES());
+        assertEq(spaToken.sharesOf(address(wspaToken)), 0);
+        assertEq(spaToken.balanceOf(address(wspaToken)), 0);
+        assertEq(wspaToken.balanceOf(user), 0);
+        assertEq(wspaToken.totalAssets(), 0);
     }
 }

@@ -11,7 +11,7 @@ import { IZap } from "../interfaces/IZap.sol";
  * @title Zap
  * @notice A helper contract to simplify liquidity provision and removal in Tapio
  * @dev Allows users to add/remove liquidity with automatic wrapping/unwrapping in 1 tx
- * @dev SPA and wLP addresses are passed as parameters to each function
+ * @dev SPA and wSPA addresses are passed as parameters to each function
  */
 contract Zap is IZap, ReentrancyGuard {
     using SafeERC20 for IERC20;

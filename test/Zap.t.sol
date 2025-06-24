@@ -145,14 +145,14 @@ contract ZapTest is Test {
         token1.approve(address(zap), amounts[0]);
         token2.approve(address(zap), amounts[1]);
 
-        uint256 initialWlpBalance = wspaToken.balanceOf(user1);
+        uint256 initialWspaBalance = wspaToken.balanceOf(user1);
         uint256 initialToken1Balance = token1.balanceOf(user1);
         uint256 initialToken2Balance = token2.balanceOf(user1);
 
-        uint256 wlpAmount = zap.zapIn(address(spa), address(wspaToken), user1, MIN_AMOUNT, amounts);
+        uint256 wspaAmount = zap.zapIn(address(spa), address(wspaToken), user1, MIN_AMOUNT, amounts);
 
-        assertGt(wlpAmount, 0, "No wLP tokens received");
-        assertEq(wspaToken.balanceOf(user1) - initialWlpBalance, wlpAmount, "Incorrect wSPA token amount");
+        assertGt(wspaAmount, 0, "No wSPA tokens received");
+        assertEq(wspaToken.balanceOf(user1) - initialWspaBalance, wspaAmount, "Incorrect wSPA token amount");
 
         assertEq(token1.balanceOf(user1), initialToken1Balance - amounts[0], "Token1 wasn't properly used");
         assertEq(token2.balanceOf(user1), initialToken2Balance - amounts[1], "Token2 wasn't properly used");
@@ -171,12 +171,12 @@ contract ZapTest is Test {
         initialAmounts[0] = ADD_LIQUIDITY_AMOUNT * 10;
         initialAmounts[1] = ADD_LIQUIDITY_AMOUNT * 10 / 10 ** 12;
 
-        uint256 lpAmount = spa.mint(initialAmounts, 1);
+        uint256 spaAmount = spa.mint(initialAmounts, 1);
         token1.mint(address(spa), ADD_LIQUIDITY_AMOUNT);
         token2.mint(address(spa), ADD_LIQUIDITY_AMOUNT / 10 ** 12);
 
-        spaToken.approve(address(wspaToken), lpAmount / 5);
-        uint256 wlpAmount = wspaToken.deposit(lpAmount / 5, user1);
+        spaToken.approve(address(wspaToken), spaAmount / 5);
+        uint256 wspaAmount = wspaToken.deposit(spaAmount / 5, user1);
         vm.stopPrank();
 
         vm.startPrank(user1);
@@ -185,18 +185,18 @@ contract ZapTest is Test {
         minAmountsOut[0] = 1;
         minAmountsOut[1] = 1;
 
-        uint256 initialWlpBalance = wspaToken.balanceOf(user1);
+        uint256 initialWspaBalance = wspaToken.balanceOf(user1);
         uint256 initialToken1Balance = token1.balanceOf(user1);
         uint256 initialToken2Balance = token2.balanceOf(user1);
 
-        wspaToken.approve(address(zap), wlpAmount);
+        wspaToken.approve(address(zap), wspaAmount);
 
-        uint256[] memory result = zap.zapOut(address(spa), address(wspaToken), user1, wlpAmount, minAmountsOut, true);
+        uint256[] memory result = zap.zapOut(address(spa), address(wspaToken), user1, wspaAmount, minAmountsOut, true);
 
         assertGt(result.length, 0, "No results returned");
         assertGt(result[0], 0, "No token1 received");
         assertGt(result[1], 0, "No token2 received");
-        assertEq(wspaToken.balanceOf(user1), initialWlpBalance - wlpAmount, "WLP tokens not burned correctly");
+        assertEq(wspaToken.balanceOf(user1), initialWspaBalance - wspaAmount, "WSPA tokens not burned correctly");
         assertEq(token1.balanceOf(user1), initialToken1Balance + result[0], "Token1 not received correctly");
         assertEq(token2.balanceOf(user1), initialToken2Balance + result[1], "Token2 not received correctly");
 
@@ -214,13 +214,13 @@ contract ZapTest is Test {
         initialAmounts[0] = ADD_LIQUIDITY_AMOUNT * 15;
         initialAmounts[1] = ADD_LIQUIDITY_AMOUNT * 15 / 10 ** 12;
 
-        uint256 lpAmount = spa.mint(initialAmounts, 1);
+        uint256 spaAmount = spa.mint(initialAmounts, 1);
 
         token1.mint(address(spa), ADD_LIQUIDITY_AMOUNT * 2);
         token2.mint(address(spa), ADD_LIQUIDITY_AMOUNT * 2 / 10 ** 12);
 
-        spaToken.approve(address(wspaToken), lpAmount / 3);
-        uint256 wlpAmount = wspaToken.deposit(lpAmount / 3, user1);
+        spaToken.approve(address(wspaToken), spaAmount / 3);
+        uint256 wspaAmount = wspaToken.deposit(spaAmount / 3, user1);
         vm.stopPrank();
 
         vm.startPrank(user1);
@@ -229,19 +229,19 @@ contract ZapTest is Test {
         amountsOut[0] = ADD_LIQUIDITY_AMOUNT / 2;
         amountsOut[1] = ADD_LIQUIDITY_AMOUNT / 4 / 10 ** 12;
 
-        uint256 initialWlpBalance = wspaToken.balanceOf(user1);
+        uint256 initialWspaBalance = wspaToken.balanceOf(user1);
         uint256 initialToken1Balance = token1.balanceOf(user1);
         uint256 initialToken2Balance = token2.balanceOf(user1);
 
-        wspaToken.approve(address(zap), wlpAmount);
+        wspaToken.approve(address(zap), wspaAmount);
 
-        uint256[] memory result = zap.zapOut(address(spa), address(wspaToken), user1, wlpAmount, amountsOut, false);
+        uint256[] memory result = zap.zapOut(address(spa), address(wspaToken), user1, wspaAmount, amountsOut, false);
 
         assertGt(result.length, 0, "No results returned");
         assertGt(result[0], 0, "No token1 received");
         assertGt(result[1], 0, "No token2 received");
 
-        assertEq(wspaToken.balanceOf(user1), initialWlpBalance - wlpAmount, "WSPA tokens not burned correctly");
+        assertEq(wspaToken.balanceOf(user1), initialWspaBalance - wspaAmount, "WSPA tokens not burned correctly");
         assertEq(token1.balanceOf(user1), initialToken1Balance + result[0], "Token1 not received correctly");
         assertEq(token2.balanceOf(user1), initialToken2Balance + result[1], "Token2 not received correctly");
 
@@ -259,13 +259,13 @@ contract ZapTest is Test {
         initialAmounts[0] = ADD_LIQUIDITY_AMOUNT * 10;
         initialAmounts[1] = ADD_LIQUIDITY_AMOUNT * 10 / 10 ** 12;
 
-        uint256 lpAmount = spa.mint(initialAmounts, 1);
+        uint256 spaAmount = spa.mint(initialAmounts, 1);
 
         token1.mint(address(spa), ADD_LIQUIDITY_AMOUNT);
         token2.mint(address(spa), ADD_LIQUIDITY_AMOUNT / 10 ** 12);
 
-        spaToken.approve(address(wspaToken), lpAmount / 10);
-        uint256 wlpAmount = wspaToken.deposit(lpAmount / 10, user1);
+        spaToken.approve(address(wspaToken), spaAmount / 10);
+        uint256 wspaAmount = wspaToken.deposit(spaAmount / 10, user1);
         vm.stopPrank();
 
         vm.startPrank(user1);
@@ -273,16 +273,16 @@ contract ZapTest is Test {
         uint256 tokenIndex = 0;
         uint256 minAmountOut = 1;
 
-        uint256 initialWlpBalance = wspaToken.balanceOf(user1);
+        uint256 initialWspaBalance = wspaToken.balanceOf(user1);
         uint256 initialToken1Balance = token1.balanceOf(user1);
 
-        wspaToken.approve(address(zap), wlpAmount);
+        wspaToken.approve(address(zap), wspaAmount);
 
         uint256 redeemedAmount =
-            zap.zapOutSingle(address(spa), address(wspaToken), user1, wlpAmount, tokenIndex, minAmountOut);
+            zap.zapOutSingle(address(spa), address(wspaToken), user1, wspaAmount, tokenIndex, minAmountOut);
 
         assertGt(redeemedAmount, 0, "No tokens received from redemption");
-        assertEq(wspaToken.balanceOf(user1), initialWlpBalance - wlpAmount, "WSPA tokens not burned correctly");
+        assertEq(wspaToken.balanceOf(user1), initialWspaBalance - wspaAmount, "WSPA tokens not burned correctly");
         assertEq(token1.balanceOf(user1), initialToken1Balance + redeemedAmount, "Token1 not received correctly");
 
         vm.stopPrank();
@@ -307,7 +307,7 @@ contract ZapTest is Test {
         vm.stopPrank();
     }
 
-    function testZapIn_ZeroWlpAddress() public {
+    function testZapIn_ZeroWspaAddress() public {
         token1.mint(user1, ADD_LIQUIDITY_AMOUNT);
         token2.mint(user1, ADD_LIQUIDITY_AMOUNT / 10 ** 12);
 
@@ -345,7 +345,7 @@ contract ZapTest is Test {
         vm.stopPrank();
     }
 
-    function testZapIn_CorrectSpaIncorrectWlp() public {
+    function testZapIn_CorrectSpaIncorrectWspa() public {
         token1.mint(user1, ADD_LIQUIDITY_AMOUNT);
         token2.mint(user1, ADD_LIQUIDITY_AMOUNT / 10 ** 12);
 
@@ -413,7 +413,7 @@ contract ZapTest is Test {
         );
         proxy = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
         SelfPeggingAsset secondSpa = SelfPeggingAsset(address(proxy));
-        secondSPAToken.initialize("Second LP Token", "LP2", 5e8, governance, address(secondSpa));
+        secondSPAToken.initialize("Second SPA Token", "SPA2", 5e8, governance, address(secondSpa));
 
         vm.stopPrank();
         vm.startPrank(admin);
@@ -479,12 +479,12 @@ contract ZapTest is Test {
         initialAmounts[0] = ADD_LIQUIDITY_AMOUNT * 10;
         initialAmounts[1] = ADD_LIQUIDITY_AMOUNT * 10 / 10 ** 12;
 
-        uint256 lpAmount = spa.mint(initialAmounts, 1);
+        uint256 spaAmount = spa.mint(initialAmounts, 1);
         token1.mint(address(spa), ADD_LIQUIDITY_AMOUNT);
         token2.mint(address(spa), ADD_LIQUIDITY_AMOUNT / 10 ** 12);
 
-        spaToken.approve(address(wspaToken), lpAmount / 5);
-        uint256 wlpAmount = wspaToken.deposit(lpAmount / 5, user1);
+        spaToken.approve(address(wspaToken), spaAmount / 5);
+        uint256 wspaAmount = wspaToken.deposit(spaAmount / 5, user1);
         vm.stopPrank();
 
         vm.startPrank(user1);
@@ -493,7 +493,7 @@ contract ZapTest is Test {
         minAmountsOut[0] = 1;
         minAmountsOut[1] = 1;
 
-        wspaToken.approve(address(zap), wlpAmount);
+        wspaToken.approve(address(zap), wspaAmount);
 
         vm.expectRevert(Zap.ZeroAmount.selector);
         zap.zapOut(address(spa), address(wspaToken), user1, 0, minAmountsOut, true);
@@ -502,7 +502,7 @@ contract ZapTest is Test {
         wrongAmountsOut[0] = 1;
 
         vm.expectRevert(Zap.InvalidParameters.selector);
-        zap.zapOut(address(spa), address(wspaToken), user1, wlpAmount, wrongAmountsOut, true);
+        zap.zapOut(address(spa), address(wspaToken), user1, wspaAmount, wrongAmountsOut, true);
 
         vm.stopPrank();
     }
