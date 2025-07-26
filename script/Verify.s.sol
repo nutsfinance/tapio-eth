@@ -17,6 +17,7 @@ contract Verify is Script, Config {
     using stdJson for string;
 
     bytes32 implSlot = 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
+    bytes32 initializedSlot = 0xf0c57e16840df040f15088dc2f81fe391c3923bec73e23a9662efc9c229c6a00;
 
     address private spa;
     address private keeper;
@@ -68,15 +69,36 @@ contract Verify is Script, Config {
         keeper = aJson.readAddress(".wSwOSKeeper");
 
         require(readImpl(address(factory)) == factoryImplementation, "mismatch factory implementation");
+        require(
+            readInitialized(address(factory)) > 0
+                && SelfPeggingAssetFactory(factoryImplementation).proxiableUUID() == implSlot,
+            "factory not initialized"
+        );
+
         require(readBeaconProxyImpl(spaToken) == readBeaconImpl(spaTokenBeacon), "mismatch spa token implementation");
+        require(readInitialized(spaToken) > 0, "spa token not initialized");
+        require(readProxyBeacon(spaToken) == spaTokenBeacon, "mismatch spa token beacon");
+
         require(readBeaconProxyImpl(wspaToken) == readBeaconImpl(wspaTokenBeacon), "mismatch wspa token implementation");
+        require(readInitialized(wspaToken) > 0, "wspa token not initialized");
+        require(readProxyBeacon(wspaToken) == wspaTokenBeacon, "mismatch wspa token beacon");
+
         require(readBeaconProxyImpl(spa) == readBeaconImpl(selfPeggingAssetBeacon), "mismatch spa pool implementation");
+        require(readInitialized(spa) > 0, "spa pool token not initialized");
+        require(readProxyBeacon(spa) == selfPeggingAssetBeacon, "mismatch spa pool beacon");
+
         require(
             readBeaconProxyImpl(rampA) == readBeaconImpl(rampAControllerBeacon),
             "mismatch ramp a controller implementation"
         );
-        require(readImpl(keeper) == keeperImplementation, "mismatch keeper implementation");
+        require(readInitialized(rampA) > 0, "ramp a controller not initialized");
+        require(readProxyBeacon(rampA) == rampAControllerBeacon, "mismatch ramp a controller beacon");
 
+        require(readImpl(keeper) == keeperImplementation, "mismatch keeper implementation");
+        require(
+            readInitialized(keeper) > 0 && SelfPeggingAssetFactory(keeperImplementation).proxiableUUID() == implSlot,
+            "keeper not initialized"
+        );
         // expected
         string memory eJson = vm.readFile("script/configs/expected.json");
         exp.mintFee = eJson.readUint(".mintFee");
@@ -120,6 +142,10 @@ contract Verify is Script, Config {
         _eq(Keeper(keeper).treasury(), factory.governor(), "treasury");
     }
 
+    function readInitialized(address proxy) internal view returns (uint64) {
+        return uint64(uint256(vm.load(proxy, initializedSlot)));
+    }
+
     function readImpl(address proxy) internal view returns (address) {
         return address(uint160(uint256(vm.load(proxy, implSlot))));
     }
@@ -132,6 +158,16 @@ contract Verify is Script, Config {
             result := mload(add(code, add(0x20, 0x18)))
         }
         return address(uint160(uint256(vm.load(address(uint160(uint256(result))), bytes32(uint256(1))))));
+    }
+
+    function readProxyBeacon(address proxy) internal view returns (address) {
+        bytes memory code = address(proxy).code;
+        bytes32 result;
+        // offset to get immutable variable of deployed bytecode (beacon address) is 0x18 or bytes24
+        assembly {
+            result := mload(add(code, add(0x20, 0x18)))
+        }
+        return address(uint160(uint256(result)));
     }
 
     function readBeaconImpl(address beacon) internal view returns (address) {
