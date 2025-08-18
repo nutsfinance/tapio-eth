@@ -13,3 +13,5 @@ broadcast/**/dry-run/
 lcov.info
 package-lock.json
 pnpm-lock.yaml
+
+soljson-latest.js

@@ -1,0 +1,10 @@
+{
+  "mintFee": 0,
+  "swapFee": 5000000,
+  "redeemFee": 0,
+  "offPegFeeMultiplier": 10000000000,
+  "A": 100,
+  "minRampTime": 1800,
+  "exchangeRateFeeFactor": 0,
+  "bufferPercent": 1000000000
+}
