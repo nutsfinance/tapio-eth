@@ -1412,8 +1412,12 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         bool allZero = true;
         for (uint256 i = 0; i < length; i++) {
             uint256 bal = _balances[i];
-            if (bal != 0) allZero = false;
-            else bal = 1;
+            if (bal != 0) {
+                allZero = false;
+            } else {
+                bal = 1;
+                _balances[i] = 1;
+            }
             sum += bal;
             Ann *= length;
         }

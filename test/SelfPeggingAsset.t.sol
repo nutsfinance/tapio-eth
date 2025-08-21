@@ -594,6 +594,22 @@ contract SelfPeggingAssetTest is Test {
         assertEq(_spaToken.bufferBadDebt(), 0);
     }
 
+    function test_EmptyPoolDoesNotRevertOnTokenZeroBalance() external {
+        WETH.mint(user, 100e18);
+        frxETH.mint(user, 100e18);
+
+        vm.startPrank(user);
+        WETH.approve(address(pool), 100e18);
+        frxETH.approve(address(pool), 100e18);
+
+        WETH.transfer(address(pool), 1);
+        uint256[] memory mintAmounts = new uint256[](2);
+        mintAmounts[0] = 10e18;
+        mintAmounts[1] = 10e18;
+        pool.mint(mintAmounts, 0);
+        vm.stopPrank();
+    }
+
     function test_MintDynamicFee() external {
         WETH.mint(user, 105e18);
         frxETH.mint(user, 85e18);
