@@ -939,7 +939,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         for (uint256 i = 0; i < _balances.length; i++) {
             uint256 balanceI = IERC20(tokens[i]).balanceOf(address(this));
             _balances[i] =
-                (balanceI * exchangeRateProviders[i].exchangeRate()) / (10 ** exchangeRateDecimals[i]) * precisions[i];
+                (balanceI * exchangeRateProviders[i].exchangeRate() * precisions[i]) / (10 ** exchangeRateDecimals[i]);
         }
         uint256 newD = _getD(_balances, getCurrentA());
 
@@ -961,7 +961,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         for (uint256 i = 0; i < _balances.length; i++) {
             uint256 balanceI = IERC20(tokens[i]).balanceOf(address(this));
             _balances[i] =
-                (balanceI * exchangeRateProviders[i].exchangeRate()) / (10 ** exchangeRateDecimals[i]) * precisions[i];
+                (balanceI * exchangeRateProviders[i].exchangeRate() * precisions[i]) / (10 ** exchangeRateDecimals[i]);
         }
         uint256 newD = _getD(_balances, getCurrentA());
         if (oldD == newD) return 0;
