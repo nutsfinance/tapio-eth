@@ -660,6 +660,89 @@ contract SelfPeggingAssetTest is Test {
         assertEq(_spaToken.bufferBadDebt(), 0);
     }
 
+    function test_BadDebtClearedWithDonateD() external {
+        MockExchangeRateProvider rETHExchangeRateProvider = new MockExchangeRateProvider(1e18, 18);
+        MockExchangeRateProvider wstETHExchangeRateProvider = new MockExchangeRateProvider(1e18, 18);
+
+        MockToken rETH = new MockToken("rETH", "rETH", 18);
+        MockToken wstETH = new MockToken("wstETH", "wstETH", 18);
+
+        address[] memory _tokens = new address[](2);
+        _tokens[0] = address(rETH);
+        _tokens[1] = address(wstETH);
+
+        IExchangeRateProvider[] memory exchangeRateProviders = new IExchangeRateProvider[](2);
+        exchangeRateProviders[0] = IExchangeRateProvider(rETHExchangeRateProvider);
+        exchangeRateProviders[1] = IExchangeRateProvider(wstETHExchangeRateProvider);
+
+        ERC1967Proxy proxy = new ERC1967Proxy(address(new SPAToken()), new bytes(0));
+        SPAToken _spaToken = SPAToken(address(proxy));
+
+        uint256[] memory _fees = new uint256[](3);
+        _fees[0] = 0;
+        _fees[1] = 0;
+        _fees[2] = 0;
+
+        uint256[] memory _precisions = new uint256[](2);
+        _precisions[0] = 1;
+        _precisions[1] = 1;
+
+        bytes memory data = abi.encodeCall(
+            SelfPeggingAsset.initialize,
+            (_tokens, _precisions, _fees, 0, _spaToken, A, exchangeRateProviders, address(0), 0, owner)
+        );
+        proxy = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
+        SelfPeggingAsset _pool = SelfPeggingAsset(address(proxy));
+
+        _spaToken.initialize("SPA Token", "TSPA", 5e8, owner, address(_pool));
+
+        uint256[] memory amounts = new uint256[](2);
+        amounts[0] = 100e18;
+        amounts[1] = 100e18;
+
+        // Mint Liquidity
+        rETH.mint(user, 500e18);
+        wstETH.mint(user, 500e18);
+
+        vm.startPrank(user);
+        rETH.approve(address(_pool), 500e18);
+        wstETH.approve(address(_pool), 500e18);
+
+        _pool.mint(amounts, 0);
+        vm.stopPrank();
+
+        // Set buffer percentage to 5%
+        vm.prank(owner);
+        _spaToken.setBuffer(0.05e10);
+        vm.stopPrank();
+
+        // Add yield
+        rETHExchangeRateProvider.newRate(2e18);
+        _pool.rebase();
+
+        // Drop the exchange rate by 1% so that the pool is in loss and buffer can cover the loss
+        // A = 10;
+        rETHExchangeRateProvider.newRate(1.98e18);
+        _pool.rebase();
+        uint256 bufferAmount = _spaToken.bufferAmount();
+        uint256 bufferBadDebt = _spaToken.bufferBadDebt();
+        assert(bufferBadDebt > 0);
+
+        uint256[] memory donationAmounts = new uint256[](2);
+        donationAmounts[0] = 10e18;
+        donationAmounts[1] = 5e18;
+        uint256 minDonationAmount = 14e18;
+
+        vm.prank(user);
+        _pool.donateD(donationAmounts, minDonationAmount);
+
+        uint256 bufferAmountAfter = _spaToken.bufferAmount();
+        uint256 bufferBadDebtAfter = _spaToken.bufferBadDebt();
+
+        assert(bufferBadDebtAfter < bufferBadDebt);
+        assert(bufferAmountAfter > bufferAmount);
+    }
+
     function test_MintDynamicFee() external {
         WETH.mint(user, 105e18);
         frxETH.mint(user, 85e18);
@@ -840,10 +923,10 @@ contract SelfPeggingAssetTest is Test {
         _spaToken2.initialize("SPA Token", "SPAT", 5e8, owner, address(_pool2));
 
         vm.prank(address(_pool1));
-        _spaToken1.addBuffer(100e18);
+        _spaToken1.addBuffer(100e18, true);
 
         vm.prank(address(_pool2));
-        _spaToken2.addBuffer(100e18);
+        _spaToken2.addBuffer(100e18, true);
 
         uint256[] memory amounts = new uint256[](2);
         amounts[0] = 100e18;
@@ -970,10 +1053,10 @@ contract SelfPeggingAssetTest is Test {
         _spaToken2.initialize("SPA Token", "SPAT", 5e8, owner, address(_pool2));
 
         vm.prank(address(_pool1));
-        _spaToken1.addBuffer(100e18);
+        _spaToken1.addBuffer(100e18, true);
 
         vm.prank(address(_pool2));
-        _spaToken2.addBuffer(100e18);
+        _spaToken2.addBuffer(100e18, true);
 
         uint256[] memory amounts = new uint256[](2);
         amounts[0] = 100e18;
@@ -1077,7 +1160,7 @@ contract SelfPeggingAssetTest is Test {
         vm.stopPrank();
 
         vm.prank(address(spa));
-        spaToken1.addBuffer(100e18);
+        spaToken1.addBuffer(100e18, true);
 
         rETH.mint(user, 100e18);
         wstETH.mint(user, 100e18);
@@ -1228,10 +1311,10 @@ contract SelfPeggingAssetTest is Test {
 
         uint256 bufferSize = initialLiquidity * 3;
         vm.prank(address(pool1));
-        spaToken1.addBuffer(bufferSize);
+        spaToken1.addBuffer(bufferSize, true);
 
         vm.prank(address(pool2));
-        spaToken2.addBuffer(bufferSize);
+        spaToken2.addBuffer(bufferSize, true);
 
         uint256[] memory amounts = new uint256[](2);
         amounts[0] = initialLiquidity;
