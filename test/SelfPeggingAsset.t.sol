@@ -1231,4 +1231,96 @@ contract SelfPeggingAssetTest is Test {
             assertLe(profit2, profit1, "Protected pool should yield less profit on rate exploit");
         }
     }
+
+    function test_ValuePrecisionLoss() external {
+        MockExchangeRateProvider testToken1Rate = new MockExchangeRateProvider(1.9999e18, 18);
+        MockExchangeRateProvider testToken2Rate = new MockExchangeRateProvider(1.9999e18, 18);
+
+        MockToken token1 = new MockToken("token1", "token1", 6);
+        MockToken token2 = new MockToken("token2", "token2", 6);
+
+        address[] memory _tokens = new address[](2);
+        _tokens[0] = address(token1);
+        _tokens[1] = address(token2);
+
+        IExchangeRateProvider[] memory exchangeRateProviders = new IExchangeRateProvider[](2);
+        exchangeRateProviders[0] = IExchangeRateProvider(testToken1Rate);
+        exchangeRateProviders[1] = IExchangeRateProvider(testToken2Rate);
+
+        ERC1967Proxy proxy = new ERC1967Proxy(address(new SPAToken()), new bytes(0));
+        SPAToken _spaToken = SPAToken(address(proxy));
+
+        uint256[] memory _fees = new uint256[](3);
+        _fees[0] = 0;
+        _fees[1] = 0;
+        _fees[2] = 0;
+
+        uint256[] memory _precisions = new uint256[](2);
+        _precisions[0] = 1e12;
+        _precisions[1] = 1e12;
+
+        bytes memory data = abi.encodeCall(
+            SelfPeggingAsset.initialize,
+            (_tokens, _precisions, _fees, 0, _spaToken, A, exchangeRateProviders, address(0), 0, owner)
+        );
+        proxy = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
+        SelfPeggingAsset _pool = SelfPeggingAsset(address(proxy));
+
+        _spaToken.initialize("SPA Token", "TSPA", 5e8, owner, address(_pool));
+
+        uint256[] memory amounts = new uint256[](2);
+        amounts[0] = 1e6;
+        amounts[1] = 1e6;
+
+        // Mint Liquidity
+        token1.mint(user, 1e6);
+        token2.mint(user, 1e6);
+
+        vm.startPrank(user);
+        token1.approve(address(_pool), 1e6);
+        token2.approve(address(_pool), 1e6);
+
+        _pool.mint(amounts, 0);
+        vm.stopPrank();
+
+        // swap 1 token1 to token2
+        token1.mint(user2, 1e4);
+
+        vm.startPrank(user2);
+        token1.approve(address(_pool), 1e4);
+        _pool.swap(0, 1, 1e4, 0);
+        vm.stopPrank();
+
+        // the swap above was called to trigger syncing the contract total supply after this we can estimate the current
+        // contract value based on the current exchange rate and buffer
+        uint256 value1 = token1.balanceOf(address(_pool));
+        value1 = (value1 * 1.9999e18 * _precisions[0]) / (10 ** 18);
+        uint256 value2 = token2.balanceOf(address(_pool));
+        value2 = (value2 * 1.9999e18 * _precisions[1]) / (10 ** 18);
+        // 1.9999e18 is exchange rate valuetoken2
+        uint256 initialValuesBeforeRebase = value1 + value2;
+
+        // Set buffer percentage to 5%
+        vm.prank(owner);
+        _spaToken.setBuffer(0.05e10);
+        vm.stopPrank();
+        // Add yield, new rate for token 1
+        uint256 token1newRate = 2e18;
+        testToken1Rate.newRate(token1newRate);
+
+        //after setting new buffer and new exchange, an estimate of what rebase added value to contract would look like
+        // is calculated below, rebase should correctly give a value close to this if precision mutiplication was
+        // handled correctly, based on current supply value
+        value1 = token1.balanceOf(address(_pool));
+        value1 = (value1 * token1newRate * _precisions[0]) / (10 ** 18);
+        value2 = token2.balanceOf(address(_pool));
+        value2 = (value2 * 1.9999e18 * _precisions[1]) / (10 ** 18);
+
+        uint256 correctEstimatedExpectedRebase = value1 + value2 - initialValuesBeforeRebase;
+
+        uint256 actualRebase = _pool.rebase();
+
+        // after fix, rebase value should be very close to the expected one
+        assertApproxEqRel(actualRebase, correctEstimatedExpectedRebase, 1e14); // <0.01% deviation
+    }
 }
