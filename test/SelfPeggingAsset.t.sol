@@ -215,7 +215,7 @@ contract SelfPeggingAssetTest is Test {
         pool.mint(mintAmounts, 0);
         vm.stopPrank();
 
-        (uint256[] memory tokenAmounts,) = pool.getRedeemProportionAmount(25e18);
+        (uint256[] memory tokenAmounts) = pool.getRedeemProportionAmount(25e18);
         uint256 token1Amount = tokenAmounts[0];
         uint256 token2Amount = tokenAmounts[1];
 
@@ -409,14 +409,13 @@ contract SelfPeggingAssetTest is Test {
 
         WETH.mint(address(pool), 10e18);
         uint256 redeemAmount = 25e18;
-        (uint256[] memory tokenAmounts, uint256 feeAmount) = pool.getRedeemProportionAmount(redeemAmount);
+        (uint256[] memory tokenAmounts) = pool.getRedeemProportionAmount(redeemAmount);
 
         uint256 token1Amount = tokenAmounts[0];
         uint256 token2Amount = tokenAmounts[1];
 
-        assertEq(token1Amount, 14_303_943_881_560_144_839);
-        assertEq(token2Amount, 10_572_480_260_283_585_316);
-        assertEq(feeAmount, 125_000_000_000_000_000);
+        assertEq(token1Amount, 14_375_822_996_542_859_135);
+        assertEq(token2Amount, 10_625_608_301_792_548_056);
     }
 
     function testCorrectExchangeAmountRebasing() external {
