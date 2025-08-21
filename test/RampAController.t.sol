@@ -25,9 +25,6 @@ contract RampAControllerTest is Test {
     uint256[] public fees;
     uint256 public offPegFeeMultiplier;
 
-    uint256 totalSupplyAfterRebase;
-    uint256 bufferAmountAfterRebase;
-
     function setUp() public {
         owner = address(this);
         vm.startPrank(owner);
@@ -116,8 +113,8 @@ contract RampAControllerTest is Test {
         vm.warp(block.timestamp + 1 hours + 1);
         uint256[] memory redeemAmounts = new uint256[](2);
         spa.rebase();
-        totalSupplyAfterRebase = spaToken.totalSupply();
-        bufferAmountAfterRebase = spaToken.bufferAmount();
+        assertEq(spaToken.totalSupply(), 200_500_546_385_029_087_909);
+        assertEq(spaToken.bufferAmount(), 33_708_635_384_971_624);
     }
 
     function test_rebase_after_sync() public {
@@ -142,8 +139,8 @@ contract RampAControllerTest is Test {
             // `syncRamping` and compare after rebase
         spa.rebase();
 
-        assertEq(spaToken.totalSupply(), totalSupplyAfterRebase);
-        assertEq(spaToken.bufferAmount(), bufferAmountAfterRebase);
+        assertEq(spaToken.totalSupply(), 200_500_546_385_029_087_909);
+        assertEq(spaToken.bufferAmount(), 33_708_635_384_971_624);
     }
 
     function testRampA() public {
