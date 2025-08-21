@@ -25,6 +25,9 @@ contract RampAControllerTest is Test {
     uint256[] public fees;
     uint256 public offPegFeeMultiplier;
 
+    uint256 totalSupplyAfterRebase;
+    uint256 bufferAmountAfterRebase;
+
     function setUp() public {
         owner = address(this);
         vm.startPrank(owner);
@@ -92,6 +95,55 @@ contract RampAControllerTest is Test {
         assertEq(controller.futureA(), INITIAL_A);
         assertEq(controller.isRamping(), false);
         assertEq(controller.getA(), INITIAL_A);
+    }
+
+    function test_only_rebase() public {
+        MockToken(tokens[0]).mint(address(this), 1000e18);
+        MockToken(tokens[1]).mint(address(this), 1000e18);
+        MockToken(tokens[0]).approve(address(spa), type(uint256).max);
+        MockToken(tokens[1]).approve(address(spa), type(uint256).max);
+
+        uint256[] memory initialAmounts = new uint256[](2);
+        initialAmounts[0] = 100e18;
+        initialAmounts[1] = 100e18;
+        spa.mint(initialAmounts, 0);
+        spa.swap(0, 1, 50e18, 0);
+
+        uint256 newA = 220;
+        uint256 endTime = block.timestamp + 1 hours;
+        controller.rampA(newA, endTime);
+
+        vm.warp(block.timestamp + 1 hours + 1);
+        uint256[] memory redeemAmounts = new uint256[](2);
+        spa.rebase();
+        totalSupplyAfterRebase = spaToken.totalSupply();
+        bufferAmountAfterRebase = spaToken.bufferAmount();
+    }
+
+    function test_rebase_after_sync() public {
+        MockToken(tokens[0]).mint(address(this), 1000e18);
+        MockToken(tokens[1]).mint(address(this), 1000e18);
+        MockToken(tokens[0]).approve(address(spa), type(uint256).max);
+        MockToken(tokens[1]).approve(address(spa), type(uint256).max);
+
+        uint256[] memory initialAmounts = new uint256[](2);
+        initialAmounts[0] = 100e18;
+        initialAmounts[1] = 100e18;
+        spa.mint(initialAmounts, 0);
+        spa.swap(0, 1, 50e18, 0);
+
+        uint256 newA = 220;
+        uint256 endTime = block.timestamp + 1 hours;
+        controller.rampA(newA, endTime);
+
+        vm.warp(block.timestamp + 1 hours + 1);
+        uint256[] memory redeemAmounts = new uint256[](2);
+        spa.redeemMulti(redeemAmounts, 1e36); // redeem 0 amounts for `redeemMulti` function to call
+            // `syncRamping` and compare after rebase
+        spa.rebase();
+
+        assertEq(spaToken.totalSupply(), totalSupplyAfterRebase);
+        assertEq(spaToken.bufferAmount(), bufferAmountAfterRebase);
     }
 
     function testRampA() public {
