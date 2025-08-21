@@ -631,17 +631,11 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         uint256[] memory _balances = balances;
         uint256 D = totalSupply;
         uint256[] memory amounts = new uint256[](_balances.length);
-        uint256 feeAmount = 0;
-        uint256 redeemAmount = _amount;
-        if (redeemFee > 0) {
-            feeAmount = (_amount * redeemFee) / FEE_DENOMINATOR;
-            redeemAmount = _amount - feeAmount;
-        }
 
         for (uint256 i = 0; i < _balances.length; i++) {
             // We might choose to use poolToken.totalSupply to compute the amount, but decide to use
             // D in case we have multiple minters on the pool token.
-            uint256 tokenAmount = (_balances[i] * redeemAmount) / D;
+            uint256 tokenAmount = (_balances[i] * _amount) / D;
             // Important: Underlying tokens must convert back to original decimals!
             amounts[i] = tokenAmount / precisions[i];
             uint256 minRedeemAmount =
@@ -658,7 +652,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         totalSupply = D - _amount;
         // After reducing the redeem fee, the remaining pool tokens are burned!
         poolToken.burnSharesFrom(msg.sender, _amount);
-        feeAmount = collectFeeOrYield(true);
+        uint256 feeAmount = collectFeeOrYield(true);
         emit Redeemed(msg.sender, _amount, amounts, feeAmount);
         return amounts;
     }
@@ -1119,19 +1113,13 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
      * @dev Computes the amounts of underlying tokens when redeeming pool token.
      * @param _amount Amount of pool tokens to redeem.
      * @return An array of the amounts of each token to redeem.
-     * @return The amount of fee charged
      */
-    function getRedeemProportionAmount(uint256 _amount) external view returns (uint256[] memory, uint256) {
+    function getRedeemProportionAmount(uint256 _amount) external view returns (uint256[] memory) {
         (uint256[] memory _balances, uint256 D) = getUpdatedBalancesAndD();
         require(_amount != 0, ZeroAmount());
 
         uint256[] memory amounts = new uint256[](_balances.length);
-        uint256 feeAmount;
         uint256 redeemAmount = _amount;
-        if (redeemFee != 0) {
-            feeAmount = (_amount * redeemFee) / FEE_DENOMINATOR;
-            redeemAmount = _amount - feeAmount;
-        }
 
         for (uint256 i = 0; i < _balances.length; i++) {
             // We might choose to use poolToken.totalSupply to compute the amount, but decide to use
@@ -1140,7 +1128,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
             amounts[i] = (amounts[i] * (10 ** exchangeRateDecimals[i])) / exchangeRateProviders[i].exchangeRate();
         }
 
-        return (amounts, feeAmount);
+        return (amounts);
     }
 
     /**
