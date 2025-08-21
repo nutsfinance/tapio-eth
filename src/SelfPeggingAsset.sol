@@ -1203,7 +1203,8 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
     }
 
     function _syncTotalSupply() internal {
-        uint256 newD = _getD(balances, A);
+        uint256 newD;
+        (balances, newD) = getUpdatedBalancesAndD();
 
         if (totalSupply > newD) {
             // A decreased
