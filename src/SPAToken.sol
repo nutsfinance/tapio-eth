@@ -404,11 +404,15 @@ contract SPAToken is Initializable, OwnableUpgradeable, ISPAToken {
 
     /**
      * @notice This function is called only by a stableSwap pool to increase
-     * the total supply of SPAToken
+     * the buffer amount of SPAToken
      */
-    function addBuffer(uint256 _amount) external {
+    function addBuffer(uint256 _amount, bool withDebt) external {
         require(msg.sender == pool, NoPool());
         require(_amount != 0, InvalidAmount());
+
+        if (withDebt) {
+            bufferBadDebt = bufferBadDebt > _amount ? bufferBadDebt - _amount : 0;
+        }
 
         bufferAmount += _amount;
         emit BufferIncreased(_amount, bufferAmount);

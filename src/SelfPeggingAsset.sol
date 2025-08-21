@@ -904,7 +904,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
             IERC20(tokens[i]).safeTransferFrom(msg.sender, address(this), _amounts[i]);
         }
         totalSupply = newD;
-        poolToken.addBuffer(donationAmount);
+        poolToken.addBuffer(donationAmount, true);
 
         emit Donated(msg.sender, donationAmount, _amounts);
 
@@ -1211,7 +1211,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
             totalSupply = newD;
         } else if (newD > totalSupply) {
             // A increased
-            poolToken.addBuffer(newD - totalSupply);
+            poolToken.addBuffer(newD - totalSupply, false);
             totalSupply = newD;
         }
     }
