@@ -589,11 +589,18 @@ contract SPAToken is Initializable, OwnableUpgradeable, ISPAToken {
         require(_account != address(0), BurnFromZeroAddr());
 
         uint256 _balance = getPeggedTokenByShares(_sharesOf(_account));
+
         if (_tokenAmount > _balance) {
             revert InsufficientBalance(_balance, _tokenAmount);
         }
 
         uint256 _sharesAmount = getSharesByPeggedToken(_tokenAmount);
+
+        // Prevent zero-cost burn
+        if (_sharesAmount == 0 && _tokenAmount > 0) {
+            _sharesAmount = 1;
+        }
+
         shares[_account] -= _sharesAmount;
         totalShares -= _sharesAmount;
         newTotalShares = totalShares;

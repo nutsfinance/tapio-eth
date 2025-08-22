@@ -490,6 +490,72 @@ contract SelfPeggingAssetTest is Test {
         assertLt(WETH.balanceOf(user2), exchangeAmount);
     }
 
+    function test_BurnValue_With_Losing_Shares() public {
+        //two users, user and user2, enter as liquidity providers.
+        uint256 liquidity = 100e18;
+        WETH.mint(user, liquidity);
+        frxETH.mint(user, liquidity);
+        WETH.mint(user2, liquidity);
+        frxETH.mint(user2, liquidity);
+
+        uint256[] memory amounts = new uint256[](2);
+        amounts[0] = liquidity;
+        amounts[1] = liquidity;
+
+        vm.startPrank(user);
+        WETH.approve(address(pool), liquidity);
+        frxETH.approve(address(pool), liquidity);
+        pool.mint(amounts, 0);
+        vm.stopPrank();
+
+        vm.startPrank(user2);
+        WETH.approve(address(pool), liquidity);
+        frxETH.approve(address(pool), liquidity);
+        pool.mint(amounts, 0);
+        vm.stopPrank();
+
+        //we create a profit balance (totalSupply > totalShares) via donation.
+        uint256 donation = 100e18;
+        WETH.mint(owner, donation);
+        vm.prank(owner);
+        WETH.transfer(address(pool), donation);
+        pool.rebase();
+
+        assertTrue(
+            spaToken.totalSupply() > spaToken.totalShares(),
+            "Condition totalSupply > totalShares must be met for attack."
+        );
+
+        uint256 user2_Shares_before = spaToken.sharesOf(user2);
+        uint256 user_Balance_before = spaToken.balanceOf(user);
+        uint256 totalSupply_before = spaToken.totalSupply();
+
+        //attack: User `user2` calls burnShares(1) in a loop to destroy the value.
+        uint256 iterations = 100;
+        vm.startPrank(user2);
+        for (uint256 i = 0; i < iterations; i++) {
+            spaToken.burnShares(1);
+        }
+        vm.stopPrank();
+
+        //check
+        uint256 user2_Shares_after = spaToken.sharesOf(user2);
+        uint256 user_Balance_after = spaToken.balanceOf(user);
+        uint256 totalSupply_after = spaToken.totalSupply();
+
+        //user2 shares are dropped
+        assertGt(user2_Shares_before, user2_Shares_after, "User2's shares should have decreased");
+
+        //total supply decreased by the amount that user2 burned
+        assertEq(
+            totalSupply_after,
+            totalSupply_before - iterations,
+            "TotalSupply should have decreased by number of iterations"
+        );
+
+        assertGt(user_Balance_after, user_Balance_before, "User's balance should have increased");
+    }
+
     function test_LossHandling() external {
         MockExchangeRateProvider rETHExchangeRateProvider = new MockExchangeRateProvider(1e18, 18);
         MockExchangeRateProvider wstETHExchangeRateProvider = new MockExchangeRateProvider(1e18, 18);
