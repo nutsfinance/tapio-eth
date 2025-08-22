@@ -1070,6 +1070,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
                 uint256 xs = ((balances[i] + _balances[i]) * exchangeRateProviders[i].exchangeRate())
                     / (10 ** exchangeRateDecimals[i]);
                 fees[i] = (difference * (_dynamicFee(xs, ys, mintFee) + _volatilityFee(i, mintFee))) / FEE_DENOMINATOR;
+                feeAmount += fees[i];
                 _balances[i] -= fees[i];
             }
 
