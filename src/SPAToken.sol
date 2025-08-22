@@ -226,6 +226,7 @@ contract SPAToken is Initializable, OwnableUpgradeable, ISPAToken {
         returns (uint256)
     {
         uint256 tokensAmount = getPeggedTokenByShares(_sharesAmount);
+        if (tokensAmount == 0 && _sharesAmount > 0) tokensAmount = 1; // Prevent zero-cost transfers
         _spendAllowance(_sender, msg.sender, tokensAmount);
         _transferShares(_sender, _recipient, _sharesAmount);
         _emitTransferEvents(_sender, _recipient, tokensAmount, _sharesAmount);

@@ -40,6 +40,47 @@ contract spaTokenTest is Test {
         assertEq(spaToken.balanceOf(user1), amount - spaToken.NUMBER_OF_DEAD_SHARES());
     }
 
+    function test_AllowanceDontBypassThroughRounding() public {
+        address victim = makeAddr("victim");
+        address attacker = makeAddr("attacker");
+
+        vm.prank(pool1);
+        spaToken.mintShares(victim, 100 * 1e18);
+        vm.prank(pool1);
+        spaToken.mintShares(user3, 500 * 1e18);
+
+        vm.prank(victim);
+        spaToken.approve(attacker, 1e18);
+
+        uint256 victimInitialBalance = spaToken.balanceOf(victim);
+
+        vm.prank(pool1);
+        spaToken.removeTotalSupply(200 * 1e18, false, false); // 33% loss event
+
+        // Verify vulnerable state: totalSupply < totalShares
+        uint256 totalSupply = spaToken.totalSupply();
+        uint256 totalShares = spaToken.totalShares();
+        uint256 allowanceBefore = spaToken.allowance(victim, attacker);
+        assertTrue(totalSupply < totalShares, "Loss creates vulnerable state");
+
+        // Shares round to 0 tokens
+        assertEq(spaToken.getPeggedTokenByShares(1), 0, "1 share = 0 tokens due to rounding");
+
+        // Revert without allowance
+        uint256 victimSharesBefore = spaToken.sharesOf(victim);
+        uint256 attackerBalanceBefore = spaToken.balanceOf(attacker);
+
+        // Attack in loop: steal 1 share at a time (rounds to 0 tokens)
+        uint256 iterations = 100;
+        for (uint256 i; i < iterations; i++) {
+            vm.prank(attacker);
+            spaToken.transferSharesFrom(victim, attacker, 1); // Costs 1 allowance!
+        }
+
+        // Verify the allowance reduce
+        assertLt(spaToken.allowance(victim, attacker), allowanceBefore, "reduce allwoance");
+    }
+
     function test_MintSharesMultipleUsers() public {
         uint256 amount1 = 1_000_000_000_000_000_000_000;
         uint256 amount2 = 2_000_000_000_000_000_000_000;
