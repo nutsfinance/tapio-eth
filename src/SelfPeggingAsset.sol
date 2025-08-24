@@ -631,17 +631,11 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         uint256[] memory _balances = balances;
         uint256 D = totalSupply;
         uint256[] memory amounts = new uint256[](_balances.length);
-        uint256 feeAmount = 0;
-        uint256 redeemAmount = _amount;
-        if (redeemFee > 0) {
-            feeAmount = (_amount * redeemFee) / FEE_DENOMINATOR;
-            redeemAmount = _amount - feeAmount;
-        }
 
         for (uint256 i = 0; i < _balances.length; i++) {
             // We might choose to use poolToken.totalSupply to compute the amount, but decide to use
             // D in case we have multiple minters on the pool token.
-            uint256 tokenAmount = (_balances[i] * redeemAmount) / D;
+            uint256 tokenAmount = (_balances[i] * _amount) / D;
             // Important: Underlying tokens must convert back to original decimals!
             amounts[i] = tokenAmount / precisions[i];
             uint256 minRedeemAmount =
@@ -658,7 +652,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         totalSupply = D - _amount;
         // After reducing the redeem fee, the remaining pool tokens are burned!
         poolToken.burnSharesFrom(msg.sender, _amount);
-        feeAmount = collectFeeOrYield(true);
+        uint256 feeAmount = collectFeeOrYield(true);
         emit Redeemed(msg.sender, _amount, amounts, feeAmount);
         return amounts;
     }
@@ -904,7 +898,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
             IERC20(tokens[i]).safeTransferFrom(msg.sender, address(this), _amounts[i]);
         }
         totalSupply = newD;
-        poolToken.addBuffer(donationAmount);
+        poolToken.addBuffer(donationAmount, true);
 
         emit Donated(msg.sender, donationAmount, _amounts);
 
@@ -939,7 +933,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         for (uint256 i = 0; i < _balances.length; i++) {
             uint256 balanceI = IERC20(tokens[i]).balanceOf(address(this));
             _balances[i] =
-                (balanceI * exchangeRateProviders[i].exchangeRate()) / (10 ** exchangeRateDecimals[i]) * precisions[i];
+                (balanceI * exchangeRateProviders[i].exchangeRate() * precisions[i]) / (10 ** exchangeRateDecimals[i]);
         }
         uint256 newD = _getD(_balances, getCurrentA());
 
@@ -954,14 +948,14 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
      * @notice This function allows to rebase SPAToken by increasing his total supply
      * from the current stableSwap pool by the staking rewards and the swap fee.
      */
-    function rebase() external returns (uint256) {
+    function rebase() external syncRamping returns (uint256) {
         uint256[] memory _balances = balances;
         uint256 oldD = totalSupply;
 
         for (uint256 i = 0; i < _balances.length; i++) {
             uint256 balanceI = IERC20(tokens[i]).balanceOf(address(this));
             _balances[i] =
-                (balanceI * exchangeRateProviders[i].exchangeRate()) / (10 ** exchangeRateDecimals[i]) * precisions[i];
+                (balanceI * exchangeRateProviders[i].exchangeRate() * precisions[i]) / (10 ** exchangeRateDecimals[i]);
         }
         uint256 newD = _getD(_balances, getCurrentA());
         if (oldD == newD) return 0;
@@ -1120,19 +1114,13 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
      * @dev Computes the amounts of underlying tokens when redeeming pool token.
      * @param _amount Amount of pool tokens to redeem.
      * @return An array of the amounts of each token to redeem.
-     * @return The amount of fee charged
      */
-    function getRedeemProportionAmount(uint256 _amount) external view returns (uint256[] memory, uint256) {
+    function getRedeemProportionAmount(uint256 _amount) external view returns (uint256[] memory) {
         (uint256[] memory _balances, uint256 D) = getUpdatedBalancesAndD();
         require(_amount != 0, ZeroAmount());
 
         uint256[] memory amounts = new uint256[](_balances.length);
-        uint256 feeAmount;
         uint256 redeemAmount = _amount;
-        if (redeemFee != 0) {
-            feeAmount = (_amount * redeemFee) / FEE_DENOMINATOR;
-            redeemAmount = _amount - feeAmount;
-        }
 
         for (uint256 i = 0; i < _balances.length; i++) {
             // We might choose to use poolToken.totalSupply to compute the amount, but decide to use
@@ -1141,7 +1129,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
             amounts[i] = (amounts[i] * (10 ** exchangeRateDecimals[i])) / exchangeRateProviders[i].exchangeRate();
         }
 
-        return (amounts, feeAmount);
+        return (amounts);
     }
 
     /**
@@ -1204,7 +1192,8 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
     }
 
     function _syncTotalSupply() internal {
-        uint256 newD = _getD(balances, A);
+        uint256 newD;
+        (balances, newD) = getUpdatedBalancesAndD();
 
         if (totalSupply > newD) {
             // A decreased
@@ -1212,7 +1201,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
             totalSupply = newD;
         } else if (newD > totalSupply) {
             // A increased
-            poolToken.addBuffer(newD - totalSupply);
+            poolToken.addBuffer(newD - totalSupply, false);
             totalSupply = newD;
         }
     }
