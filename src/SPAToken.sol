@@ -226,6 +226,7 @@ contract SPAToken is Initializable, OwnableUpgradeable, ISPAToken {
         returns (uint256)
     {
         uint256 tokensAmount = getPeggedTokenByShares(_sharesAmount);
+        if (tokensAmount == 0 && _sharesAmount > 0) tokensAmount = 1; // Prevent zero-cost transfers
         _spendAllowance(_sender, msg.sender, tokensAmount);
         _transferShares(_sender, _recipient, _sharesAmount);
         _emitTransferEvents(_sender, _recipient, tokensAmount, _sharesAmount);
@@ -404,11 +405,15 @@ contract SPAToken is Initializable, OwnableUpgradeable, ISPAToken {
 
     /**
      * @notice This function is called only by a stableSwap pool to increase
-     * the total supply of SPAToken
+     * the buffer amount of SPAToken
      */
-    function addBuffer(uint256 _amount) external {
+    function addBuffer(uint256 _amount, bool withDebt) external {
         require(msg.sender == pool, NoPool());
         require(_amount != 0, InvalidAmount());
+
+        if (withDebt) {
+            bufferBadDebt = bufferBadDebt > _amount ? bufferBadDebt - _amount : 0;
+        }
 
         bufferAmount += _amount;
         emit BufferIncreased(_amount, bufferAmount);
@@ -589,11 +594,18 @@ contract SPAToken is Initializable, OwnableUpgradeable, ISPAToken {
         require(_account != address(0), BurnFromZeroAddr());
 
         uint256 _balance = getPeggedTokenByShares(_sharesOf(_account));
+
         if (_tokenAmount > _balance) {
             revert InsufficientBalance(_balance, _tokenAmount);
         }
 
         uint256 _sharesAmount = getSharesByPeggedToken(_tokenAmount);
+
+        // Prevent zero-cost burn
+        if (_sharesAmount == 0 && _tokenAmount > 0) {
+            _sharesAmount = 1;
+        }
+
         shares[_account] -= _sharesAmount;
         totalShares -= _sharesAmount;
         newTotalShares = totalShares;

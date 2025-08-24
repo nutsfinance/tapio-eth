@@ -94,6 +94,55 @@ contract RampAControllerTest is Test {
         assertEq(controller.getA(), INITIAL_A);
     }
 
+    function test_only_rebase() public {
+        MockToken(tokens[0]).mint(address(this), 1000e18);
+        MockToken(tokens[1]).mint(address(this), 1000e18);
+        MockToken(tokens[0]).approve(address(spa), type(uint256).max);
+        MockToken(tokens[1]).approve(address(spa), type(uint256).max);
+
+        uint256[] memory initialAmounts = new uint256[](2);
+        initialAmounts[0] = 100e18;
+        initialAmounts[1] = 100e18;
+        spa.mint(initialAmounts, 0);
+        spa.swap(0, 1, 50e18, 0);
+
+        uint256 newA = 220;
+        uint256 endTime = block.timestamp + 1 hours;
+        controller.rampA(newA, endTime);
+
+        vm.warp(block.timestamp + 1 hours + 1);
+        uint256[] memory redeemAmounts = new uint256[](2);
+        spa.rebase();
+        assertEq(spaToken.totalSupply(), 200_500_546_385_029_087_909);
+        assertEq(spaToken.bufferAmount(), 33_708_635_384_971_624);
+    }
+
+    function test_rebase_after_sync() public {
+        MockToken(tokens[0]).mint(address(this), 1000e18);
+        MockToken(tokens[1]).mint(address(this), 1000e18);
+        MockToken(tokens[0]).approve(address(spa), type(uint256).max);
+        MockToken(tokens[1]).approve(address(spa), type(uint256).max);
+
+        uint256[] memory initialAmounts = new uint256[](2);
+        initialAmounts[0] = 100e18;
+        initialAmounts[1] = 100e18;
+        spa.mint(initialAmounts, 0);
+        spa.swap(0, 1, 50e18, 0);
+
+        uint256 newA = 220;
+        uint256 endTime = block.timestamp + 1 hours;
+        controller.rampA(newA, endTime);
+
+        vm.warp(block.timestamp + 1 hours + 1);
+        uint256[] memory redeemAmounts = new uint256[](2);
+        spa.redeemMulti(redeemAmounts, 1e36); // redeem 0 amounts for `redeemMulti` function to call
+            // `syncRamping` and compare after rebase
+        spa.rebase();
+
+        assertEq(spaToken.totalSupply(), 200_500_546_385_029_087_909);
+        assertEq(spaToken.bufferAmount(), 33_708_635_384_971_624);
+    }
+
     function testRampA() public {
         uint256 newA = 220;
         uint256 endTime = block.timestamp + 1 hours;
