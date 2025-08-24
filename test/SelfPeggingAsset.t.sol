@@ -1428,7 +1428,7 @@ contract SelfPeggingAssetTest is Test {
 
         ERC1967Proxy proxy = new ERC1967Proxy(address(new SPAToken()), new bytes(0));
         SPAToken _spaToken = SPAToken(address(proxy));
-        
+
         uint256[] memory _fees = new uint256[](3);
         _fees[0] = 0;
         _fees[1] = 0;
