@@ -793,8 +793,12 @@ contract SelfPeggingAssetTest is Test {
         amounts[0] = 100e18;
         amounts[1] = 100e18;
 
+        uint256 previewMint;
+        (previewMint,) = pool.getMintAmount(amounts);
         uint256 minted = pool.mint(amounts, 0);
-        assertEq(minted, 199.981683542835615016e18);
+        assertEq(minted, previewMint);
+        assertGt(200e18 - minted, 0);
+        assertLt(200e18 - minted, 0.02e18); // ensure not inflated
     }
 
     function assertAlmostTheSame(uint256 num1, uint256 num2) internal pure {
@@ -1497,5 +1501,248 @@ contract SelfPeggingAssetTest is Test {
 
         // after fix, rebase value should be very close to the expected one
         assertApproxEqRel(actualRebase, correctEstimatedExpectedRebase, 1e14); // <0.01% deviation
+    }
+
+    function test_c322_RedeemSingleDynamicFee() external {
+        uint256 minted = _mintInitialLiquidityRedeem();
+        uint256 redeemAmount = minted / 2; // redeem half
+
+        (uint256 previewUnderlying, uint256 previewFeeSpa) = pool.getRedeemSingleAmount(redeemAmount, 0);
+
+        uint256 userWethBefore = WETH.balanceOf(user);
+        uint256 userSpaBefore = spaToken.balanceOf(user);
+
+        vm.startPrank(user);
+        spaToken.approve(address(pool), redeemAmount);
+        uint256 received = pool.redeemSingle(redeemAmount, 0, 0);
+        vm.stopPrank();
+
+        assertApproxEqRel(received, previewUnderlying, 0.01e18);
+        uint256 userSpaAfter = spaToken.balanceOf(user);
+        assertApproxEqRel(userSpaBefore - userSpaAfter, redeemAmount, 0.01e18);
+
+        // 0.5%
+        uint256 expectedFeeSpa = (redeemAmount * redeemFee) / feeDenominator;
+        // 5% tolerance
+        assertApproxEqRel(previewFeeSpa, expectedFeeSpa, 0.05e18);
+        assertEq(WETH.balanceOf(user) - userWethBefore, received);
+    }
+
+    function test_c322_RedeemMultiDynamicFee() external {
+        _mintInitialLiquidityRedeem();
+
+        uint256[] memory desired = new uint256[](2);
+        desired[0] = 10e18;
+        desired[1] = 8e18;
+
+        (uint256 previewSpa, uint256 previewFee) = pool.getRedeemMultiAmount(desired);
+
+        uint256 spaBefore = spaToken.balanceOf(user);
+        uint256 wethBefore = WETH.balanceOf(user);
+        uint256 frxBefore = frxETH.balanceOf(user);
+
+        vm.startPrank(user);
+        spaToken.approve(address(pool), previewSpa);
+        uint256[] memory received = pool.redeemMulti(desired, previewSpa);
+        vm.stopPrank();
+
+        uint256 spaAfter = spaToken.balanceOf(user);
+        assertApproxEqRel(spaBefore - spaAfter, previewSpa, 0.01e18);
+
+        assertEq(received[0], desired[0]);
+        assertEq(received[1], desired[1]);
+        assertEq(WETH.balanceOf(user) - wethBefore, desired[0]);
+        assertEq(frxETH.balanceOf(user) - frxBefore, desired[1]);
+
+        // 0.5%
+        uint256 feePercent = (previewFee * feeDenominator) / previewSpa;
+        assertGt(feePercent, 0);
+        // proportionally balanced
+        assertLt(feePercent, redeemFee / 10);
+    }
+
+    function test_c322_RedeemMultiFee_NonUnity_WithinBaseBounds() external {
+        MockExchangeRateProvider p0 = new MockExchangeRateProvider(12e17, 18); // 1.2
+        MockExchangeRateProvider p1 = new MockExchangeRateProvider(95e16, 18); // 0.95
+
+        MockToken t0 = new MockToken("t0", "t0", 18);
+        MockToken t1 = new MockToken("t1", "t1", 18);
+
+        address[] memory _tokens = new address[](2);
+        _tokens[0] = address(t0);
+        _tokens[1] = address(t1);
+
+        IExchangeRateProvider[] memory providers = new IExchangeRateProvider[](2);
+        providers[0] = IExchangeRateProvider(p0);
+        providers[1] = IExchangeRateProvider(p1);
+
+        uint256[] memory _fees = new uint256[](3);
+        _fees[0] = 0;
+        _fees[1] = 0;
+        _fees[2] = redeemFee;
+
+        uint256[] memory _precisions = new uint256[](2);
+        _precisions[0] = 1;
+        _precisions[1] = 1;
+
+        ERC1967Proxy proxy = new ERC1967Proxy(address(new SPAToken()), new bytes(0));
+        SPAToken spt = SPAToken(address(proxy));
+        bytes memory data = abi.encodeCall(
+            SelfPeggingAsset.initialize, (_tokens, _precisions, _fees, 0, spt, A, providers, address(0), 0, owner)
+        );
+        proxy = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
+        SelfPeggingAsset poolU = SelfPeggingAsset(address(proxy));
+        spt.initialize("SPA Token UM", "SPAUM", 0, owner, address(poolU));
+
+        uint256[] memory amounts = new uint256[](2);
+        amounts[0] = 120e18;
+        amounts[1] = 80e18;
+        t0.mint(user, amounts[0]);
+        t1.mint(user, amounts[1]);
+        vm.startPrank(user);
+        t0.approve(address(poolU), amounts[0]);
+        t1.approve(address(poolU), amounts[1]);
+        poolU.mint(amounts, 0);
+        vm.stopPrank();
+
+        uint256[] memory desired = new uint256[](2);
+        desired[0] = 10e18;
+        desired[1] = 8e18;
+
+        (uint256 previewSpa, uint256 previewFee) = poolU.getRedeemMultiAmount(desired);
+
+        uint256 feePercent = (previewFee * feeDenominator) / previewSpa;
+        assertGt(feePercent, 0);
+        assertLt(feePercent, redeemFee / 10);
+    }
+
+    function test_c322_Fuzz_RedeemFee_InvarianceAcrossDecimals(
+        uint256 ratePercent,
+        uint8 erDecimals,
+        uint256 amount0,
+        uint256 amount1,
+        uint256 redeemPct,
+        uint8 idx
+    )
+        public
+    {
+        // Bound parameters
+        ratePercent = bound(ratePercent, 80, 120);
+        erDecimals = uint8(bound(erDecimals, 6, 18));
+        amount0 = bound(amount0, 50e18, 200e18);
+        amount1 = bound(amount1, 50e18, 200e18);
+        redeemPct = bound(redeemPct, 10, 90);
+        idx = uint8(bound(idx, 0, 1));
+
+        // different rates within [80, 120]
+        uint256 rate0Pct = ratePercent;
+        uint256 rate1Pct = 200 - ratePercent;
+
+        uint256 rate0_18 = rate0Pct * 1e18 / 100;
+        uint256 rate1_18 = rate1Pct * 1e18 / 100;
+        uint256 rate0_var = rate0Pct * (10 ** erDecimals) / 100;
+        uint256 rate1_var = rate1Pct * (10 ** erDecimals) / 100;
+
+        MockToken t0 = new MockToken("t0", "t0", 18);
+        MockToken t1 = new MockToken("t1", "t1", 18);
+
+        SelfPeggingAsset pool18;
+        {
+            address[] memory toks = new address[](2);
+            toks[0] = address(t0);
+            toks[1] = address(t1);
+            IExchangeRateProvider[] memory prov = new IExchangeRateProvider[](2);
+            prov[0] = IExchangeRateProvider(new MockExchangeRateProvider(rate0_18, 18));
+            prov[1] = IExchangeRateProvider(new MockExchangeRateProvider(rate1_18, 18));
+            uint256[] memory fees = new uint256[](3);
+            fees[0] = 0;
+            fees[1] = 0;
+            fees[2] = redeemFee;
+            uint256[] memory prec = new uint256[](2);
+            prec[0] = 1;
+            prec[1] = 1;
+            ERC1967Proxy proxy = new ERC1967Proxy(address(new SPAToken()), new bytes(0));
+            SPAToken spt = SPAToken(address(proxy));
+            bytes memory data =
+                abi.encodeCall(SelfPeggingAsset.initialize, (toks, prec, fees, 0, spt, A, prov, address(0), 0, owner));
+            proxy = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
+            pool18 = SelfPeggingAsset(address(proxy));
+            spt.initialize("SPA18", "SPA18", 0, owner, address(pool18));
+        }
+
+        SelfPeggingAsset poolVar;
+        {
+            address[] memory toks = new address[](2);
+            toks[0] = address(t0);
+            toks[1] = address(t1);
+            IExchangeRateProvider[] memory prov = new IExchangeRateProvider[](2);
+            prov[0] = IExchangeRateProvider(new MockExchangeRateProvider(rate0_var, erDecimals));
+            prov[1] = IExchangeRateProvider(new MockExchangeRateProvider(rate1_var, erDecimals));
+            uint256[] memory fees = new uint256[](3);
+            fees[0] = 0;
+            fees[1] = 0;
+            fees[2] = redeemFee;
+            uint256[] memory prec = new uint256[](2);
+            prec[0] = 1;
+            prec[1] = 1;
+            ERC1967Proxy proxy = new ERC1967Proxy(address(new SPAToken()), new bytes(0));
+            SPAToken spt = SPAToken(address(proxy));
+            bytes memory data =
+                abi.encodeCall(SelfPeggingAsset.initialize, (toks, prec, fees, 0, spt, A, prov, address(0), 0, owner));
+            proxy = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
+            poolVar = SelfPeggingAsset(address(proxy));
+            spt.initialize("SPAV", "SPAV", 0, owner, address(poolVar));
+        }
+
+        uint256[] memory amounts = new uint256[](2);
+        amounts[0] = amount0;
+        amounts[1] = amount1;
+        t0.mint(user, amount0 * 2);
+        t1.mint(user, amount1 * 2);
+        vm.startPrank(user);
+        t0.approve(address(pool18), amount0);
+        t1.approve(address(pool18), amount1);
+        uint256 spa18 = pool18.mint(amounts, 0);
+        t0.approve(address(poolVar), amount0);
+        t1.approve(address(poolVar), amount1);
+        uint256 spaVar = poolVar.mint(amounts, 0);
+        vm.stopPrank();
+
+        uint256 redeem18 = spa18 * redeemPct / 100;
+        uint256 redeemVar = spaVar * redeemPct / 100;
+
+        (uint256 feePct18, uint256 feePctVar) = (uint256(0), uint256(0));
+
+        if (idx == 0) {
+            (uint256 out18, uint256 fee18) = pool18.getRedeemSingleAmount(redeem18, 0);
+            feePct18 = (fee18 * 1e18) / ((out18 * rate0_18) / 1e18 + fee18);
+            (uint256 outV, uint256 feeV) = poolVar.getRedeemSingleAmount(redeemVar, 0);
+            feePctVar = (feeV * 1e18) / ((outV * rate0_var) / (10 ** erDecimals) + feeV);
+        } else {
+            (uint256 out18, uint256 fee18) = pool18.getRedeemSingleAmount(redeem18, 1);
+            feePct18 = (fee18 * 1e18) / ((out18 * rate1_18) / 1e18 + fee18);
+            (uint256 outV, uint256 feeV) = poolVar.getRedeemSingleAmount(redeemVar, 1);
+            feePctVar = (feeV * 1e18) / ((outV * rate1_var) / (10 ** erDecimals) + feeV);
+        }
+
+        uint256 baseScaled = (redeemFee * 1e18) / feeDenominator;
+        assertApproxEqRel(feePct18, baseScaled, 0.05e18);
+        assertApproxEqRel(feePct18, feePctVar, 0.05e18);
+    }
+
+    // Helper to mint initial liquidity
+    function _mintInitialLiquidityRedeem() internal returns (uint256 mintedSpa) {
+        uint256[] memory amounts = new uint256[](2);
+        amounts[0] = 105e18;
+        amounts[1] = 85e18;
+
+        WETH.mint(user, amounts[0]);
+        frxETH.mint(user, amounts[1]);
+
+        vm.startPrank(user);
+        WETH.approve(address(pool), amounts[0]);
+        frxETH.approve(address(pool), amounts[1]);
+        mintedSpa = pool.mint(amounts, 0);
+        vm.stopPrank();
     }
 }

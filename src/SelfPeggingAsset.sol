@@ -514,8 +514,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
                 uint256 idealBalance = newD * balances[i] / oldD;
                 uint256 difference =
                     idealBalance > _balances[i] ? idealBalance - _balances[i] : _balances[i] - idealBalance;
-                uint256 xs = ((balances[i] + _balances[i]) * exchangeRateProviders[i].exchangeRate())
-                    / (10 ** exchangeRateDecimals[i]);
+                uint256 xs = balances[i] + _balances[i];
                 fees[i] = (difference * (_dynamicFee(xs, ys, mintFee) + _volatilityFee(i, mintFee))) / FEE_DENOMINATOR;
                 _balances[i] -= fees[i];
             }
@@ -693,8 +692,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         uint256 dy = (_balances[_i] - y - 1) / precisions[_i];
         uint256 feeAmount = 0;
         if (redeemFee > 0) {
-            uint256 xs =
-                ((oldBalanceI + y) * exchangeRateProviders[_i].exchangeRate()) / (10 ** exchangeRateDecimals[_i]) / 2;
+            uint256 xs = (oldBalanceI + y) / 2;
             uint256 ys = (oldD + newD) / (_balances.length * 2);
             uint256 dynamicFee = _dynamicFee(xs, ys, redeemFee);
             feeAmount = (dy * (dynamicFee + _volatilityFee(_i, redeemFee))) / FEE_DENOMINATOR;
@@ -756,8 +754,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
                 uint256 idealBalance = newD * balances[i] / oldD;
                 uint256 difference =
                     idealBalance > _balances[i] ? idealBalance - _balances[i] : _balances[i] - idealBalance;
-                uint256 xs = ((balances[i] + _balances[i]) * exchangeRateProviders[i].exchangeRate())
-                    / (10 ** exchangeRateDecimals[i]);
+                uint256 xs = balances[i] + _balances[i];
                 fees[i] =
                     (difference * (_dynamicFee(xs, ys, redeemFee) + _volatilityFee(i, redeemFee))) / FEE_DENOMINATOR;
                 _balances[i] -= fees[i];
@@ -989,8 +986,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         uint256 dy = (_balances[_i] - y - 1) / precisions[_i];
         uint256 feeAmount = 0;
         if (redeemFee > 0) {
-            uint256 xs =
-                ((oldBalanceI + y) * exchangeRateProviders[_i].exchangeRate()) / (10 ** exchangeRateDecimals[_i]) / 2;
+            uint256 xs = (oldBalanceI + y) / 2;
             uint256 ys = (D + newD) / (_balances.length * 2);
             uint256 dynamicFee = _dynamicFee(xs, ys, redeemFee);
             feeAmount = (dy * (dynamicFee + _volatilityFee(_i, redeemFee))) / FEE_DENOMINATOR;
@@ -1023,8 +1019,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
                 uint256 idealBalance = newD * balances[i] / oldD;
                 uint256 difference =
                     idealBalance > _balances[i] ? idealBalance - _balances[i] : _balances[i] - idealBalance;
-                uint256 xs = ((balances[i] + _balances[i]) * exchangeRateProviders[i].exchangeRate())
-                    / (10 ** exchangeRateDecimals[i]);
+                uint256 xs = balances[i] + _balances[i];
                 fees[i] =
                     (difference * (_dynamicFee(xs, ys, redeemFee) + _volatilityFee(i, redeemFee))) / FEE_DENOMINATOR;
                 _balances[i] -= fees[i];
@@ -1061,8 +1056,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
                 uint256 idealBalance = newD * balances[i] / oldD;
                 uint256 difference =
                     idealBalance > _balances[i] ? idealBalance - _balances[i] : _balances[i] - idealBalance;
-                uint256 xs = ((balances[i] + _balances[i]) * exchangeRateProviders[i].exchangeRate())
-                    / (10 ** exchangeRateDecimals[i]);
+                uint256 xs = balances[i] + _balances[i];
                 fees[i] = (difference * (_dynamicFee(xs, ys, mintFee) + _volatilityFee(i, mintFee))) / FEE_DENOMINATOR;
                 feeAmount += fees[i];
                 _balances[i] -= fees[i];
