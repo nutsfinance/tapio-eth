@@ -489,6 +489,33 @@ contract SelfPeggingAssetTest is Test {
         assertLt(WETH.balanceOf(user2), exchangeAmount);
     }
 
+    function test_FeeAmount() external {
+        uint256[] memory amounts = new uint256[](2);
+        amounts[0] = 100e18;
+        amounts[1] = 50e18;
+
+        WETH.mint(user, 100e18);
+        frxETH.mint(user, 50e18);
+
+        vm.startPrank(user);
+        WETH.approve(address(pool), 100e18);
+        frxETH.approve(address(pool), 50e18);
+        vm.stopPrank();
+
+        uint256[] memory initial = new uint256[](2);
+        initial[0] = 1000e18;
+        initial[1] = 1000e18;
+        WETH.mint(address(this), 1000e18);
+        frxETH.mint(address(this), 1000e18);
+        WETH.approve(address(pool), 1000e18);
+        frxETH.approve(address(pool), 1000e18);
+        pool.mint(initial, 0);
+
+        (uint256 mintAmount, uint256 feeAmount) = pool.getMintAmount(amounts);
+
+        assertNotEq(feeAmount, 0, "feeAmount should not return 0");
+    }
+
     function test_BurnValue_With_Losing_Shares() public {
         //two users, user and user2, enter as liquidity providers.
         uint256 liquidity = 100e18;
