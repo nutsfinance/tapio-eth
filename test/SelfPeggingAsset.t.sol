@@ -1745,4 +1745,51 @@ contract SelfPeggingAssetTest is Test {
         mintedSpa = pool.mint(amounts, 0);
         vm.stopPrank();
     }
+
+    function test_MintFeeReportingMatchesPrePostDifference() external {
+        uint256[] memory initial = new uint256[](2);
+        initial[0] = 100e18;
+        initial[1] = 100e18;
+
+        WETH.mint(user, initial[0]);
+        frxETH.mint(user, initial[1]);
+
+        vm.startPrank(user);
+        WETH.approve(address(pool), initial[0]);
+        frxETH.approve(address(pool), initial[1]);
+        pool.mint(initial, 0);
+        vm.stopPrank();
+
+        uint256[] memory amounts = new uint256[](2);
+        amounts[0] = 30e18;
+        amounts[1] = 70e18;
+        (uint256 mintWithFee, uint256 feeReported) = pool.getMintAmount(amounts);
+        assertGt(feeReported, 0);
+
+        // disable to get pre-fee mint amount
+        vm.prank(owner);
+        pool.setMintFee(0);
+        (uint256 mintNoFee, uint256 feeZero) = pool.getMintAmount(amounts);
+        assertEq(feeZero, 0);
+
+        // restore fee
+        vm.prank(owner);
+        pool.setMintFee(mintFee);
+
+        WETH.mint(user, amounts[0]);
+        frxETH.mint(user, amounts[1]);
+        vm.startPrank(user);
+        WETH.approve(address(pool), amounts[0]);
+        frxETH.approve(address(pool), amounts[1]);
+        uint256 mintedActual = pool.mint(amounts, 0);
+        vm.stopPrank();
+
+        // 1. actual minted matches fee preview
+        assertEq(mintedActual, mintWithFee);
+        // 2. reported fee matches actual
+        uint256 actualFee = mintNoFee - mintedActual;
+        assertApproxEqAbs(feeReported, actualFee, 1);
+        assertGt(actualFee, 0);
+        assertLt(actualFee, mintNoFee);
+    }
 }

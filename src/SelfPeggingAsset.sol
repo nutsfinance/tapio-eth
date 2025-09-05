@@ -1050,6 +1050,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         uint256 mintAmount = newD - oldD;
         uint256 feeAmount = 0;
         if (mintFee > 0 && oldD != 0) {
+            uint256 preFeeMintAmount = mintAmount;
             uint256 ys = (newD + oldD) / _balances.length;
             uint256[] memory fees = new uint256[](_balances.length);
             for (uint256 i = 0; i < _balances.length; i++) {
@@ -1058,12 +1059,12 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
                     idealBalance > _balances[i] ? idealBalance - _balances[i] : _balances[i] - idealBalance;
                 uint256 xs = balances[i] + _balances[i];
                 fees[i] = (difference * (_dynamicFee(xs, ys, mintFee) + _volatilityFee(i, mintFee))) / FEE_DENOMINATOR;
-                feeAmount += fees[i];
                 _balances[i] -= fees[i];
             }
 
             newD = _getD(_balances, getCurrentA());
             mintAmount = newD - oldD;
+            feeAmount = preFeeMintAmount - mintAmount;
         }
 
         return (mintAmount, feeAmount);
