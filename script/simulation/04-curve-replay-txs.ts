@@ -7,7 +7,7 @@ const RPC = "http://127.0.0.1:8545";
 
 const CURVE_LIQUIDITY_RESULTS = "script/simulation/output/usdc-usdt-curve-liquidity-with-timestamps.json";
 const CURVE_SWAPS_RESULTS = "script/simulation/output/usdc-usdt-curve-swaps-with-timestamps.json";
-const CONFIG_JSON = "script/simulation/config/config.json";
+const CONFIG_JSON = "script/simulation/input/config.json";
 const TAPIO_ADDRESS = "0xF917ABA20710B63bD6FFafB304145C41Ff52906a"; // deployed Tapio pool on fork
 const WHALE = "0x3a3C006053a9B40286B9951A11bE4C5808c11dc8";
 const CURVE_POOL = "0x4f493B7dE8aAC7d55F71853688b1F7C8F0243C85";
