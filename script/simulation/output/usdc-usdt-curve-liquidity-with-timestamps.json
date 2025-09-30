@@ -1,0 +1,1898 @@
+{
+  "pool": "usdc-usdt",
+  "address": "0x4f493B7dE8aAC7d55F71853688b1F7C8F0243C85",
+  "events": [
+    {
+      "type": "add",
+      "entry": {
+        "txHash": "0xdef319f0590e22b32a60c047874f1e557ecb665024e0e60baff14d4f346ef672",
+        "blockNumber": "23157363",
+        "event": "AddLiquidity",
+        "args": {
+          "provider": "0x68e53529c17ccA6F8e7Ec65069b276c078614d72",
+          "token_amounts": [
+            "0",
+            "8000000"
+          ],
+          "fees": [
+            "37",
+            "50"
+          ],
+          "invariant": "5975580346624776056216609",
+          "token_supply": "5917171585326011457105410"
+        },
+        "tokens": [
+          "0 USDC",
+          "8 USDT"
+        ],
+        "gasUsed": "169334",
+        "gasPrice": "264339227",
+        "gasCostWei": "44761618664818",
+        "timestamp": 1755392603
+      }
+    },
+    {
+      "type": "add",
+      "entry": {
+        "txHash": "0x0be5617d75e068c5330374c8d3536672847c9dcf15b8efe02f2fd989d62f5c52",
+        "blockNumber": "23159336",
+        "event": "AddLiquidity",
+        "args": {
+          "provider": "0x4339FE618e458Ff5777053A5467cbf9a1F3507fF",
+          "token_amounts": [
+            "50000000000",
+            "0"
+          ],
+          "fees": [
+            "35585",
+            "48866"
+          ],
+          "invariant": "5845481285058001369071916",
+          "token_supply": "5788320991401114419789406"
+        },
+        "tokens": [
+          "50000 USDC",
+          "0 USDT"
+        ],
+        "gasUsed": "172834",
+        "gasPrice": "178616477",
+        "gasCostWei": "30871000185818",
+        "timestamp": 1755416339
+      }
+    },
+    {
+      "type": "remove",
+      "entry": {
+        "txHash": "0x741e97605e167007b351eb29835b8e1d60390eaea257f42860773cefc10c6539",
+        "blockNumber": "23154732",
+        "event": "RemoveLiquidityOne",
+        "args": {
+          "provider": "0x2ba1913C463Cf95C764A4117a209eA730fc0f788",
+          "token_id": "0",
+          "token_amount": "174999000000000000000000",
+          "coin_amount": "176753385379",
+          "token_supply": "5917163659377261024032953"
+        },
+        "tokens": [
+          "176753.385379 USDC"
+        ],
+        "gasUsed": "158922",
+        "gasPrice": "320000000",
+        "gasCostWei": "50855040000000",
+        "timestamp": 1755360923
+      }
+    },
+    {
+      "type": "remove",
+      "entry": {
+        "txHash": "0xc3309cee274f1a1da9253afa53e5effe906b3f39521ba27e6fe3b93f45abe967",
+        "blockNumber": "23157441",
+        "event": "RemoveLiquidityOne",
+        "args": {
+          "provider": "0x68e53529c17ccA6F8e7Ec65069b276c078614d72",
+          "token_id": "0",
+          "token_amount": "7925948750433072457",
+          "coin_amount": "8005366",
+          "token_supply": "5917163659377261024032953"
+        },
+        "tokens": [
+          "8.005366 USDC"
+        ],
+        "gasUsed": "154098",
+        "gasPrice": "280970679",
+        "gasCostWei": "43297019692542",
+        "timestamp": 1755393551
+      }
+    },
+    {
+      "type": "remove",
+      "entry": {
+        "txHash": "0x0a5789d4250ccb8c90107583b5cea2cd762e2f570093bbb8f4f9d89f80fff748",
+        "blockNumber": "23158404",
+        "event": "RemoveLiquidityOne",
+        "args": {
+          "provider": "0xA4069D35701a24DfB063f08f6657c22999B2aDBe",
+          "token_id": "0",
+          "token_amount": "178346146874103109773369",
+          "coin_amount": "180134735443",
+          "token_supply": "5738817512503157914259584"
+        },
+        "tokens": [
+          "180134.735443 USDC"
+        ],
+        "gasUsed": "154146",
+        "gasPrice": "181779595",
+        "gasCostWei": "28020597450870",
+        "timestamp": 1755405143
+      }
+    },
+    {
+      "type": "add",
+      "entry": {
+        "txHash": "0x2e1893d753f66e43a39db9e05bff916e558a23c4483050f22d2af8cb916b663d",
+        "blockNumber": "23168782",
+        "event": "AddLiquidity",
+        "args": {
+          "provider": "0x9617B08850B3Bf98a027b31Deb61D45C061F5ee6",
+          "token_amounts": [
+            "25012875939",
+            "25000000000"
+          ],
+          "fees": [
+            "94164",
+            "121927"
+          ],
+          "invariant": "5895607227258718616866559",
+          "token_supply": "5837850762628324196178913"
+        },
+        "tokens": [
+          "25012.875939 USDC",
+          "25000 USDT"
+        ],
+        "gasUsed": "203668",
+        "gasPrice": "1081302081",
+        "gasCostWei": "220226632233108",
+        "timestamp": 1755530231
+      }
+    },
+    {
+      "type": "add",
+      "entry": {
+        "txHash": "0x8070300530f8d50232a3b03c0a70cb8b3365a751d41e91a3480c86e6ec70e871",
+        "blockNumber": "23172096",
+        "event": "AddLiquidity",
+        "args": {
+          "provider": "0xB5571E76693ba60110B5811DD650FFefce1C955f",
+          "token_amounts": [
+            "301372921",
+            "0"
+          ],
+          "fees": [
+            "236",
+            "308"
+          ],
+          "invariant": "5895553895047615608397888",
+          "token_supply": "5837788667811650583851292"
+        },
+        "tokens": [
+          "301.372921 USDC",
+          "0 USDT"
+        ],
+        "gasUsed": "744980",
+        "gasPrice": "172607512",
+        "gasCostWei": "128589144289760",
+        "timestamp": 1755570107
+      }
+    },
+    {
+      "type": "add",
+      "entry": {
+        "txHash": "0x46c769407a2003a9dd7fa46cde919d6777f0feb54caff5d0aa901b76473de9ae",
+        "blockNumber": "23172800",
+        "event": "AddLiquidity",
+        "args": {
+          "provider": "0x5668EAd1eDB8E2a4d724C8fb9cB5fFEabEB422dc",
+          "token_amounts": [
+            "32719000000",
+            "0"
+          ],
+          "fees": [
+            "25857",
+            "33661"
+          ],
+          "invariant": "5928272832597067169550333",
+          "token_supply": "5870182733667564011954602"
+        },
+        "tokens": [
+          "32719 USDC",
+          "0 USDT"
+        ],
+        "gasUsed": "177646",
+        "gasPrice": "311781035",
+        "gasCostWei": "55386653743610",
+        "timestamp": 1755578579
+      }
+    },
+    {
+      "type": "remove",
+      "entry": {
+        "txHash": "0x59cf49cc080ccbe703cd20547f55967c3eb6d66b6fa2ba95aff0d7cbe167e18b",
+        "blockNumber": "23171600",
+        "event": "RemoveLiquidity",
+        "args": {
+          "provider": "0xE07a16358aA878CBDa2D49A88E5106871E0db307",
+          "token_amounts": [
+            "308948619",
+            "55110172"
+          ],
+          "fees": [],
+          "token_supply": "5837490287921555246838590"
+        },
+        "tokens": [
+          "308.948619 USDC",
+          "55.110172 USDT"
+        ],
+        "gasUsed": "414176",
+        "gasPrice": "270637944",
+        "gasCostWei": "112091741094144",
+        "timestamp": 1755564131
+      }
+    },
+    {
+      "type": "remove",
+      "entry": {
+        "txHash": "0xf89e4bb75144f3d1bd0450f64079b4c5eafdc1479e747734ab1c9131e6caabe7",
+        "blockNumber": "23173764",
+        "event": "RemoveLiquidityOne",
+        "args": {
+          "provider": "0xE07a16358aA878CBDa2D49A88E5106871E0db307",
+          "token_id": "0",
+          "token_amount": "113358714299247006867",
+          "coin_amount": "114493340",
+          "token_supply": "5870069374953264764947735"
+        },
+        "tokens": [
+          "114.49334 USDC"
+        ],
+        "gasUsed": "325396",
+        "gasPrice": "182170931",
+        "gasCostWei": "59277692263676",
+        "timestamp": 1755590171
+      }
+    },
+    {
+      "type": "add",
+      "entry": {
+        "txHash": "0x028f335c0b7c638c46cde06ee1fabd6b88d5f5ec2fde97187e684d23194c0f82",
+        "blockNumber": "23174746",
+        "event": "AddLiquidity",
+        "args": {
+          "provider": "0xB5571E76693ba60110B5811DD650FFefce1C955f",
+          "token_amounts": [
+            "1500000000",
+            "0"
+          ],
+          "fees": [
+            "1394",
+            "1684"
+          ],
+          "invariant": "5929664702173192456673309",
+          "token_supply": "5871554516746958711453945"
+        },
+        "tokens": [
+          "1500 USDC",
+          "0 USDT"
+        ],
+        "gasUsed": "411058",
+        "gasPrice": "189517633",
+        "gasCostWei": "77902739185714",
+        "timestamp": 1755602027
+      }
+    },
+    {
+      "type": "add",
+      "entry": {
+        "txHash": "0xf484abd1ed4e1a43ab6c5e16313ad351c486b8af431db0f226b2344609fb3ed1",
+        "blockNumber": "23176558",
+        "event": "AddLiquidity",
+        "args": {
+          "provider": "0xB5571E76693ba60110B5811DD650FFefce1C955f",
+          "token_amounts": [
+            "0",
+            "1537203014"
+          ],
+          "fees": [
+            "5662",
+            "5912"
+          ],
+          "invariant": "5930079902475479507890860",
+          "token_supply": "5871940874758286288726695"
+        },
+        "tokens": [
+          "0 USDC",
+          "1537.203014 USDT"
+        ],
+        "gasUsed": "361200",
+        "gasPrice": "1083739250",
+        "gasCostWei": "391446617100000",
+        "timestamp": 1755623855
+      }
+    },
+    {
+      "type": "add",
+      "entry": {
+        "txHash": "0xf584bb8bbed16ecb72039dcc9833bb31421e9ee33c6a6b583ab45caa2055f1e1",
+        "blockNumber": "23178322",
+        "event": "AddLiquidity",
+        "args": {
+          "provider": "0xE08D97e151473A848C3d9CA3f323Cb720472D015",
+          "token_amounts": [
+            "400999969369",
+            "0",
+            "0",
+            "0",
+            "0"
+          ],
+          "fees": [
+            "953658",
+            "953890"
+          ],
+          "invariant": "6329983847536623047714620",
+          "token_supply": "6267827228639956584291501"
+        },
+        "tokens": [
+          "400999.969369 USDC",
+          "0 USDT",
+          "0 USDT",
+          "0 USDT",
+          "0 USDT"
+        ],
+        "gasUsed": "802788",
+        "gasPrice": "210278593",
+        "gasCostWei": "168809131117284",
+        "timestamp": 1755645071
+      }
+    },
+    {
+      "type": "add",
+      "entry": {
+        "txHash": "0x3525c1a4d8a2dcbcc29b14f5738056aeaf5ec7f0d9c4f4a7faacbda733bc60ab",
+        "blockNumber": "23179244",
+        "event": "AddLiquidity",
+        "args": {
+          "provider": "0xeDdB1b75eDda1C60695A4dA3B3E3Bb4C830C4B0F",
+          "token_amounts": [
+            "79427229471",
+            "0"
+          ],
+          "fees": [
+            "163591",
+            "164111"
+          ],
+          "invariant": "6008435018142156707343650",
+          "token_supply": "5949415119664783627569199"
+        },
+        "tokens": [
+          "79427.229471 USDC",
+          "0 USDT"
+        ],
+        "gasUsed": "172846",
+        "gasPrice": "305882911",
+        "gasCostWei": "52870637634706",
+        "timestamp": 1755656183
+      }
+    },
+    {
+      "type": "add",
+      "entry": {
+        "txHash": "0x365ab96e0abfa8dbeec0aa48dccc0f5fb4e429f26b760ed8a6922b04206bc3ac",
+        "blockNumber": "23179999",
+        "event": "AddLiquidity",
+        "args": {
+          "provider": "0x5668EAd1eDB8E2a4d724C8fb9cB5fFEabEB422dc",
+          "token_amounts": [
+            "46626427119",
+            "0"
+          ],
+          "fees": [
+            "99761",
+            "99927"
+          ],
+          "invariant": "6055119703800865534621012",
+          "token_supply": "5995582214881351982399450"
+        },
+        "tokens": [
+          "46626.427119 USDC",
+          "0 USDT"
+        ],
+        "gasUsed": "172846",
+        "gasPrice": "329809731",
+        "gasCostWei": "57006292764426",
+        "timestamp": 1755665279
+      }
+    },
+    {
+      "type": "add",
+      "entry": {
+        "txHash": "0x432f07220eda525894ba98c156912a0f6829481ca8af2b6e6d04d798ebe89485",
+        "blockNumber": "23182928",
+        "event": "AddLiquidity",
+        "args": {
+          "provider": "0x7C03A3238C4A53bC87673e093Ffc0185866909Dd",
+          "token_amounts": [
+            "1029671020",
+            "0"
+          ],
+          "fees": [
+            "1510",
+            "1578"
+          ],
+          "invariant": "6056271451441397430136186",
+          "token_supply": "5996601688649715273398196"
+        },
+        "tokens": [
+          "1029.67102 USDC",
+          "0 USDT"
+        ],
+        "gasUsed": "172822",
+        "gasPrice": "2415612729",
+        "gasCostWei": "417471023051238",
+        "timestamp": 1755700583
+      }
+    },
+    {
+      "type": "remove",
+      "entry": {
+        "txHash": "0x2944ed74cd26e4842a7672925bb39b90f9d871ff5daa783c93245a6c3b874d3a",
+        "blockNumber": "23174746",
+        "event": "RemoveLiquidityOne",
+        "args": {
+          "provider": "0xB5571E76693ba60110B5811DD650FFefce1C955f",
+          "token_id": "0",
+          "token_amount": "1135885832690672873606",
+          "coin_amount": "1147245178",
+          "token_supply": "5870418630914268038580339"
+        },
+        "tokens": [
+          "1147.245178 USDC"
+        ],
+        "gasUsed": "416834",
+        "gasPrice": "1081215949",
+        "gasCostWei": "450687568885466",
+        "timestamp": 1755602027
+      }
+    },
+    {
+      "type": "remove",
+      "entry": {
+        "txHash": "0x1d549c7fb8ff065340e99712c184acab2b7dbef7606e3e1cb587e696c91a7774",
+        "blockNumber": "23176558",
+        "event": "RemoveLiquidityOne",
+        "args": {
+          "provider": "0x50d3865a63D52c0A54e4679949647eA752107390",
+          "token_id": "0",
+          "token_amount": "1171030279824202454561",
+          "coin_amount": "1182678140",
+          "token_supply": "5870769844478462086272134"
+        },
+        "tokens": [
+          "1182.67814 USDC"
+        ],
+        "gasUsed": "474056",
+        "gasPrice": "1083239250",
+        "gasCostWei": "513516065898000",
+        "timestamp": 1755623855
+      }
+    },
+    {
+      "type": "remove",
+      "entry": {
+        "txHash": "0xf584bb8bbed16ecb72039dcc9833bb31421e9ee33c6a6b583ab45caa2055f1e1",
+        "blockNumber": "23178322",
+        "event": "RemoveLiquidityImbalance",
+        "args": {
+          "provider": "0xE08D97e151473A848C3d9CA3f323Cb720472D015",
+          "token_amounts": [
+            "0",
+            "400986083537"
+          ],
+          "fees": [
+            "1117969",
+            "1119626"
+          ],
+          "invariant": "5928989828842715551173177",
+          "token_supply": "5870769844479219547628207"
+        },
+        "tokens": [
+          "0 USDC",
+          "400986.083537 USDT"
+        ],
+        "gasUsed": "802788",
+        "gasPrice": "210278593",
+        "gasCostWei": "168809131117284",
+        "timestamp": 1755645071
+      }
+    },
+    {
+      "type": "add",
+      "entry": {
+        "txHash": "0x0aada06a20d0ecb0d572344d2f8ca5d8d06519c8905514bf826a970c082871c8",
+        "blockNumber": "23186682",
+        "event": "AddLiquidity",
+        "args": {
+          "provider": "0xB5571E76693ba60110B5811DD650FFefce1C955f",
+          "token_amounts": [
+            "290114670",
+            "0"
+          ],
+          "fees": [
+            "413",
+            "434"
+          ],
+          "invariant": "6007406357980887525347072",
+          "token_supply": "5948184586207416255240946"
+        },
+        "tokens": [
+          "290.11467 USDC",
+          "0 USDT"
+        ],
+        "gasUsed": "3659235",
+        "gasPrice": "487487635",
+        "gasCostWei": "1783831816059225",
+        "timestamp": 1755745835
+      }
+    },
+    {
+      "type": "remove",
+      "entry": {
+        "txHash": "0x09cc02f1fbf17e4b07e942e2f7281d170bad5603543754e7c46676de1294f276",
+        "blockNumber": "23183870",
+        "event": "RemoveLiquidityOne",
+        "args": {
+          "provider": "0x50d3865a63D52c0A54e4679949647eA752107390",
+          "token_id": "0",
+          "token_amount": "979120517908211767417",
+          "coin_amount": "988914052",
+          "token_supply": "5995622568131807061630779"
+        },
+        "tokens": [
+          "988.914052 USDC"
+        ],
+        "gasUsed": "8492417",
+        "gasPrice": "574739275",
+        "gasCostWei": "4880925589577675",
+        "timestamp": 1755711947
+      }
+    },
+    {
+      "type": "remove",
+      "entry": {
+        "txHash": "0x7a2cba81d7ab73981e3ba76dfa17e73d1dc8c0975980e49c3c43fdc1ff8254ff",
+        "blockNumber": "23184119",
+        "event": "RemoveLiquidityOne",
+        "args": {
+          "provider": "0xB920aB66b2e7f5c477e9515d58F03d174c792E1d",
+          "token_id": "0",
+          "token_amount": "27511939276557399627173",
+          "coin_amount": "27787179811",
+          "token_supply": "5968110628855249662003606"
+        },
+        "tokens": [
+          "27787.179811 USDC"
+        ],
+        "gasUsed": "155068",
+        "gasPrice": "983921558",
+        "gasCostWei": "152574748155944",
+        "timestamp": 1755714947
+      }
+    },
+    {
+      "type": "remove",
+      "entry": {
+        "txHash": "0xcc327ecc0a664115f1fcc0df9427b82563cfa49c62592faa7228d022737aa434",
+        "blockNumber": "23185307",
+        "event": "RemoveLiquidityOne",
+        "args": {
+          "provider": "0x9814bAD98695899ea44BF10f1d665D55CCa90E35",
+          "token_id": "0",
+          "token_amount": "19868902768207587212785",
+          "coin_amount": "20067910721",
+          "token_supply": "5948241726087042074790821"
+        },
+        "tokens": [
+          "20067.910721 USDC"
+        ],
+        "gasUsed": "155068",
+        "gasPrice": "351160275",
+        "gasCostWei": "54453721523700",
+        "timestamp": 1755729251
+      }
+    },
+    {
+      "type": "remove",
+      "entry": {
+        "txHash": "0x525d094e1df0c3d38f7306d007cb529ee7b133f54cdbb895c0af4b823a2e6771",
+        "blockNumber": "23186058",
+        "event": "RemoveLiquidityOne",
+        "args": {
+          "provider": "0xB5571E76693ba60110B5811DD650FFefce1C955f",
+          "token_id": "0",
+          "token_amount": "344378979247080788582",
+          "coin_amount": "347827260",
+          "token_supply": "5947897347107794994002239"
+        },
+        "tokens": [
+          "347.82726 USDC"
+        ],
+        "gasUsed": "274038",
+        "gasPrice": "1234280170",
+        "gasCostWei": "338239669226460",
+        "timestamp": 1755738275
+      }
+    },
+    {
+      "type": "remove",
+      "entry": {
+        "txHash": "0x58ca4f50a669ed5029f2bf482edb496fbfe54fbbda5621aafc48a9014ccab93d",
+        "blockNumber": "23190241",
+        "event": "RemoveLiquidityOne",
+        "args": {
+          "provider": "0x9f1775c88fE7Ed36C57A35CEFEF4EF4d1c2D802B",
+          "token_id": "1",
+          "token_amount": "43265792118262870587569",
+          "coin_amount": "43697179487",
+          "token_supply": "5904918794089153384653377"
+        },
+        "tokens": [
+          "43697.179487 USDT"
+        ],
+        "gasUsed": "139934",
+        "gasPrice": "941029794",
+        "gasCostWei": "131682063193596",
+        "timestamp": 1755788747
+      }
+    },
+    {
+      "type": "remove",
+      "entry": {
+        "txHash": "0x6501b5ea4d90b837610b00d59ed7f35e2052c194f9fbb4393fcfacc310be1ea5",
+        "blockNumber": "23192798",
+        "event": "RemoveLiquidityOne",
+        "args": {
+          "provider": "0x2ba1913C463Cf95C764A4117a209eA730fc0f788",
+          "token_id": "1",
+          "token_amount": "210936000000000000000000",
+          "coin_amount": "213049876767",
+          "token_supply": "5693982794089153384653377"
+        },
+        "tokens": [
+          "213049.876767 USDT"
+        ],
+        "gasUsed": "138988",
+        "gasPrice": "254396948",
+        "gasCostWei": "35358123008624",
+        "timestamp": 1755819659
+      }
+    },
+    {
+      "type": "remove",
+      "entry": {
+        "txHash": "0xe824dcaa7b0847ce8f6176977fe044f215e4b5eac9479c068146cf431abb28f9",
+        "blockNumber": "23192861",
+        "event": "RemoveLiquidityOne",
+        "args": {
+          "provider": "0x5E72d993d2e77BddfE016D841e5799623790ac80",
+          "token_id": "1",
+          "token_amount": "494877000000000000000000",
+          "coin_amount": "499683550698",
+          "token_supply": "5199105794089153384653377"
+        },
+        "tokens": [
+          "499683.550698 USDT"
+        ],
+        "gasUsed": "141876",
+        "gasPrice": "248966078",
+        "gasCostWei": "35322311282328",
+        "timestamp": 1755820427
+      }
+    },
+    {
+      "type": "add",
+      "entry": {
+        "txHash": "0x85d29c089a751e9f2c28c8d5d6de153aee7abfe44e455848e44fc8641015ef51",
+        "blockNumber": "23195209",
+        "event": "AddLiquidity",
+        "args": {
+          "provider": "0x56C526b0159a258887e0d79ec3a80dfb940d0cD7",
+          "token_amounts": [
+            "360814197519",
+            "0"
+          ],
+          "fees": [
+            "1305381",
+            "1278542"
+          ],
+          "invariant": "5611890520770120655734992",
+          "token_supply": "5556350203727527669474979"
+        },
+        "tokens": [
+          "360814.197519 USDC",
+          "0 USDT"
+        ],
+        "gasUsed": "607238",
+        "gasPrice": "288212110",
+        "gasCostWei": "175013345252180",
+        "timestamp": 1755848771
+      }
+    },
+    {
+      "type": "add",
+      "entry": {
+        "txHash": "0xf9cae1bd5318698c7b798d0818da9c70af2f7ceb66ee72eceb0057c3408d2d8b",
+        "blockNumber": "23196433",
+        "event": "AddLiquidity",
+        "args": {
+          "provider": "0x3D6b82d52c6c747bf665af461145268A4378C1BC",
+          "token_amounts": [
+            "100000",
+            "0"
+          ],
+          "fees": [
+            "0",
+            "0"
+          ],
+          "invariant": "5611914829324880930275623",
+          "token_supply": "5556350302741432020855876"
+        },
+        "tokens": [
+          "0.1 USDC",
+          "0 USDT"
+        ],
+        "gasUsed": "171998",
+        "gasPrice": "380770655",
+        "gasCostWei": "65491791118690",
+        "timestamp": 1755863495
+      }
+    },
+    {
+      "type": "add",
+      "entry": {
+        "txHash": "0xe168fda71e8d4d16afb88a1a7fa0340c5f37e9b78bea9ea0fa7035dc7198c08c",
+        "blockNumber": "23197758",
+        "event": "AddLiquidity",
+        "args": {
+          "provider": "0x56C526b0159a258887e0d79ec3a80dfb940d0cD7",
+          "token_amounts": [
+            "42929152965",
+            "73846171423"
+          ],
+          "fees": [
+            "0",
+            "0"
+          ],
+          "invariant": "5727701301139546885666440",
+          "token_supply": "5670948655099386051520374"
+        },
+        "tokens": [
+          "42929.152965 USDC",
+          "73846.171423 USDT"
+        ],
+        "gasUsed": "650991",
+        "gasPrice": "8360746443",
+        "gasCostWei": "5442770687675013",
+        "timestamp": 1755879419
+      }
+    },
+    {
+      "type": "add",
+      "entry": {
+        "txHash": "0x77f58e4d93733bcec35a449593a69b7f872035b2963cc3773a7fc84d73a1d495",
+        "blockNumber": "23198920",
+        "event": "AddLiquidity",
+        "args": {
+          "provider": "0xDFa5E76fa174d8Daa6457A3A73078F8c8A87C505",
+          "token_amounts": [
+            "100000000000",
+            "75298700000"
+          ],
+          "fees": [
+            "0",
+            "0"
+          ],
+          "invariant": "5903047525009500570490435",
+          "token_supply": "5844508795347015920642316"
+        },
+        "tokens": [
+          "100000 USDC",
+          "75298.7 USDT"
+        ],
+        "gasUsed": "207668",
+        "gasPrice": "2720953272",
+        "gasCostWei": "565054924089696",
+        "timestamp": 1755893459
+      }
+    },
+    {
+      "type": "add",
+      "entry": {
+        "txHash": "0xd67a871f11c162219895153909d2af1186eec4a747bb36f76800fadeff5b9966",
+        "blockNumber": "23199531",
+        "event": "AddLiquidity",
+        "args": {
+          "provider": "0x626a419d6587C08a468B214864Fa53117A29C54e",
+          "token_amounts": [
+            "0",
+            "333333000000"
+          ],
+          "fees": [
+            "263390",
+            "135019"
+          ],
+          "invariant": "6236380627654013687471494",
+          "token_supply": "6174427761855345882790226"
+        },
+        "tokens": [
+          "0 USDC",
+          "333333 USDT"
+        ],
+        "gasUsed": "169516",
+        "gasPrice": "1800000000",
+        "gasCostWei": "305128800000000",
+        "timestamp": 1755900791
+      }
+    },
+    {
+      "type": "add",
+      "entry": {
+        "txHash": "0xe0ab684686bd5663be477b1fc3631aa7b7b4d6499c16acef8debf11f3a56de1c",
+        "blockNumber": "23199736",
+        "event": "AddLiquidity",
+        "args": {
+          "provider": "0x626a419d6587C08a468B214864Fa53117A29C54e",
+          "token_amounts": [
+            "0",
+            "335066000000"
+          ],
+          "fees": [
+            "261658",
+            "131419"
+          ],
+          "invariant": "6571371442545559566073347",
+          "token_supply": "6506056528193287867548462"
+        },
+        "tokens": [
+          "0 USDC",
+          "335066 USDT"
+        ],
+        "gasUsed": "152416",
+        "gasPrice": "1001327863",
+        "gasCostWei": "152618387567008",
+        "timestamp": 1755903263
+      }
+    },
+    {
+      "type": "remove",
+      "entry": {
+        "txHash": "0xf4df1fddfc8545850cc401e74d70be5c306989e567085014587bb7c8c81ae0dc",
+        "blockNumber": "23194438",
+        "event": "RemoveLiquidityOne",
+        "args": {
+          "provider": "0x95591348FE9718bE8bfa3afcC9b017D9Ec18A7fa",
+          "token_id": "0",
+          "token_amount": "15177663504960141303",
+          "coin_amount": "15327808",
+          "token_supply": "5199090616425648424512074"
+        },
+        "tokens": [
+          "15.327808 USDC"
+        ],
+        "gasUsed": "491923",
+        "gasPrice": "1253620344",
+        "gasCostWei": "616684680481512",
+        "timestamp": 1755839471
+      }
+    },
+    {
+      "type": "remove",
+      "entry": {
+        "txHash": "0xd266d1b8b750d9274af92ffa0c6aed52d02664f0ffd038ab2d5441de5611a080",
+        "blockNumber": "23197399",
+        "event": "RemoveLiquidityOne",
+        "args": {
+          "provider": "0x7C03A3238C4A53bC87673e093Ffc0185866909Dd",
+          "token_id": "0",
+          "token_amount": "1019473768363290998746",
+          "coin_amount": "1029607131",
+          "token_supply": "5555330828973068729857130"
+        },
+        "tokens": [
+          "1029.607131 USDC"
+        ],
+        "gasUsed": "156888",
+        "gasPrice": "10290800309",
+        "gasCostWei": "1614503078878392",
+        "timestamp": 1755875099
+      }
+    },
+    {
+      "type": "add",
+      "entry": {
+        "txHash": "0x30f6aa62e954896a3d35b1bda56a75a76208c4eb11f919ea003186931ac3f226",
+        "blockNumber": "23204482",
+        "event": "AddLiquidity",
+        "args": {
+          "provider": "0xBd208e7f90f33CCdBf38ca89A88455DD9bcb8918",
+          "token_amounts": [
+            "0",
+            "125000000"
+          ],
+          "fees": [
+            "153",
+            "134"
+          ],
+          "invariant": "6571702108834929066208175",
+          "token_supply": "6506180271254419921536223"
+        },
+        "tokens": [
+          "0 USDC",
+          "125 USDT"
+        ],
+        "gasUsed": "169370",
+        "gasPrice": "714977601",
+        "gasCostWei": "121095756281370",
+        "timestamp": 1755960515
+      }
+    },
+    {
+      "type": "add",
+      "entry": {
+        "txHash": "0xe86e1afeb6618fd342df3d70e0971faaedf366b951a94610ff8214f2aa96c2c2",
+        "blockNumber": "23211225",
+        "event": "AddLiquidity",
+        "args": {
+          "provider": "0x95591348FE9718bE8bfa3afcC9b017D9Ec18A7fa",
+          "token_amounts": [
+            "55763846",
+            "0"
+          ],
+          "fees": [
+            "238",
+            "220"
+          ],
+          "invariant": "6569747710356183661359546",
+          "token_supply": "6504214554384341554215161"
+        },
+        "tokens": [
+          "55.763846 USDC",
+          "0 USDT"
+        ],
+        "gasUsed": "1074724",
+        "gasPrice": "293402378",
+        "gasCostWei": "315326577293672",
+        "timestamp": 1756041815
+      }
+    },
+    {
+      "type": "remove",
+      "entry": {
+        "txHash": "0x3af31e68a1c8e458ad7824dfb8322557ce67b0a984fcc0add032baaabc115a42",
+        "blockNumber": "23210246",
+        "event": "RemoveLiquidityOne",
+        "args": {
+          "provider": "0x95591348FE9718bE8bfa3afcC9b017D9Ec18A7fa",
+          "token_id": "0",
+          "token_amount": "20931038947004003617",
+          "coin_amount": "21137358",
+          "token_supply": "6506159340215472917532606"
+        },
+        "tokens": [
+          "21.137358 USDC"
+        ],
+        "gasUsed": "373664",
+        "gasPrice": "157933782",
+        "gasCostWei": "59014168717248",
+        "timestamp": 1756030043
+      }
+    },
+    {
+      "type": "remove",
+      "entry": {
+        "txHash": "0xbf62ea62a24bbebb5a390fa8755a81559340e31615757470682cf73416a609a6",
+        "blockNumber": "23210559",
+        "event": "RemoveLiquidityOne",
+        "args": {
+          "provider": "0xFC8d77A81528cd03Df565488954E2dD87A8a5fB3",
+          "token_id": "1",
+          "token_amount": "2000000000000000000000",
+          "coin_amount": "2020296639",
+          "token_supply": "6504159340215472917532606"
+        },
+        "tokens": [
+          "2020.296639 USDT"
+        ],
+        "gasUsed": "151386",
+        "gasPrice": "154091433",
+        "gasCostWei": "23327285676138",
+        "timestamp": 1756033799
+      }
+    },
+    {
+      "type": "remove",
+      "entry": {
+        "txHash": "0xfe7804524deaabe78a13fc42b4ab9084d2325603f095aa80496d33c163d703ee",
+        "blockNumber": "23211290",
+        "event": "RemoveLiquidityOne",
+        "args": {
+          "provider": "0x95591348FE9718bE8bfa3afcC9b017D9Ec18A7fa",
+          "token_id": "0",
+          "token_amount": "55159952688509860911",
+          "coin_amount": "55709368",
+          "token_supply": "6504159394431653044354250"
+        },
+        "tokens": [
+          "55.709368 USDC"
+        ],
+        "gasUsed": "393624",
+        "gasPrice": "1270439168",
+        "gasCostWei": "500075347064832",
+        "timestamp": 1756042595
+      }
+    },
+    {
+      "type": "add",
+      "entry": {
+        "txHash": "0xb8858c1a31eca79033162c0e8830d8a5525b7e844ef628e39ba7a9401b75ab69",
+        "blockNumber": "23217013",
+        "event": "AddLiquidity",
+        "args": {
+          "provider": "0xB5571E76693ba60110B5811DD650FFefce1C955f",
+          "token_amounts": [
+            "999600656",
+            "0"
+          ],
+          "fees": [
+            "3679",
+            "3564"
+          ],
+          "invariant": "6570749633022429709643601",
+          "token_supply": "6505149073948973317053844"
+        },
+        "tokens": [
+          "999.600656 USDC",
+          "0 USDT"
+        ],
+        "gasUsed": "317793",
+        "gasPrice": "309094595",
+        "gasCostWei": "98228098628835",
+        "timestamp": 1756111547
+      }
+    },
+    {
+      "type": "add",
+      "entry": {
+        "txHash": "0x4ac5e933cbe8ea40a3987afaaec203fb429718a592a0621ee5f1418862c17272",
+        "blockNumber": "23217975",
+        "event": "AddLiquidity",
+        "args": {
+          "provider": "0x4Fe93ebC4Ce6Ae4f81601cC7Ce7139023919E003",
+          "token_amounts": [
+            "0",
+            "3706358074"
+          ],
+          "fees": [
+            "5867",
+            "5659"
+          ],
+          "invariant": "6573481884706203371768002",
+          "token_supply": "6507826585307236100965630"
+        },
+        "tokens": [
+          "0 USDC",
+          "3706.358074 USDT"
+        ],
+        "gasUsed": "907806",
+        "gasPrice": "1775547650",
+        "gasCostWei": "1611852809955900",
+        "timestamp": 1756123127
+      }
+    },
+    {
+      "type": "add",
+      "entry": {
+        "txHash": "0x1dd3595e60fb72e87e3568bf8dce631d373feb342bdc557c40bb2f8bc2cbf8f0",
+        "blockNumber": "23220523",
+        "event": "AddLiquidity",
+        "args": {
+          "provider": "0x993DFFCc24BE330bBe1713ABD5CBa42B8cB12C8F",
+          "token_amounts": [
+            "660604729370",
+            "0"
+          ],
+          "fees": [
+            "1202358",
+            "1223339"
+          ],
+          "invariant": "6565925361951344913766838",
+          "token_supply": "6500252084258466326450870"
+        },
+        "tokens": [
+          "660604.72937 USDC",
+          "0 USDT"
+        ],
+        "gasUsed": "172846",
+        "gasPrice": "2595958912",
+        "gasCostWei": "448701114103552",
+        "timestamp": 1756153823
+      }
+    },
+    {
+      "type": "remove",
+      "entry": {
+        "txHash": "0x59b51b87fa04ee611546b5bd8f46497e14dda36eb60cb5c70e83335bc552d5de",
+        "blockNumber": "23217015",
+        "event": "RemoveLiquidityOne",
+        "args": {
+          "provider": "0xB5571E76693ba60110B5811DD650FFefce1C955f",
+          "token_id": "0",
+          "token_amount": "991653527338750736116",
+          "coin_amount": "1001579941",
+          "token_supply": "6504157420421634566317728"
+        },
+        "tokens": [
+          "1001.579941 USDC"
+        ],
+        "gasUsed": "498257",
+        "gasPrice": "404485284",
+        "gasCostWei": "201537624149988",
+        "timestamp": 1756111571
+      }
+    },
+    {
+      "type": "remove",
+      "entry": {
+        "txHash": "0x11fd52983ca18c9f57909a4e224cf7c880ec6da7d862226a7f15d3b8fa8d0657",
+        "blockNumber": "23219454",
+        "event": "RemoveLiquidityOne",
+        "args": {
+          "provider": "0x626a419d6587C08a468B214864Fa53117A29C54e",
+          "token_id": "0",
+          "token_amount": "661547732846271946906146",
+          "coin_amount": "668012410259",
+          "token_supply": "5846278852460964154059484"
+        },
+        "tokens": [
+          "668012.410259 USDC"
+        ],
+        "gasUsed": "153156",
+        "gasPrice": "560000000",
+        "gasCostWei": "85767360000000",
+        "timestamp": 1756140959
+      }
+    },
+    {
+      "type": "add",
+      "entry": {
+        "txHash": "0x5fa05e712816543c8b7821c1506b3af91dee7c1682454673d977825635f74d39",
+        "blockNumber": "23224677",
+        "event": "AddLiquidity",
+        "args": {
+          "provider": "0x16718462fD3F836D257CAcCe6f3a36CC0e618ae3",
+          "token_amounts": [
+            "1000000000",
+            "0"
+          ],
+          "fees": [
+            "1373",
+            "1456"
+          ],
+          "invariant": "6544143618478507040979148",
+          "token_supply": "6478630829566310788929493"
+        },
+        "tokens": [
+          "1000 USDC",
+          "0 USDT"
+        ],
+        "gasUsed": "172932",
+        "gasPrice": "379974606",
+        "gasCostWei": "65709768564792",
+        "timestamp": 1756203935
+      }
+    },
+    {
+      "type": "add",
+      "entry": {
+        "txHash": "0xef94d5d3ab5b17c135e40234908cddf7d6c35285fec9bfbc48410da70e5418e3",
+        "blockNumber": "23228498",
+        "event": "AddLiquidity",
+        "args": {
+          "provider": "0xC6042F87E2285755a1E54ed1F4FEafAF1b1EDe45",
+          "token_amounts": [
+            "0",
+            "5100000"
+          ],
+          "fees": [
+            "20",
+            "22"
+          ],
+          "invariant": "6243261719762080320320518",
+          "token_supply": "6180686338572396564914946"
+        },
+        "tokens": [
+          "0 USDC",
+          "5.1 USDT"
+        ],
+        "gasUsed": "174146",
+        "gasPrice": "314528292",
+        "gasCostWei": "54773843938632",
+        "timestamp": 1756250015
+      }
+    },
+    {
+      "type": "add",
+      "entry": {
+        "txHash": "0x270caf913d177e1d98a6b8eb28f6f17253a5ac9d870fae9f1ff333355f674ce5",
+        "blockNumber": "23228553",
+        "event": "AddLiquidity",
+        "args": {
+          "provider": "0xC6042F87E2285755a1E54ed1F4FEafAF1b1EDe45",
+          "token_amounts": [
+            "5100000",
+            "0"
+          ],
+          "fees": [
+            "6",
+            "6"
+          ],
+          "invariant": "6243266819413516276904698",
+          "token_supply": "6180691387089914558420848"
+        },
+        "tokens": [
+          "5.1 USDC",
+          "0 USDT"
+        ],
+        "gasUsed": "160498",
+        "gasPrice": "283910549",
+        "gasCostWei": "45567075293402",
+        "timestamp": 1756250675
+      }
+    },
+    {
+      "type": "add",
+      "entry": {
+        "txHash": "0xe3e171fb3e69108f3935e11fd09bae3dcfdcf4479d798b74c0fe8e9bdfbb0c52",
+        "blockNumber": "23229196",
+        "event": "AddLiquidity",
+        "args": {
+          "provider": "0xE07a16358aA878CBDa2D49A88E5106871E0db307",
+          "token_amounts": [
+            "0",
+            "6000000000",
+            "0",
+            "0",
+            "0"
+          ],
+          "fees": [
+            "21585",
+            "22340"
+          ],
+          "invariant": "6249272737077209795453064",
+          "token_supply": "6186631616373938524812470"
+        },
+        "tokens": [
+          "0 USDC",
+          "6000 USDT",
+          "0 USDT",
+          "0 USDT",
+          "0 USDT"
+        ],
+        "gasUsed": "359995",
+        "gasPrice": "216019209",
+        "gasCostWei": "77765835143955",
+        "timestamp": 1756258391
+      }
+    },
+    {
+      "type": "add",
+      "entry": {
+        "txHash": "0x6855a1570a2be3ce99d45a3d0a6bc24632167a061f1a91f49a68c6eabef10bcd",
+        "blockNumber": "23229220",
+        "event": "AddLiquidity",
+        "args": {
+          "provider": "0xE07a16358aA878CBDa2D49A88E5106871E0db307",
+          "token_amounts": [
+            "0",
+            "2000000000",
+            "0",
+            "0",
+            "0"
+          ],
+          "fees": [
+            "7250",
+            "7525"
+          ],
+          "invariant": "6249863251272183085862293",
+          "token_supply": "6187215997162451221578679"
+        },
+        "tokens": [
+          "0 USDC",
+          "2000 USDT",
+          "0 USDT",
+          "0 USDT",
+          "0 USDT"
+        ],
+        "gasUsed": "360458",
+        "gasPrice": "205236458",
+        "gasCostWei": "73979123177764",
+        "timestamp": 1756258679
+      }
+    },
+    {
+      "type": "add",
+      "entry": {
+        "txHash": "0x838f7e3e17bf8866f30225e31d80466ca9b6ad1261b8f9c723b2133dd9eb033f",
+        "blockNumber": "23229257",
+        "event": "AddLiquidity",
+        "args": {
+          "provider": "0x5CECc042b2A320937c04980148Fc2a4b66Da0fbF",
+          "token_amounts": [
+            "220200000",
+            "0"
+          ],
+          "fees": [
+            "328",
+            "341"
+          ],
+          "invariant": "6250083653384133133995033",
+          "token_supply": "6187433979071989070543815"
+        },
+        "tokens": [
+          "220.2 USDC",
+          "0 USDT"
+        ],
+        "gasUsed": "1538983",
+        "gasPrice": "332995293",
+        "gasCostWei": "512474095007019",
+        "timestamp": 1756259123
+      }
+    },
+    {
+      "type": "remove",
+      "entry": {
+        "txHash": "0x7c7a65836c986124fd4cb903685262e16b71d48739522f41f09b055a08e1596f",
+        "blockNumber": "23232702",
+        "event": "RemoveLiquidity",
+        "args": {
+          "provider": "0x8ef2F513D80120634e182dc23Cb7a2f234639F8b",
+          "token_amounts": [
+            "71566892486",
+            "28507270254"
+          ],
+          "fees": [],
+          "token_supply": "6088365663169100957147386"
+        },
+        "tokens": [
+          "71566.892486 USDC",
+          "28507.270254 USDT"
+        ],
+        "gasUsed": "183485",
+        "gasPrice": "2234183082",
+        "gasCostWei": "409939082800770",
+        "timestamp": 1756300679
+      }
+    },
+    {
+      "type": "remove",
+      "entry": {
+        "txHash": "0x8d7b4dbde55e3ebb116f9f98f4eef4f03db57bd2abf6f7c1694d0e12537aa4c0",
+        "blockNumber": "23232759",
+        "event": "RemoveLiquidity",
+        "args": {
+          "provider": "0x7Ae44941303cA168f8B91fECa49219F24c5e6790",
+          "token_amounts": [
+            "39567554374",
+            "15611447005"
+          ],
+          "fees": [],
+          "token_supply": "6033741281309085481061876"
+        },
+        "tokens": [
+          "39567.554374 USDC",
+          "15611.447005 USDT"
+        ],
+        "gasUsed": "183485",
+        "gasPrice": "2180747318",
+        "gasCostWei": "400134421643230",
+        "timestamp": 1756301363
+      }
+    },
+    {
+      "type": "remove",
+      "entry": {
+        "txHash": "0x21be44ee67c8a875d8d92a349d4b7c60f0b19563ecd3befc6a1c899e7bc03ecf",
+        "blockNumber": "23224502",
+        "event": "RemoveLiquidityOne",
+        "args": {
+          "provider": "0x912F6071c371C4571282081a2e55cBB0cB6d0fFf",
+          "token_id": "0",
+          "token_amount": "19854643871505920091059",
+          "coin_amount": "20056601469",
+          "token_supply": "6480397440386960406359811"
+        },
+        "tokens": [
+          "20056.601469 USDC"
+        ],
+        "gasUsed": "155068",
+        "gasPrice": "239055382",
+        "gasCostWei": "37069839975976",
+        "timestamp": 1756201823
+      }
+    },
+    {
+      "type": "remove",
+      "entry": {
+        "txHash": "0x18b5678a19208b77b80ccef880b4ac301ddf4a8e82ac2f9d4bdfc70e21bd7825",
+        "blockNumber": "23224514",
+        "event": "RemoveLiquidityOne",
+        "args": {
+          "provider": "0xB5571E76693ba60110B5811DD650FFefce1C955f",
+          "token_id": "0",
+          "token_amount": "775964442720286690039",
+          "coin_amount": "783857269",
+          "token_supply": "6479621475944240119669772"
+        },
+        "tokens": [
+          "783.857269 USDC"
+        ],
+        "gasUsed": "381266",
+        "gasPrice": "541984598",
+        "gasCostWei": "206640299741068",
+        "timestamp": 1756201967
+      }
+    },
+    {
+      "type": "remove",
+      "entry": {
+        "txHash": "0x4b6a6a405f4c5007327d305ad4f3c3838e1e1f3ebedc43c38b80f7d1539dcfc5",
+        "blockNumber": "23224677",
+        "event": "RemoveLiquidityOne",
+        "args": {
+          "provider": "0xFa58A9991767C19CD511Acf5f0775719E8c23A56",
+          "token_id": "0",
+          "token_amount": "1980578096759702419254",
+          "coin_amount": "2000710621",
+          "token_supply": "6477640897847480417250518"
+        },
+        "tokens": [
+          "2000.710621 USDC"
+        ],
+        "gasUsed": "155044",
+        "gasPrice": "1290974606",
+        "gasCostWei": "200157866812664",
+        "timestamp": 1756203935
+      }
+    },
+    {
+      "type": "remove",
+      "entry": {
+        "txHash": "0xe5cbf45a2464edf71d226266369cb1a1694e04e9f4fad57d6c6bc200b243a538",
+        "blockNumber": "23225392",
+        "event": "RemoveLiquidityOne",
+        "args": {
+          "provider": "0xF763D2830639e0d5629c32E5bfe4001C3CAC4988",
+          "token_id": "1",
+          "token_amount": "297348063896610761755619",
+          "coin_amount": "300326303504",
+          "token_supply": "6181282765669700027173874"
+        },
+        "tokens": [
+          "300326.303504 USDT"
+        ],
+        "gasUsed": "157956",
+        "gasPrice": "3366514636",
+        "gasCostWei": "531761185844016",
+        "timestamp": 1756212587
+      }
+    },
+    {
+      "type": "remove",
+      "entry": {
+        "txHash": "0xda985f5a555662cba3727c8bfe06aa9db20320901f3333978c356927859f678a",
+        "blockNumber": "23225693",
+        "event": "RemoveLiquidityOne",
+        "args": {
+          "provider": "0x50d3865a63D52c0A54e4679949647eA752107390",
+          "token_id": "1",
+          "token_amount": "601476672442024123686",
+          "coin_amount": "607518943",
+          "token_supply": "6180681288997258003050188"
+        },
+        "tokens": [
+          "607.518943 USDT"
+        ],
+        "gasUsed": "9429802",
+        "gasPrice": "794746185",
+        "gasCostWei": "7494299164805370",
+        "timestamp": 1756216199
+      }
+    },
+    {
+      "type": "remove",
+      "entry": {
+        "txHash": "0x497aa3c3484b70a8fb171db7092ba9e233855a9cb62c007e5d97c59b6fa98495",
+        "blockNumber": "23229196",
+        "event": "RemoveLiquidityOne",
+        "args": {
+          "provider": "0xB5571E76693ba60110B5811DD650FFefce1C955f",
+          "token_id": "1",
+          "token_amount": "1395702291594649421030",
+          "coin_amount": "1409725508",
+          "token_supply": "6185235914082343875391440"
+        },
+        "tokens": [
+          "1409.725508 USDT"
+        ],
+        "gasUsed": "476955",
+        "gasPrice": "716071091",
+        "gasCostWei": "341533687207905",
+        "timestamp": 1756258391
+      }
+    },
+    {
+      "type": "add",
+      "entry": {
+        "txHash": "0xe0fcab35a0a7bcc5e6f2e41e990a2d7c8f77295310f277bf76f73358770f6d00",
+        "blockNumber": "23236452",
+        "event": "AddLiquidity",
+        "args": {
+          "provider": "0xB5571E76693ba60110B5811DD650FFefce1C955f",
+          "token_amounts": [
+            "862950587",
+            "0"
+          ],
+          "fees": [
+            "1115",
+            "1200"
+          ],
+          "invariant": "6095874548436243049495814",
+          "token_supply": "6034595502019182269719301"
+        },
+        "tokens": [
+          "862.950587 USDC",
+          "0 USDT"
+        ],
+        "gasUsed": "1944794",
+        "gasPrice": "841316567",
+        "gasCostWei": "1636187411602198",
+        "timestamp": 1756345931
+      }
+    },
+    {
+      "type": "add",
+      "entry": {
+        "txHash": "0xf3843db3fd087c5e18a9853d20fff4b0139ae6e670b350765b429b9865f91f62",
+        "blockNumber": "23240236",
+        "event": "AddLiquidity",
+        "args": {
+          "provider": "0x56C526b0159a258887e0d79ec3a80dfb940d0cD7",
+          "token_amounts": [
+            "0",
+            "1000000000"
+          ],
+          "fees": [
+            "3329",
+            "3380"
+          ],
+          "invariant": "6087928539679301712708224",
+          "token_supply": "6026642966262806479376400"
+        },
+        "tokens": [
+          "0 USDC",
+          "1000 USDT"
+        ],
+        "gasUsed": "604470",
+        "gasPrice": "1539000000",
+        "gasCostWei": "930279330000000",
+        "timestamp": 1756391579
+      }
+    },
+    {
+      "type": "add",
+      "entry": {
+        "txHash": "0x3b8c1c16d2509ee8440bc9b45e0f53cd390ef82197960e133747ceabf9838771",
+        "blockNumber": "23240992",
+        "event": "AddLiquidity",
+        "args": {
+          "provider": "0x8D321BF724d71e82D20c4bd3828AC4cD0052Ad8A",
+          "token_amounts": [
+            "999000000",
+            "283200000"
+          ],
+          "fees": [
+            "80",
+            "88"
+          ],
+          "invariant": "6089224684550063081515752",
+          "token_supply": "6027912227082308105565309"
+        },
+        "tokens": [
+          "999 USDC",
+          "283.2 USDT"
+        ],
+        "gasUsed": "208432",
+        "gasPrice": "1430436238",
+        "gasCostWei": "298148685958816",
+        "timestamp": 1756400723
+      }
+    },
+    {
+      "type": "add",
+      "entry": {
+        "txHash": "0x82fe1d90ad9ff83a88e88e600a658a20588b35d14420d216af857dc15bb73d7c",
+        "blockNumber": "23243255",
+        "event": "AddLiquidity",
+        "args": {
+          "provider": "0x60d1DF05426B3d7400db3aEDa1824c287cf48BB0",
+          "token_amounts": [
+            "209026562",
+            "220123598"
+          ],
+          "fees": [
+            "523",
+            "550"
+          ],
+          "invariant": "5888701575012915800370964",
+          "token_supply": "5829364830128916609027353"
+        },
+        "tokens": [
+          "209.026562 USDC",
+          "220.123598 USDT"
+        ],
+        "gasUsed": "203644",
+        "gasPrice": "392552083",
+        "gasCostWei": "79940876390452",
+        "timestamp": 1756427999
+      }
+    },
+    {
+      "type": "remove",
+      "entry": {
+        "txHash": "0xaaf4b5350878ccc5b4bbfba99da4309c1d18657055fdca4c1d3aa5827858809d",
+        "blockNumber": "23239061",
+        "event": "RemoveLiquidityOne",
+        "args": {
+          "provider": "0xeDdB1b75eDda1C60695A4dA3B3E3Bb4C830C4B0F",
+          "token_id": "0",
+          "token_amount": "8645275185564079940992",
+          "coin_amount": "8733491811",
+          "token_supply": "6025950226833618189778309"
+        },
+        "tokens": [
+          "8733.491811 USDC"
+        ],
+        "gasUsed": "155068",
+        "gasPrice": "363316258",
+        "gasCostWei": "56338725495544",
+        "timestamp": 1756377383
+      }
+    },
+    {
+      "type": "remove",
+      "entry": {
+        "txHash": "0x5dbf33ed27fb4e6e5acb25a42e894dbd8f3f2250af6511012342b8caf4962264",
+        "blockNumber": "23240013",
+        "event": "RemoveLiquidityOne",
+        "args": {
+          "provider": "0x5835d57d54AB5AD4EB3E05A573285725ED7A00a9",
+          "token_id": "0",
+          "token_amount": "297230916108228199837",
+          "coin_amount": "300264678",
+          "token_supply": "6025652995917509961578472"
+        },
+        "tokens": [
+          "300.264678 USDC"
+        ],
+        "gasUsed": "137944",
+        "gasPrice": "631168390",
+        "gasCostWei": "87065892390160",
+        "timestamp": 1756388903
+      }
+    },
+    {
+      "type": "remove",
+      "entry": {
+        "txHash": "0x2ee330d34580def3486cb1de64e6182389fcf357822cb2d7fd4a8ea8f993a653",
+        "blockNumber": "23242466",
+        "event": "RemoveLiquidityOne",
+        "args": {
+          "provider": "0x5C6D32CbcB99722e6295C3f1fb942F99e98394E8",
+          "token_id": "0",
+          "token_amount": "198972230473071098985228",
+          "coin_amount": "201005570180",
+          "token_supply": "5828939996609237006580081"
+        },
+        "tokens": [
+          "201005.57018 USDC"
+        ],
+        "gasUsed": "159868",
+        "gasPrice": "410242054",
+        "gasCostWei": "65584576688872",
+        "timestamp": 1756418483
+      }
+    },
+    {
+      "type": "add",
+      "entry": {
+        "txHash": "0xebb637b01f374258457731f7a42748647d95be48be94b74816ec70916cc4d2b5",
+        "blockNumber": "23245713",
+        "event": "AddLiquidity",
+        "args": {
+          "provider": "0x8D321BF724d71e82D20c4bd3828AC4cD0052Ad8A",
+          "token_amounts": [
+            "8999000000",
+            "3714800000"
+          ],
+          "fees": [
+            "3011",
+            "3249"
+          ],
+          "invariant": "5900885367678225539137264",
+          "token_supply": "5841400704458920268670577"
+        },
+        "tokens": [
+          "8999 USDC",
+          "3714.8 USDT"
+        ],
+        "gasUsed": "203668",
+        "gasPrice": "866959084",
+        "gasCostWei": "176571822720112",
+        "timestamp": 1756457615
+      }
+    },
+    {
+      "type": "add",
+      "entry": {
+        "txHash": "0x0a93d3c45c26bed7560b26ed12aef481503a9f6ec32a4c3cc544b966838a938a",
+        "blockNumber": "23246781",
+        "event": "AddLiquidity",
+        "args": {
+          "provider": "0xA3ae519321A48D5D62F05bd45A88f71d412009D1",
+          "token_amounts": [
+            "0",
+            "198532372"
+          ],
+          "fees": [
+            "747",
+            "789"
+          ],
+          "invariant": "5901102556185707519784135",
+          "token_supply": "5841597251692408641218799"
+        },
+        "tokens": [
+          "0 USDC",
+          "198.532372 USDT"
+        ],
+        "gasUsed": "169370",
+        "gasPrice": "244629215",
+        "gasCostWei": "41432850144550",
+        "timestamp": 1756470503
+      }
+    },
+    {
+      "type": "add",
+      "entry": {
+        "txHash": "0x2f94a15502f80839a003054874cc44b5780ad22370cea790cd7044ca2f247128",
+        "blockNumber": "23248465",
+        "event": "AddLiquidity",
+        "args": {
+          "provider": "0x2294E804e13B1d60319296f65F2e2b762661b65d",
+          "token_amounts": [
+            "70050000000",
+            "0"
+          ],
+          "fees": [
+            "89929",
+            "97187"
+          ],
+          "invariant": "5834872773626474800464560",
+          "token_supply": "5776016701477496504669213"
+        },
+        "tokens": [
+          "70050 USDC",
+          "0 USDT"
+        ],
+        "gasUsed": "214287",
+        "gasPrice": "1469575235",
+        "gasCostWei": "314910868382445",
+        "timestamp": 1756490771
+      }
+    },
+    {
+      "type": "remove",
+      "entry": {
+        "txHash": "0x0fba8a57722b4b09215820c8858d47c26301fdd19ef416aad4545ac31d014501",
+        "blockNumber": "23245550",
+        "event": "RemoveLiquidityOne",
+        "args": {
+          "provider": "0xB5571E76693ba60110B5811DD650FFefce1C955f",
+          "token_id": "1",
+          "token_amount": "549644026474203784480",
+          "coin_amount": "555156792",
+          "token_supply": "5828815186102442405242873"
+        },
+        "tokens": [
+          "555.156792 USDT"
+        ],
+        "gasUsed": "6230154",
+        "gasPrice": "619827774",
+        "gasCostWei": "3861622485497196",
+        "timestamp": 1756455647
+      }
+    },
+    {
+      "type": "remove",
+      "entry": {
+        "txHash": "0xf10495b52108a9d464e1d17207671bec393dbfca7bdda7fc1dada5eddfdb4b59",
+        "blockNumber": "23246840",
+        "event": "RemoveLiquidityOne",
+        "args": {
+          "provider": "0xc04F8E296CD4B6Bde9e5DC263e358ED526abC0a7",
+          "token_id": "0",
+          "token_amount": "134919396087919906878275",
+          "coin_amount": "136301021313",
+          "token_supply": "5706677855604488734340524"
+        },
+        "tokens": [
+          "136301.021313 USDC"
+        ],
+        "gasUsed": "155068",
+        "gasPrice": "732345807",
+        "gasCostWei": "113563399599876",
+        "timestamp": 1756471211
+      }
+    },
+    {
+      "type": "remove",
+      "entry": {
+        "txHash": "0x4fc7c5ad84a0327f8e4e528f6332c264386268235f22ad48d0394668bf5768ea",
+        "blockNumber": "23248814",
+        "event": "RemoveLiquidityOne",
+        "args": {
+          "provider": "0xF31de918554B56a138ccCf2d4754e90D285307fA",
+          "token_id": "0",
+          "token_amount": "1017684250222483078",
+          "coin_amount": "1028113",
+          "token_supply": "5776015683793246282186135"
+        },
+        "tokens": [
+          "1.028113 USDC"
+        ],
+        "gasUsed": "289555",
+        "gasPrice": "1412831039",
+        "gasCostWei": "409092291497645",
+        "timestamp": 1756494995
+      }
+    },
+    {
+      "type": "remove",
+      "entry": {
+        "txHash": "0x318fcd13b2301ca5ed6afcb9094b19d2509811320dbc76c6f291c0ca57186917",
+        "blockNumber": "23253707",
+        "event": "RemoveLiquidityOne",
+        "args": {
+          "provider": "0xA4D320DE512B8c3a4996835f69cF28f036866BbD",
+          "token_id": "0",
+          "token_amount": "12119355596822634788794",
+          "coin_amount": "12243468425",
+          "token_supply": "5763896328196423647397341"
+        },
+        "tokens": [
+          "12243.468425 USDC"
+        ],
+        "gasUsed": "155068",
+        "gasPrice": "329418685",
+        "gasCostWei": "51082296645580",
+        "timestamp": 1756553939
+      }
+    }
+  ]
+}
