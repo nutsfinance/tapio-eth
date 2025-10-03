@@ -17,12 +17,8 @@ interface IKeeper {
     event SwapFeeUpdated(uint256 oldFee, uint256 newFee);
     event MintFeeUpdated(uint256 oldFee, uint256 newFee);
     event RedeemFeeUpdated(uint256 oldFee, uint256 newFee);
-    event OffPegFeeMultiplierUpdated(uint256 oldMultiplier, uint256 newMultiplier);
-    event ExchangeRateFeeFactorUpdated(uint256 oldFactor, uint256 newFactor);
     event BufferPercentUpdated(uint256 oldBuffer, uint256 newBuffer);
     event TokenSymbolUpdated(string oldSymbol, string newSymbol);
-    event DecayPeriodUpdated(uint256 oldPeriod, uint256 newPeriod);
-    event RateChangeSkipPeriodUpdated(uint256 oldPeriod, uint256 newPeriod);
     event FeeErrorMarginUpdated(uint256 oldMargin, uint256 newMargin);
     event YieldErrorMarginUpdated(uint256 oldMargin, uint256 newMargin);
     event LossDistributed();
@@ -64,18 +60,6 @@ interface IKeeper {
     function setRedeemFee(uint256 newFee) external;
 
     /**
-     * @notice Set the off-peg fee multiplier within allowed bounds
-     * @param newMultiplier The new off-peg fee multiplier value
-     */
-    function setOffPegFeeMultiplier(uint256 newMultiplier) external;
-
-    /**
-     * @notice Set the exchange rate fee within allowed bounds
-     * @param newFeeFactor The new exchange rate fee value
-     */
-    function setExchangeRateFeeFactor(uint256 newFeeFactor) external;
-
-    /**
      * @notice Set the buffer within allowed bounds
      * @param newBuffer The new buffer value
      */
@@ -86,18 +70,6 @@ interface IKeeper {
      * @param newSymbol The new token symbol
      */
     function setTokenSymbol(string calldata newSymbol) external;
-
-    /**
-     * @notice Set the decay period
-     * @param newDecayPeriod The new decay period in seconds
-     */
-    function setDecayPeriod(uint256 newDecayPeriod) external;
-
-    /**
-     * @notice Set the rate change skip period
-     * @param newSkipPeriod The new skip period in seconds
-     */
-    function setRateChangeSkipPeriod(uint256 newSkipPeriod) external;
 
     /**
      * @notice Set the fee error margin within allowed bounds

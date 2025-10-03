@@ -42,7 +42,6 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
         uint256 mintFee;
         uint256 swapFee;
         uint256 redeemFee;
-        uint256 offPegFeeMultiplier;
         uint256 A;
         uint256 minRampTime;
         address selfPeggingAssetBeacon;
@@ -51,12 +50,15 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
         address rampAControllerBeacon;
         address keeperImplementation;
         address constantExchangeRateProvider;
-        uint256 exchangeRateFeeFactor;
         uint256 bufferPercent;
     }
 
     /// @notice Parameters for creating a new pool
     struct CreatePoolArgument {
+        /// @notice array of wholesalers
+        address[] wholesalers;
+        /// @notice array of wholesalers rates in which the a discount will be applied for swap fees
+        uint16[] rates;
         /// @notice Address of token A
         address tokenA;
         /// @notice Address of token B
@@ -194,22 +196,10 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
     event RedeemFeeModified(uint256 redeemFee);
 
     /**
-     * @dev This event is emitted when the off peg fee multiplier is updated.
-     * @param offPegFeeMultiplier is the new value of the off peg fee multiplier.
-     */
-    event OffPegFeeMultiplierModified(uint256 offPegFeeMultiplier);
-
-    /**
      * @dev This event is emitted when the A parameter is updated.
      * @param A is the new value of the A parameter.
      */
     event AModified(uint256 A);
-
-    /**
-     * @dev This event is emitted when the exchange rate fee factor is updated.
-     * @param exchangeRateFeeFactor is the new value of the exchange rate fee factor.
-     */
-    event ExchangeRateFeeFactorModified(uint256 exchangeRateFeeFactor);
 
     /**
      * @dev This event is emitted when the min ramp time is updated.
@@ -275,9 +265,7 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
         swapFee = argument.swapFee;
         redeemFee = argument.redeemFee;
         A = argument.A;
-        offPegFeeMultiplier = argument.offPegFeeMultiplier;
         minRampTime = argument.minRampTime;
-        exchangeRateFeeFactor = argument.exchangeRateFeeFactor;
         bufferPercent = argument.bufferPercent;
     }
 
@@ -315,14 +303,6 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
     }
 
     /**
-     * @dev Set the off peg fee multiplier.
-     */
-    function setOffPegFeeMultiplier(uint256 _offPegFeeMultiplier) external onlyOwner {
-        offPegFeeMultiplier = _offPegFeeMultiplier;
-        emit OffPegFeeMultiplierModified(_offPegFeeMultiplier);
-    }
-
-    /**
      * @dev Set the A parameter.
      */
     function setA(uint256 _A) external onlyOwner {
@@ -337,14 +317,6 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
     function setMinRampTime(uint256 _minRampTime) external onlyOwner {
         minRampTime = _minRampTime;
         emit MinRampTimeUpdated(_minRampTime);
-    }
-
-    /**
-     * @dev Set the exchange rate fee factor.
-     */
-    function setExchangeRateFeeFactor(uint256 _exchangeRateFeeFactor) external onlyOwner {
-        exchangeRateFeeFactor = _exchangeRateFeeFactor;
-        emit ExchangeRateFeeFactorModified(_exchangeRateFeeFactor);
     }
 
     /**
@@ -434,12 +406,12 @@ contract SelfPeggingAssetFactory is UUPSUpgradeable, OwnableUpgradeable {
             tokens,
             precisions,
             fees,
-            offPegFeeMultiplier,
+            argument.wholesalers,
+            argument.rates,
             spaToken,
             A,
             exchangeRateProviders,
             address(rampAController),
-            exchangeRateFeeFactor,
             address(keeper)
         );
 

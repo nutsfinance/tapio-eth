@@ -59,7 +59,18 @@ contract SelfPeggingAssetTest is Test {
 
         bytes memory data = abi.encodeCall(
             SelfPeggingAsset.initialize,
-            (tokens, precisions, fees, 0, spaToken, A, exchangeRateProviders, address(0), 0, owner)
+            (
+                tokens,
+                precisions,
+                fees,
+                new address[](0),
+                new uint16[](0),
+                spaToken,
+                A,
+                exchangeRateProviders,
+                address(0),
+                owner
+            )
         );
 
         proxy = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
@@ -135,7 +146,18 @@ contract SelfPeggingAssetTest is Test {
 
         bytes memory data = abi.encodeCall(
             SelfPeggingAsset.initialize,
-            (_tokens, _precisions, _fees, 0, _spaToken, A, exchangeRateProviders, address(0), 0, owner)
+            (
+                _tokens,
+                _precisions,
+                _fees,
+                new address[](0),
+                new uint16[](0),
+                _spaToken,
+                A,
+                exchangeRateProviders,
+                address(0),
+                owner
+            )
         );
 
         proxy = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
@@ -467,9 +489,6 @@ contract SelfPeggingAssetTest is Test {
 
         (uint256 exchangeAmount,) = pool.getSwapAmount(1, 0, 8e18);
 
-        vm.prank(owner);
-        pool.setOffPegFeeMultiplier(2e10);
-
         assertEq(WETH.balanceOf(user2), 0);
         assertEq(frxETH.balanceOf(user2), 8e18);
 
@@ -611,7 +630,18 @@ contract SelfPeggingAssetTest is Test {
 
         bytes memory data = abi.encodeCall(
             SelfPeggingAsset.initialize,
-            (_tokens, _precisions, _fees, 0, _spaToken, A, exchangeRateProviders, address(0), 0, owner)
+            (
+                _tokens,
+                _precisions,
+                _fees,
+                new address[](0),
+                new uint16[](0),
+                _spaToken,
+                A,
+                exchangeRateProviders,
+                address(0),
+                owner
+            )
         );
         proxy = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
         SelfPeggingAsset _pool = SelfPeggingAsset(address(proxy));
@@ -715,7 +745,18 @@ contract SelfPeggingAssetTest is Test {
 
         bytes memory data = abi.encodeCall(
             SelfPeggingAsset.initialize,
-            (_tokens, _precisions, _fees, 0, _spaToken, A, exchangeRateProviders, address(0), 0, owner)
+            (
+                _tokens,
+                _precisions,
+                _fees,
+                new address[](0),
+                new uint16[](0),
+                _spaToken,
+                A,
+                exchangeRateProviders,
+                address(0),
+                owner
+            )
         );
         proxy = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
         SelfPeggingAsset _pool = SelfPeggingAsset(address(proxy));
@@ -935,7 +976,18 @@ contract SelfPeggingAssetTest is Test {
 
         bytes memory data = abi.encodeCall(
             SelfPeggingAsset.initialize,
-            (_tokens1, _precisions, _fees, 0, _spaToken1, A, exchangeRateProviders1, address(0), 0, owner)
+            (
+                _tokens1,
+                _precisions,
+                _fees,
+                new address[](0),
+                new uint16[](0),
+                _spaToken1,
+                A,
+                exchangeRateProviders1,
+                address(0),
+                owner
+            )
         );
 
         proxy1 = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
@@ -944,7 +996,18 @@ contract SelfPeggingAssetTest is Test {
 
         data = abi.encodeCall(
             SelfPeggingAsset.initialize,
-            (_tokens2, _precisions, _fees, 0, _spaToken2, A, exchangeRateProviders2, address(0), 1e10, owner)
+            (
+                _tokens2,
+                _precisions,
+                _fees,
+                new address[](0),
+                new uint16[](0),
+                _spaToken2,
+                A,
+                exchangeRateProviders2,
+                address(0),
+                owner
+            )
         );
 
         proxy2 = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
@@ -1062,19 +1125,38 @@ contract SelfPeggingAssetTest is Test {
 
         bytes memory data = abi.encodeCall(
             SelfPeggingAsset.initialize,
-            (_tokens1, _precisions, _fees, 0, _spaToken1, A, exchangeRateProviders1, address(0), 1e10, owner)
+            (
+                _tokens1,
+                _precisions,
+                _fees,
+                new address[](0),
+                new uint16[](0),
+                _spaToken1,
+                A,
+                exchangeRateProviders1,
+                address(0),
+                owner
+            )
         );
 
         proxy1 = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
         SelfPeggingAsset _pool1 = SelfPeggingAsset(address(proxy1));
         _spaToken1.initialize("SPA Token", "SPAT", 5e8, owner, address(_pool1));
 
-        vm.prank(owner);
-        _pool1.setRateChangeSkipPeriod(10 seconds);
-
         data = abi.encodeCall(
             SelfPeggingAsset.initialize,
-            (_tokens2, _precisions, _fees, 0, _spaToken2, A, exchangeRateProviders2, address(0), 1e10, owner)
+            (
+                _tokens2,
+                _precisions,
+                _fees,
+                new address[](0),
+                new uint16[](0),
+                _spaToken2,
+                A,
+                exchangeRateProviders2,
+                address(0),
+                owner
+            )
         );
 
         proxy2 = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
@@ -1177,17 +1259,23 @@ contract SelfPeggingAssetTest is Test {
 
         bytes memory data = abi.encodeCall(
             SelfPeggingAsset.initialize,
-            (tokens, precisionsArray, fees, 0, spaToken1, 100, providers, address(0), 1e10, owner)
+            (
+                tokens,
+                precisionsArray,
+                fees,
+                new address[](0),
+                new uint16[](0),
+                spaToken1,
+                100,
+                providers,
+                address(0),
+                owner
+            )
         );
 
         proxy = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
         SelfPeggingAsset spa = SelfPeggingAsset(address(proxy));
         spaToken1.initialize("SPA Token", "TSPA", 5e8, owner, address(spa));
-
-        vm.startPrank(owner);
-        spa.setRateChangeSkipPeriod(10 seconds);
-        spa.setDecayPeriod(10 seconds);
-        vm.stopPrank();
 
         vm.prank(address(spa));
         spaToken1.addBuffer(100e18, true);
@@ -1319,25 +1407,20 @@ contract SelfPeggingAssetTest is Test {
         precisions[1] = 1;
 
         bytes memory data = abi.encodeCall(
-            SelfPeggingAsset.initialize, (tokens1, precisions, fees, 0, spaToken1, A, providers1, address(0), 0, owner)
+            SelfPeggingAsset.initialize,
+            (tokens1, precisions, fees, new address[](0), new uint16[](0), spaToken1, A, providers1, address(0), owner)
         );
         proxy1 = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
         SelfPeggingAsset pool1 = SelfPeggingAsset(address(proxy1));
         spaToken1.initialize("SPA Token 1", "TSPA1", 5e8, owner, address(pool1));
 
-        vm.prank(owner);
-        pool1.setRateChangeSkipPeriod(100 days);
-
         data = abi.encodeCall(
             SelfPeggingAsset.initialize,
-            (tokens2, precisions, fees, 0, spaToken2, A, providers2, address(0), exchangeRateFeeFactor, owner)
+            (tokens2, precisions, fees, new address[](0), new uint16[](0), spaToken2, A, providers2, address(0), owner)
         );
         proxy2 = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
         SelfPeggingAsset pool2 = SelfPeggingAsset(address(proxy2));
         spaToken2.initialize("SPA Token 2", "TSPA2", 5e8, owner, address(pool2));
-
-        vm.prank(owner);
-        pool2.setRateChangeSkipPeriod(100 days);
 
         uint256 bufferSize = initialLiquidity * 3;
         vm.prank(address(pool1));
@@ -1440,7 +1523,18 @@ contract SelfPeggingAssetTest is Test {
 
         bytes memory data = abi.encodeCall(
             SelfPeggingAsset.initialize,
-            (_tokens, _precisions, _fees, 0, _spaToken, A, exchangeRateProviders, address(0), 0, owner)
+            (
+                _tokens,
+                _precisions,
+                _fees,
+                new address[](0),
+                new uint16[](0),
+                _spaToken,
+                A,
+                exchangeRateProviders,
+                address(0),
+                owner
+            )
         );
         proxy = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
         SelfPeggingAsset _pool = SelfPeggingAsset(address(proxy));
@@ -1588,7 +1682,8 @@ contract SelfPeggingAssetTest is Test {
         ERC1967Proxy proxy = new ERC1967Proxy(address(new SPAToken()), new bytes(0));
         SPAToken spt = SPAToken(address(proxy));
         bytes memory data = abi.encodeCall(
-            SelfPeggingAsset.initialize, (_tokens, _precisions, _fees, 0, spt, A, providers, address(0), 0, owner)
+            SelfPeggingAsset.initialize,
+            (_tokens, _precisions, _fees, new address[](0), new uint16[](0), spt, A, providers, address(0), owner)
         );
         proxy = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
         SelfPeggingAsset poolU = SelfPeggingAsset(address(proxy));
@@ -1663,8 +1758,10 @@ contract SelfPeggingAssetTest is Test {
             prec[1] = 1;
             ERC1967Proxy proxy = new ERC1967Proxy(address(new SPAToken()), new bytes(0));
             SPAToken spt = SPAToken(address(proxy));
-            bytes memory data =
-                abi.encodeCall(SelfPeggingAsset.initialize, (toks, prec, fees, 0, spt, A, prov, address(0), 0, owner));
+            bytes memory data = abi.encodeCall(
+                SelfPeggingAsset.initialize,
+                (toks, prec, fees, new address[](0), new uint16[](0), spt, A, prov, address(0), owner)
+            );
             proxy = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
             pool18 = SelfPeggingAsset(address(proxy));
             spt.initialize("SPA18", "SPA18", 0, owner, address(pool18));
@@ -1687,8 +1784,10 @@ contract SelfPeggingAssetTest is Test {
             prec[1] = 1;
             ERC1967Proxy proxy = new ERC1967Proxy(address(new SPAToken()), new bytes(0));
             SPAToken spt = SPAToken(address(proxy));
-            bytes memory data =
-                abi.encodeCall(SelfPeggingAsset.initialize, (toks, prec, fees, 0, spt, A, prov, address(0), 0, owner));
+            bytes memory data = abi.encodeCall(
+                SelfPeggingAsset.initialize,
+                (toks, prec, fees, new address[](0), new uint16[](0), spt, A, prov, address(0), owner)
+            );
             proxy = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
             poolVar = SelfPeggingAsset(address(proxy));
             spt.initialize("SPAV", "SPAV", 0, owner, address(poolVar));

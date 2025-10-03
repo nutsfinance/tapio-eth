@@ -53,7 +53,6 @@ contract Deploy is Config {
                 0,
                 100_000,
                 0,
-                0,
                 10_000,
                 30 minutes,
                 selfPeggingAssetBeacon,
@@ -62,7 +61,6 @@ contract Deploy is Config {
                 rampAControllerBeacon,
                 keeperImplementation,
                 address(new ConstantExchangeRateProvider()),
-                0,
                 0
             )
         );

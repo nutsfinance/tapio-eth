@@ -1,28 +1,4 @@
 {
-  "ramps": [
-    {
-      "blockNumber": 23194000,
-      "newA": 5000,
-      "endTime": 1755894419,
-      "timestamp": 1755834191
-    },
-    {
-      "blockNumber": 23215000,
-      "newA": 10000,
-      "endTime": 1756207823,
-      "timestamp": 1756087319
-    }
-  ],
-  "swapFees": [
-    {
-      "blockNumber": 23195000,
-      "newFee": 200000,
-      "timestamp": 1755846251
-    },
-    {
-      "blockNumber": 23216000,
-      "newFee": 100000,
-      "timestamp": 1756099379
-    }
-  ]
+  "ramps": [],
+  "swapFees": []
 }

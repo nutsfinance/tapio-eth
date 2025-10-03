@@ -126,7 +126,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
     /**
      * @inheritdoc IKeeper
      */
-    function setSwapFee(uint256 newFee) external override onlyRole(GOVERNOR_ROLE) {
+    function setSwapFee(uint256 newFee) external override onlyRole(CURATOR_ROLE) {
         IParameterRegistry.Bounds memory swapFeeParams = registry.swapFeeParams();
 
         uint256 cur = spa.swapFee();
@@ -173,32 +173,6 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
     /**
      * @inheritdoc IKeeper
      */
-    function setOffPegFeeMultiplier(uint256 newMultiplier) external override onlyRole(GOVERNOR_ROLE) {
-        IParameterRegistry.Bounds memory offPegParams = registry.offPegParams();
-
-        uint256 cur = spa.offPegFeeMultiplier();
-        checkBounds(newMultiplier, cur, offPegParams);
-
-        spa.setOffPegFeeMultiplier(newMultiplier);
-        emit OffPegFeeMultiplierUpdated(cur, newMultiplier);
-    }
-
-    /**
-     * @inheritdoc IKeeper
-     */
-    function setExchangeRateFeeFactor(uint256 newFeeFactor) external override onlyRole(GOVERNOR_ROLE) {
-        IParameterRegistry.Bounds memory exchangeRateFeeParams = registry.exchangeRateFeeParams();
-
-        uint256 cur = spa.exchangeRateFeeFactor();
-        checkBounds(newFeeFactor, cur, exchangeRateFeeParams);
-
-        spa.setExchangeRateFeeFactor(newFeeFactor);
-        emit ExchangeRateFeeFactorUpdated(cur, newFeeFactor);
-    }
-
-    /**
-     * @inheritdoc IKeeper
-     */
     function setBufferPercent(uint256 newBuffer) external override onlyRole(GOVERNOR_ROLE) {
         IParameterRegistry.Bounds memory bufferParams = registry.bufferPercentParams();
 
@@ -221,32 +195,6 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
 
         spaToken.setSymbol(newSymbol);
         emit TokenSymbolUpdated(cur, newSymbol);
-    }
-
-    /**
-     * @inheritdoc IKeeper
-     */
-    function setDecayPeriod(uint256 newDecayPeriod) external override onlyRole(GOVERNOR_ROLE) {
-        IParameterRegistry.Bounds memory decayPeriodParams = registry.decayPeriodParams();
-
-        uint256 cur = spa.decayPeriod();
-        checkBounds(newDecayPeriod, cur, decayPeriodParams);
-
-        spa.setDecayPeriod(newDecayPeriod);
-        emit DecayPeriodUpdated(cur, newDecayPeriod);
-    }
-
-    /**
-     * @inheritdoc IKeeper
-     */
-    function setRateChangeSkipPeriod(uint256 newSkipPeriod) external override onlyRole(GOVERNOR_ROLE) {
-        IParameterRegistry.Bounds memory rateChangeSkipPeriodParams = registry.rateChangeSkipPeriodParams();
-
-        uint256 cur = spa.rateChangeSkipPeriod();
-        checkBounds(newSkipPeriod, cur, rateChangeSkipPeriodParams);
-
-        spa.setRateChangeSkipPeriod(newSkipPeriod);
-        emit RateChangeSkipPeriodUpdated(cur, newSkipPeriod);
     }
 
     /**

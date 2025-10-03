@@ -68,12 +68,12 @@ contract RampAControllerTest is Test {
                 tokens,
                 precisions,
                 fees,
-                offPegFeeMultiplier,
+                new address[](0),
+                new uint16[](0),
                 spaToken,
                 INITIAL_A,
                 providerArray,
                 address(rampAControllerProxy),
-                0,
                 owner
             )
         );
@@ -388,12 +388,12 @@ contract RampAControllerTest is Test {
                 tokens,
                 precisions,
                 fees,
-                offPegFeeMultiplier,
+                new address[](0),
+                new uint16[](0),
                 newSpaToken,
                 1, // initialA
                 providerArray,
                 address(lowAController),
-                0,
                 owner
             )
         );

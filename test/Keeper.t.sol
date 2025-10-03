@@ -67,7 +67,6 @@ contract KeeperFuzzTest is Test {
             0,
             0,
             0,
-            0,
             100,
             30 minutes,
             selfPeggingAssetBeacon,
@@ -76,13 +75,14 @@ contract KeeperFuzzTest is Test {
             rampAControllerBeacon,
             keeperImplementation,
             address(new ConstantExchangeRateProvider()),
-            0,
             0
         );
 
         bytes memory data = abi.encodeCall(SelfPeggingAssetFactory.initialize, args);
 
         SelfPeggingAssetFactory.CreatePoolArgument memory arg = SelfPeggingAssetFactory.CreatePoolArgument({
+            wholesalers: new address[](0),
+            rates: new uint16[](0),
             tokenA: address(tokenA),
             tokenB: address(tokenB),
             tokenAType: SelfPeggingAssetFactory.TokenType.Standard,
@@ -344,16 +344,8 @@ contract KeeperFuzzTest is Test {
             keeper.setMintFee(value);
         } else if (paramType == 2) {
             keeper.setRedeemFee(value);
-        } else if (paramType == 3) {
-            keeper.setOffPegFeeMultiplier(value);
-        } else if (paramType == 4) {
-            keeper.setExchangeRateFeeFactor(value);
         } else if (paramType == 5) {
             keeper.setBufferPercent(value);
-        } else if (paramType == 6) {
-            keeper.setDecayPeriod(value);
-        } else if (paramType == 7) {
-            keeper.setRateChangeSkipPeriod(value);
         } else if (paramType == 8) {
             keeper.updateFeeErrorMargin(value);
         } else if (paramType == 9) {

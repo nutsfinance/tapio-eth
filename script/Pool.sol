@@ -18,6 +18,8 @@ contract Pool is Config {
         console.log("---------------");
 
         SelfPeggingAssetFactory.CreatePoolArgument memory arg = SelfPeggingAssetFactory.CreatePoolArgument({
+            wholesalers: new address[](0),
+            rates: new uint16[](0),
             tokenA: tokenA,
             tokenB: tokenB,
             tokenAType: SelfPeggingAssetFactory.TokenType.Standard,
@@ -65,6 +67,8 @@ contract Pool is Config {
         console.log("---------------");
 
         SelfPeggingAssetFactory.CreatePoolArgument memory arg = SelfPeggingAssetFactory.CreatePoolArgument({
+            wholesalers: new address[](0),
+            rates: new uint16[](0),
             tokenA: tokenA,
             tokenB: tokenB,
             tokenAType: SelfPeggingAssetFactory.TokenType.Standard,
@@ -111,6 +115,8 @@ contract Pool is Config {
         console.log("---------------");
 
         SelfPeggingAssetFactory.CreatePoolArgument memory arg = SelfPeggingAssetFactory.CreatePoolArgument({
+            wholesalers: new address[](0),
+            rates: new uint16[](0),
             tokenA: tokenA,
             tokenB: tokenB,
             tokenAType: SelfPeggingAssetFactory.TokenType.Standard,
@@ -158,6 +164,8 @@ contract Pool is Config {
         console.log("---------------");
 
         SelfPeggingAssetFactory.CreatePoolArgument memory arg = SelfPeggingAssetFactory.CreatePoolArgument({
+            wholesalers: new address[](0),
+            rates: new uint16[](0),
             tokenA: tokenA,
             tokenB: tokenB,
             tokenAType: SelfPeggingAssetFactory.TokenType.Standard,
@@ -206,6 +214,8 @@ contract Pool is Config {
         console.log("---------------");
 
         SelfPeggingAssetFactory.CreatePoolArgument memory arg = SelfPeggingAssetFactory.CreatePoolArgument({
+            wholesalers: new address[](0),
+            rates: new uint16[](0),
             tokenA: tokenA,
             tokenB: tokenB,
             tokenAType: SelfPeggingAssetFactory.TokenType.Oracle,
@@ -254,6 +264,8 @@ contract Pool is Config {
         console.log("---------------");
 
         SelfPeggingAssetFactory.CreatePoolArgument memory arg = SelfPeggingAssetFactory.CreatePoolArgument({
+            wholesalers: new address[](0),
+            rates: new uint16[](0),
             tokenA: tokenA,
             tokenB: tokenB,
             tokenAType: SelfPeggingAssetFactory.TokenType.Oracle,

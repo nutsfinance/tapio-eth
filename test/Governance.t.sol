@@ -72,7 +72,6 @@ contract GovernanceTest is Test {
             0,
             0,
             0,
-            0,
             100,
             30 minutes,
             selfPeggingAssetBeacon,
@@ -81,13 +80,14 @@ contract GovernanceTest is Test {
             rampAControllerBeacon,
             keeperImplementation,
             address(new ConstantExchangeRateProvider()),
-            0,
             0
         );
 
         bytes memory data = abi.encodeCall(SelfPeggingAssetFactory.initialize, args);
 
         SelfPeggingAssetFactory.CreatePoolArgument memory arg = SelfPeggingAssetFactory.CreatePoolArgument({
+            wholesalers: new address[](0),
+            rates: new uint16[](0),
             tokenA: address(tokenA),
             tokenB: address(tokenB),
             tokenAType: SelfPeggingAssetFactory.TokenType.Standard,
