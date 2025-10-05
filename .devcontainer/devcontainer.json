@@ -1,0 +1,8 @@
+{
+  "name": "Tapio Simulation Env",
+  "image": "ghcr.io/foundry-rs/foundry:latest",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": { "version": "18" }
+  },
+  "postCreateCommand": "yarn install && forge install"
+}
