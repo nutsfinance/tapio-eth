@@ -53,10 +53,7 @@ contract Pool is Config {
         return (decodedPoolToken, decodedSelfPeggingAsset, decodedWrappedPoolToken, decodedRampAController);
     }
 
-    function createStandardAndRebasingPool(
-        address tokenA,
-        address tokenB
-    )
+    function createStandardAndRebasingPool(address tokenA, address tokenB)
         internal
         returns (address, address, address, address)
     {
@@ -99,10 +96,7 @@ contract Pool is Config {
         return (decodedPoolToken, decodedSelfPeggingAsset, decodedWrappedPoolToken, decodedRampAController);
     }
 
-    function createStandardAndERC4626Pool(
-        address tokenA,
-        address tokenB
-    )
+    function createStandardAndERC4626Pool(address tokenA, address tokenB)
         internal
         returns (address, address, address, address)
     {
@@ -150,7 +144,7 @@ contract Pool is Config {
         address tokenB,
         address tokenBOracle,
         bytes4 rateFunc,
-        bytes4 decimalsFunc
+        uint8 decimals
     )
         internal
         returns (address, address, address, address)
@@ -169,7 +163,7 @@ contract Pool is Config {
             tokenBType: SelfPeggingAssetFactory.TokenType.Oracle,
             tokenBOracle: tokenBOracle,
             tokenBRateFunctionSig: abi.encodePacked(rateFunc),
-            tokenBDecimalsFunctionSig: abi.encodePacked(decimalsFunc)
+            tokenBDecimalsFunctionSig: abi.encodePacked(bytes1(decimals))
         });
 
         vm.recordLogs();
@@ -194,11 +188,7 @@ contract Pool is Config {
         return (decodedPoolToken, decodedSelfPeggingAsset, decodedWrappedPoolToken, decodedRampAController);
     }
 
-    function createChainlinkPool(
-        address tokenA,
-        address tokenB,
-        address tokenBOracle
-    )
+    function createChainlinkPool(address tokenA, address tokenB, address tokenBOracle)
         internal
         returns (address, address, address, address)
     {
@@ -241,12 +231,7 @@ contract Pool is Config {
         return (decodedPoolToken, decodedSelfPeggingAsset, decodedWrappedPoolToken, decodedRampAController);
     }
 
-    function createChainlinkPool(
-        address tokenA,
-        address tokenB,
-        address tokenAOracle,
-        address tokenBOracle
-    )
+    function createChainlinkPool(address tokenA, address tokenB, address tokenAOracle, address tokenBOracle)
         internal
         returns (address, address, address, address)
     {
@@ -289,12 +274,7 @@ contract Pool is Config {
         return (decodedPoolToken, decodedSelfPeggingAsset, decodedWrappedPoolToken, decodedRampAController);
     }
 
-    function createMockExchangeRatePool(
-        address tokenA,
-        address tokenB,
-        address tokenAOracle,
-        address tokenBOracle
-    )
+    function createMockExchangeRatePool(address tokenA, address tokenB, address tokenAOracle, address tokenBOracle)
         internal
         returns (address, address, address, address)
     {

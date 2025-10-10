@@ -10,7 +10,6 @@ import { MockToken } from "../src/mock/MockToken.sol";
 import { SelfPeggingAsset } from "../src/SelfPeggingAsset.sol";
 import { ChainlinkOracleProvider } from "../src/misc/ChainlinkOracleProvider.sol";
 import "@chainlink/contracts/shared/interfaces/AggregatorV3Interface.sol";
-import { OracleExchangeRateAdaptor } from "../src/misc/OracleExchangeRateAdaptor.sol";
 
 contract Mainnet is Deploy, Pool {
     function init() internal {
@@ -140,8 +139,13 @@ contract Mainnet is Deploy, Pool {
 
             address behype = 0xd8FC8F0b03eBA61F64D08B0bef69d80916E5DdA9;
             address whype = 0x5555555555555555555555555555555555555555;
-            address behypeOracle = address(new OracleExchangeRateAdaptor(0xCeaD893b162D38e714D82d06a7fe0b0dc3c38E0b, 18, abi.encodeWithSignature("exchangeRatio()")));
-            (address whypeBehypeLpToken, address whypeBehypePool, address whypeBehypeWlpToken,) = createExchangeRatePool(whype, behype, behypeOracle, bytes4(abi.encodeWithSignature("exchangeRate()")), bytes4(abi.encodeWithSignature("exchangeRateDecimals()")));
+            (address whypeBehypeLpToken, address whypeBehypePool, address whypeBehypeWlpToken,) = createExchangeRatePool(
+                whype,
+                behype,
+                0xCeaD893b162D38e714D82d06a7fe0b0dc3c38E0b,
+                bytes4(abi.encodeWithSignature("exchangeRatio()")),
+                18
+            );
 
             vm.writeJson(vm.serializeAddress("contracts", "Zap", zap), path);
             vm.writeJson(vm.serializeAddress("contracts", "Factory", address(factory)), path);
