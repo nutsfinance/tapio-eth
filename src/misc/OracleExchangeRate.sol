@@ -5,7 +5,7 @@ import "../interfaces/IExchangeRateProvider.sol";
 
 /**
  * @notice Oracle exchange rate provider supporting static or dynamic decimals.
- */ 
+ */
 contract OracleExchangeRate is IExchangeRateProvider {
     /// @dev Oracle address
     address public immutable oracle;
@@ -53,7 +53,7 @@ contract OracleExchangeRate is IExchangeRateProvider {
             return staticDecimals;
         } else {
             (bool success, bytes memory result) = oracle.staticcall(decimalsFunc);
-        require(success, InternalCallFailed());
+            require(success, InternalCallFailed());
 
             return abi.decode(result, (uint256));
         }
