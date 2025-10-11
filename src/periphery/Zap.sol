@@ -29,13 +29,7 @@ contract Zap is IZap, ReentrancyGuard {
      * @param amounts Array of token amounts to add
      * @return wspaAmount Amount of wrapped SPA tokens minted
      */
-    function zapIn(
-        address spa,
-        address wspa,
-        address receiver,
-        uint256 minMintAmount,
-        uint256[] calldata amounts
-    )
+    function zapIn(address spa, address wspa, address receiver, uint256 minMintAmount, uint256[] calldata amounts)
         external
         nonReentrant
         returns (uint256 wspaAmount)
@@ -208,11 +202,7 @@ contract Zap is IZap, ReentrancyGuard {
     /**
      * @dev Call SPA's redeemProportion function
      */
-    function _redeemProportion(
-        address spa,
-        uint256 amount,
-        uint256[] calldata minAmountsOut
-    )
+    function _redeemProportion(address spa, uint256 amount, uint256[] calldata minAmountsOut)
         internal
         returns (uint256[] memory)
     {
@@ -227,17 +217,13 @@ contract Zap is IZap, ReentrancyGuard {
     /**
      * @dev Call SPA's redeemSingle function
      */
-    function _redeemSingle(
-        address spa,
-        uint256 amount,
-        uint256 tokenIndex,
-        uint256 minAmountOut
-    )
+    function _redeemSingle(address spa, uint256 amount, uint256 tokenIndex, uint256 minAmountOut)
         internal
         returns (uint256)
     {
-        (bool success, bytes memory data) =
-            spa.call(abi.encodeWithSignature("redeemSingle(uint256,uint256,uint256)", amount, tokenIndex, minAmountOut));
+        (bool success, bytes memory data) = spa.call(
+            abi.encodeWithSignature("redeemSingle(uint256,uint256,uint256)", amount, tokenIndex, minAmountOut)
+        );
 
         if (!success) _revertBytes(data);
 
@@ -247,11 +233,7 @@ contract Zap is IZap, ReentrancyGuard {
     /**
      * @dev Call SPA's redeemMulti function
      */
-    function _redeemMulti(
-        address spa,
-        uint256[] calldata amounts,
-        uint256 maxRedeemAmount
-    )
+    function _redeemMulti(address spa, uint256[] calldata amounts, uint256 maxRedeemAmount)
         internal
         returns (uint256[] memory)
     {

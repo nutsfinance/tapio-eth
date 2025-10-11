@@ -183,7 +183,7 @@ contract SelfPeggingAssetTest is Test {
         assertEq(pool.balances(0), 105e18);
         assertEq(pool.balances(1), 85e18);
 
-        assertEq(pool.totalSupply(), 189.994704791049550806e18);
+        assertEq(pool.totalSupply(), 189.994_704_791_049_550_806e18);
 
         assertEq(pool.totalSupply(), spaToken.totalSupply());
 
@@ -237,8 +237,8 @@ contract SelfPeggingAssetTest is Test {
         assertEq(pool.balances(0), 105e18);
         assertEq(pool.balances(1), 85e18);
 
-        assertEq(pool.totalSupply(), 189.994704791049550806e18);
-        assertEq(spaToken.totalSupply(), 189.994704791049550806e18);
+        assertEq(pool.totalSupply(), 189.994_704_791_049_550_806e18);
+        assertEq(spaToken.totalSupply(), 189.994_704_791_049_550_806e18);
 
         uint256 amountToRedeem = spaToken.balanceOf(user2);
         vm.startPrank(user2);
@@ -441,8 +441,8 @@ contract SelfPeggingAssetTest is Test {
 
         (uint256 exchangeAmount, uint256 feeAmount) = pool.getSwapAmount(1, 0, 8e18);
 
-        assertEq(exchangeAmount, 7.992985053666343961e18);
-        assertEq(feeAmount, 0.016018006119571831e18);
+        assertEq(exchangeAmount, 7.992_985_053_666_343_961e18);
+        assertEq(feeAmount, 0.016_018_006_119_571_831e18);
     }
 
     function testDynamicFeeForSwap() external {
@@ -479,7 +479,7 @@ contract SelfPeggingAssetTest is Test {
         assertEq(pool.balances(0), 105e18);
         assertEq(pool.balances(1), 85e18);
 
-        assertEq(pool.totalSupply(), 189.994704791049550806e18);
+        assertEq(pool.totalSupply(), 189.994_704_791_049_550_806e18);
 
         assertEq(pool.totalSupply(), spaToken.totalSupply());
 
@@ -517,7 +517,7 @@ contract SelfPeggingAssetTest is Test {
     }
 
     function test_BurnValue_With_Losing_Shares() public {
-        //two users, user and user2, enter as liquidity providers.
+        // two users, user and user2, enter as liquidity providers.
         uint256 liquidity = 100e18;
         WETH.mint(user, liquidity);
         frxETH.mint(user, liquidity);
@@ -540,7 +540,7 @@ contract SelfPeggingAssetTest is Test {
         pool.mint(amounts, 0);
         vm.stopPrank();
 
-        //we create a profit balance (totalSupply > totalShares) via donation.
+        // we create a profit balance (totalSupply > totalShares) via donation.
         uint256 donation = 100e18;
         WETH.mint(owner, donation);
         vm.prank(owner);
@@ -556,7 +556,7 @@ contract SelfPeggingAssetTest is Test {
         uint256 user_Balance_before = spaToken.balanceOf(user);
         uint256 totalSupply_before = spaToken.totalSupply();
 
-        //attack: User `user2` calls burnShares(1) in a loop to destroy the value.
+        // attack: User `user2` calls burnShares(1) in a loop to destroy the value.
         uint256 iterations = 100;
         vm.startPrank(user2);
         for (uint256 i = 0; i < iterations; i++) {
@@ -564,15 +564,15 @@ contract SelfPeggingAssetTest is Test {
         }
         vm.stopPrank();
 
-        //check
+        // check
         uint256 user2_Shares_after = spaToken.sharesOf(user2);
         uint256 user_Balance_after = spaToken.balanceOf(user);
         uint256 totalSupply_after = spaToken.totalSupply();
 
-        //user2 shares are dropped
+        // user2 shares are dropped
         assertGt(user2_Shares_before, user2_Shares_after, "User2's shares should have decreased");
 
-        //total supply decreased by the amount that user2 burned
+        // total supply decreased by the amount that user2 burned
         assertEq(
             totalSupply_after,
             totalSupply_before - iterations,
@@ -645,7 +645,7 @@ contract SelfPeggingAssetTest is Test {
         uint256 wstETHBalance = wstETH.balanceOf(user2);
 
         assertEq(rETHBalance, 0);
-        assertIsCloseTo(wstETHBalance, 1e18, 0.00005 ether);
+        assertIsCloseTo(wstETHBalance, 1e18, 0.000_05 ether);
 
         // Set buffer percentage to 5%
         vm.prank(owner);
@@ -926,7 +926,7 @@ contract SelfPeggingAssetTest is Test {
 
         uint256[] memory _fees = new uint256[](3);
         _fees[0] = 0;
-        _fees[1] = 0.00001e10;
+        _fees[1] = 0.000_01e10;
         _fees[2] = 0;
 
         uint256[] memory _precisions = new uint256[](2);
@@ -1053,7 +1053,7 @@ contract SelfPeggingAssetTest is Test {
 
         uint256[] memory _fees = new uint256[](3);
         _fees[0] = 0;
-        _fees[1] = 0.00001e10;
+        _fees[1] = 0.000_01e10;
         _fees[2] = 0;
 
         uint256[] memory _precisions = new uint256[](2);
@@ -1313,7 +1313,7 @@ contract SelfPeggingAssetTest is Test {
 
         uint256[] memory fees = new uint256[](3);
         fees[0] = 0;
-        fees[1] = 0.00001e10;
+        fees[1] = 0.000_01e10;
         fees[2] = 0;
         precisions[0] = 1;
         precisions[1] = 1;
@@ -1487,7 +1487,7 @@ contract SelfPeggingAssetTest is Test {
         uint256 token1newRate = 2e18;
         testToken1Rate.newRate(token1newRate);
 
-        //after setting new buffer and new exchange, an estimate of what rebase added value to contract would look like
+        // after setting new buffer and new exchange, an estimate of what rebase added value to contract would look like
         // is calculated below, rebase should correctly give a value close to this if precision mutiplication was
         // handled correctly, based on current supply value
         value1 = token1.balanceOf(address(_pool));

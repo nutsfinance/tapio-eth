@@ -103,13 +103,13 @@ contract FactoryTest is Test {
 
             if (log.topics[0] == eventSig) {
                 (
-                    decodedPoolToken,
-                    decodedSelfPeggingAsset,
-                    decodedWrappedPoolToken,
-                    decodedRampAController,
-                    decodedKeeper,
-                    decodedParameterRegistry
-                ) = abi.decode(log.data, (address, address, address, address, address, address));
+                        decodedPoolToken,
+                        decodedSelfPeggingAsset,
+                        decodedWrappedPoolToken,
+                        decodedRampAController,
+                        decodedKeeper,
+                        decodedParameterRegistry
+                    ) = abi.decode(log.data, (address, address, address, address, address, address));
             }
         }
 

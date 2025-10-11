@@ -21,10 +21,10 @@ contract Deploy is Config {
         console.log("deploy-beacon-logs");
         console.log("---------------");
 
-        address selfPeggingAssetImplentation = address(new SelfPeggingAsset());
-        address lpTokenImplentation = address(new SPAToken());
-        address wlpTokenImplentation = address(new WSPAToken());
-        address rampAControllerImplentation = address(new RampAController());
+        selfPeggingAssetImplentation = address(new SelfPeggingAsset());
+        lpTokenImplentation = address(new SPAToken());
+        wlpTokenImplentation = address(new WSPAToken());
+        rampAControllerImplentation = address(new RampAController());
         keeperImplementation = address(new Keeper());
 
         UpgradeableBeacon beacon = new UpgradeableBeacon(selfPeggingAssetImplentation, GOVERNOR);
@@ -53,7 +53,7 @@ contract Deploy is Config {
                 0,
                 5_000_000,
                 0,
-                0,
+                10_000_000_000,
                 100,
                 30 minutes,
                 selfPeggingAssetBeacon,
@@ -66,7 +66,8 @@ contract Deploy is Config {
                 1_000_000_000
             )
         );
-        ERC1967Proxy proxy = new ERC1967Proxy(address(new SelfPeggingAssetFactory()), data);
+        factoryImplementation = address(new SelfPeggingAssetFactory());
+        ERC1967Proxy proxy = new ERC1967Proxy(factoryImplementation, data);
 
         factory = SelfPeggingAssetFactory(address(proxy));
         factory.transferOwnership(GOVERNOR);

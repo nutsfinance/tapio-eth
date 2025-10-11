@@ -103,7 +103,7 @@ contract AddPool is Deploy, Pool {
             ChainlinkCompositeOracleProvider weETHTostETHOracle =
                 new ChainlinkCompositeOracleProvider(AggregatorV3Interface(sequencer), configs);
 
-            (address lpToken, address pool, address wlpToken,) =
+            (address lpToken, address pool, address wlpToken,,,) =
                 createChainlinkPool(wstETH, weETH, address(wstETHTostETHOracle), address(weETHTostETHOracle));
 
             initialMint(wstETH, weETH, ethAmount, ethAmount, SelfPeggingAsset(pool));
@@ -119,7 +119,7 @@ contract AddPool is Deploy, Pool {
             ChainlinkCompositeOracleProvider ETHTostETHOracle =
                 new ChainlinkCompositeOracleProvider(AggregatorV3Interface(sequencer), configs2);
 
-            (address lpToken2, address pool2, address wlpToken2,) =
+            (address lpToken2, address pool2, address wlpToken2,,,) =
                 createChainlinkPool(weth, wstETH, address(ETHTostETHOracle), address(wstETHTostETHOracle));
 
             initialMint(weth, wstETH, ethAmount, ethAmount, SelfPeggingAsset(pool2));
@@ -166,13 +166,13 @@ contract AddPool is Deploy, Pool {
             MockExchangeRateProvider wstETHTostETHOracle = new MockExchangeRateProvider(1.1e18, 18);
             MockExchangeRateProvider weETHTostETHOracle = new MockExchangeRateProvider(1.2e18, 18);
 
-            (address lpToken, address pool, address wlpToken,) = createMockExchangeRatePool(
+            (address lpToken, address pool, address wlpToken,,,) = createMockExchangeRatePool(
                 address(weth), address(wstETH), address(WETHTostETHOracle), address(wstETHTostETHOracle)
             );
 
             initialMint(address(weth), address(wstETH), amount, amount, SelfPeggingAsset(pool));
 
-            (address lpToken2, address pool2, address wlpToken2,) = createMockExchangeRatePool(
+            (address lpToken2, address pool2, address wlpToken2,,,) = createMockExchangeRatePool(
                 address(wstETH), address(weETH), address(wstETHTostETHOracle), address(weETHTostETHOracle)
             );
             initialMint(address(wstETH), address(weETH), amount, amount, SelfPeggingAsset(pool2));

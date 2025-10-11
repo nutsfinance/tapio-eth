@@ -475,10 +475,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
      * @param _minMintAmount Minimum amount of pool token to mint.
      * @return The amount of pool tokens minted.
      */
-    function mint(
-        uint256[] calldata _amounts,
-        uint256 _minMintAmount
-    )
+    function mint(uint256[] calldata _amounts, uint256 _minMintAmount)
         external
         nonReentrant
         syncRamping
@@ -548,12 +545,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
      * @param _minDy Minimum token _j to swap out in converted balance.
      * @return Amount of swap out.
      */
-    function swap(
-        uint256 _i,
-        uint256 _j,
-        uint256 _dx,
-        uint256 _minDy
-    )
+    function swap(uint256 _i, uint256 _j, uint256 _dx, uint256 _minDy)
         external
         nonReentrant
         syncRamping
@@ -571,8 +563,8 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         collectFeeOrYield(false);
         uint256[] memory _balances = balances;
         uint256 prevBalanceI = _balances[_i];
-        _balances[_i] +=
-            (_dx * exchangeRateProviders[_i].exchangeRate() * precisions[_i]) / (10 ** exchangeRateDecimals[_i]);
+        _balances[_i] += (_dx * exchangeRateProviders[_i].exchangeRate() * precisions[_i])
+        / (10 ** exchangeRateDecimals[_i]);
         uint256 y = _getY(_balances, _j, totalSupply, A);
         // dy = (balance[j] - y - 1) / precisions[j] in case there was rounding errors
         uint256 dy = (_balances[_j] - y - 1) / precisions[_j];
@@ -613,10 +605,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
      * @param _minRedeemAmounts Minimum amount of underlying tokens to get.
      * @return An array of the amounts of each token to redeem.
      */
-    function redeemProportion(
-        uint256 _amount,
-        uint256[] calldata _minRedeemAmounts
-    )
+    function redeemProportion(uint256 _amount, uint256[] calldata _minRedeemAmounts)
         external
         nonReentrant
         syncRamping
@@ -663,11 +652,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
      * @param _minRedeemAmount Minimum amount of the underlying token to redeem to.
      * @return Amount received.
      */
-    function redeemSingle(
-        uint256 _amount,
-        uint256 _i,
-        uint256 _minRedeemAmount
-    )
+    function redeemSingle(uint256 _amount, uint256 _i, uint256 _minRedeemAmount)
         external
         nonReentrant
         syncRamping
@@ -722,10 +707,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
      * @param _maxRedeemAmount Maximum of pool token to redeem.
      * @return Amounts received.
      */
-    function redeemMulti(
-        uint256[] calldata _amounts,
-        uint256 _maxRedeemAmount
-    )
+    function redeemMulti(uint256[] calldata _amounts, uint256 _maxRedeemAmount)
         external
         nonReentrant
         syncRamping
@@ -870,10 +852,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
     /**
      * @dev Update the exchange rate provider for the token.
      */
-    function donateD(
-        uint256[] calldata _amounts,
-        uint256 _minDonationAmount
-    )
+    function donateD(uint256[] calldata _amounts, uint256 _minDonationAmount)
         external
         nonReentrant
         syncRamping
@@ -1089,8 +1068,8 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         uint256 prevBalanceI = _balances[_i];
         // balance[i] = balance[i] + dx * precisions[i]
 
-        _balances[_i] +=
-            (_dx * exchangeRateProviders[_i].exchangeRate() * precisions[_i]) / (10 ** exchangeRateDecimals[_i]);
+        _balances[_i] += (_dx * exchangeRateProviders[_i].exchangeRate() * precisions[_i])
+        / (10 ** exchangeRateDecimals[_i]);
         uint256 y = _getY(_balances, _j, D, getCurrentA());
         // dy = (balance[j] - y - 1) / precisions[j] in case there was rounding errors
         uint256 dy = (_balances[_j] - y - 1) / precisions[_j];
@@ -1310,10 +1289,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
      * @param _amounts Amounts of tokens to deposit.
      * @return Updated balances after deposit.
      */
-    function _updateBalancesForDeposit(
-        uint256[] memory _balances,
-        uint256[] calldata _amounts
-    )
+    function _updateBalancesForDeposit(uint256[] memory _balances, uint256[] calldata _amounts)
         internal
         view
         returns (uint256[] memory)
@@ -1333,10 +1309,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
      * @param _amounts Amounts of tokens to withdraw.
      * @return Updated balances after withdrawal.
      */
-    function _updateBalancesForWithdrawal(
-        uint256[] memory _balances,
-        uint256[] calldata _amounts
-    )
+    function _updateBalancesForWithdrawal(uint256[] memory _balances, uint256[] calldata _amounts)
         internal
         view
         returns (uint256[] memory)

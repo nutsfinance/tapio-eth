@@ -18,7 +18,12 @@ contract Config is Script {
     address lpTokenBeacon;
     address wlpTokenBeacon;
     address rampAControllerBeacon;
+    address factoryImplementation;
     address keeperImplementation;
+    address selfPeggingAssetImplentation;
+    address lpTokenImplentation;
+    address wlpTokenImplentation;
+    address rampAControllerImplentation;
     address zap;
 
     function loadConfig() internal {

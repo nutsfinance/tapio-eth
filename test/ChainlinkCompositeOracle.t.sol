@@ -21,21 +21,15 @@ contract ChainlinkCompositeOracleProviderTest is Test {
     function test_weETHTostETH() external {
         ChainlinkCompositeOracleProvider.Config[] memory configs = new ChainlinkCompositeOracleProvider.Config[](2);
         configs[0] = ChainlinkCompositeOracleProvider.Config({
-            feed: weETHToETHFeed,
-            maxStalePeriod: 24 hours,
-            assetDecimals: 18,
-            isInverted: false
+            feed: weETHToETHFeed, maxStalePeriod: 24 hours, assetDecimals: 18, isInverted: false
         });
         configs[1] = ChainlinkCompositeOracleProvider.Config({
-            feed: stETHToETHFeed,
-            maxStalePeriod: 24 hours,
-            assetDecimals: 18,
-            isInverted: true
+            feed: stETHToETHFeed, maxStalePeriod: 24 hours, assetDecimals: 18, isInverted: true
         });
 
         ChainlinkCompositeOracleProvider oracle =
             new ChainlinkCompositeOracleProvider(AggregatorV3Interface(address(0)), configs);
 
-        assertEq(oracle.price(), 1.065471935837571059e18);
+        assertEq(oracle.price(), 1.065_471_935_837_571_059e18);
     }
 }

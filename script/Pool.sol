@@ -12,7 +12,10 @@ import { MockExchangeRateProvider } from "../src/mock/MockExchangeRateProvider.s
 import { ChainlinkOracleProvider } from "../src/misc/ChainlinkOracleProvider.sol";
 
 contract Pool is Config {
-    function createStandardPool(address tokenA, address tokenB) internal returns (address, address, address, address) {
+    function createStandardPool(address tokenA, address tokenB)
+        internal
+        returns (address, address, address, address, address, address)
+    {
         console.log("---------------");
         console.log("create-pool-logs");
         console.log("---------------");
@@ -40,22 +43,36 @@ contract Pool is Config {
         address decodedWrappedPoolToken;
         address decodedRampAController;
         address keeper;
+        address parameterRegistry;
 
         for (uint256 i = 0; i < entries.length; i++) {
             Vm.Log memory log = entries[i];
 
             if (log.topics[0] == eventSig) {
-                (decodedPoolToken, decodedSelfPeggingAsset, decodedWrappedPoolToken, decodedRampAController,, keeper) =
-                    abi.decode(log.data, (address, address, address, address, address, address));
+                (
+                        decodedPoolToken,
+                        decodedSelfPeggingAsset,
+                        decodedWrappedPoolToken,
+                        decodedRampAController,
+                        parameterRegistry,
+                        keeper
+                    ) = abi.decode(log.data, (address, address, address, address, address, address));
             }
         }
-        console.log(keeper);
-        return (decodedPoolToken, decodedSelfPeggingAsset, decodedWrappedPoolToken, decodedRampAController);
+
+        return (
+            decodedPoolToken,
+            decodedSelfPeggingAsset,
+            decodedWrappedPoolToken,
+            decodedRampAController,
+            parameterRegistry,
+            keeper
+        );
     }
 
     function createStandardAndRebasingPool(address tokenA, address tokenB)
         internal
-        returns (address, address, address, address)
+        returns (address, address, address, address, address, address)
     {
         console.log("---------------");
         console.log("create-pool-logs");
@@ -83,22 +100,37 @@ contract Pool is Config {
         address decodedSelfPeggingAsset;
         address decodedWrappedPoolToken;
         address decodedRampAController;
+        address keeper;
+        address parameterRegistry;
 
         for (uint256 i = 0; i < entries.length; i++) {
             Vm.Log memory log = entries[i];
 
             if (log.topics[0] == eventSig) {
-                (decodedPoolToken, decodedSelfPeggingAsset, decodedWrappedPoolToken, decodedRampAController,,) =
-                    abi.decode(log.data, (address, address, address, address, address, address));
+                (
+                        decodedPoolToken,
+                        decodedSelfPeggingAsset,
+                        decodedWrappedPoolToken,
+                        decodedRampAController,
+                        parameterRegistry,
+                        keeper
+                    ) = abi.decode(log.data, (address, address, address, address, address, address));
             }
         }
 
-        return (decodedPoolToken, decodedSelfPeggingAsset, decodedWrappedPoolToken, decodedRampAController);
+        return (
+            decodedPoolToken,
+            decodedSelfPeggingAsset,
+            decodedWrappedPoolToken,
+            decodedRampAController,
+            parameterRegistry,
+            keeper
+        );
     }
 
     function createStandardAndERC4626Pool(address tokenA, address tokenB)
         internal
-        returns (address, address, address, address)
+        returns (address, address, address, address, address, address)
     {
         console.log("---------------");
         console.log("create-pool-logs");
@@ -126,17 +158,32 @@ contract Pool is Config {
         address decodedSelfPeggingAsset;
         address decodedWrappedPoolToken;
         address decodedRampAController;
+        address keeper;
+        address parameterRegistry;
 
         for (uint256 i = 0; i < entries.length; i++) {
             Vm.Log memory log = entries[i];
 
             if (log.topics[0] == eventSig) {
-                (decodedPoolToken, decodedSelfPeggingAsset, decodedWrappedPoolToken, decodedRampAController,,) =
-                    abi.decode(log.data, (address, address, address, address, address, address));
+                (
+                        decodedPoolToken,
+                        decodedSelfPeggingAsset,
+                        decodedWrappedPoolToken,
+                        decodedRampAController,
+                        parameterRegistry,
+                        keeper
+                    ) = abi.decode(log.data, (address, address, address, address, address, address));
             }
         }
 
-        return (decodedPoolToken, decodedSelfPeggingAsset, decodedWrappedPoolToken, decodedRampAController);
+        return (
+            decodedPoolToken,
+            decodedSelfPeggingAsset,
+            decodedWrappedPoolToken,
+            decodedRampAController,
+            parameterRegistry,
+            keeper
+        );
     }
 
     function createExchangeRatePool(
@@ -147,7 +194,7 @@ contract Pool is Config {
         uint8 decimals
     )
         internal
-        returns (address, address, address, address)
+        returns (address, address, address, address, address, address)
     {
         console.log("---------------");
         console.log("create-pool-logs");
@@ -175,22 +222,37 @@ contract Pool is Config {
         address decodedSelfPeggingAsset;
         address decodedWrappedPoolToken;
         address decodedRampAController;
+        address keeper;
+        address parameterRegistry;
 
         for (uint256 i = 0; i < entries.length; i++) {
             Vm.Log memory log = entries[i];
 
             if (log.topics[0] == eventSig) {
-                (decodedPoolToken, decodedSelfPeggingAsset, decodedWrappedPoolToken, decodedRampAController,,) =
-                    abi.decode(log.data, (address, address, address, address, address, address));
+                (
+                        decodedPoolToken,
+                        decodedSelfPeggingAsset,
+                        decodedWrappedPoolToken,
+                        decodedRampAController,
+                        parameterRegistry,
+                        keeper
+                    ) = abi.decode(log.data, (address, address, address, address, address, address));
             }
         }
 
-        return (decodedPoolToken, decodedSelfPeggingAsset, decodedWrappedPoolToken, decodedRampAController);
+        return (
+            decodedPoolToken,
+            decodedSelfPeggingAsset,
+            decodedWrappedPoolToken,
+            decodedRampAController,
+            parameterRegistry,
+            keeper
+        );
     }
 
     function createChainlinkPool(address tokenA, address tokenB, address tokenBOracle)
         internal
-        returns (address, address, address, address)
+        returns (address, address, address, address, address, address)
     {
         console.log("---------------");
         console.log("create-pool-logs");
@@ -218,22 +280,37 @@ contract Pool is Config {
         address decodedSelfPeggingAsset;
         address decodedWrappedPoolToken;
         address decodedRampAController;
+        address keeper;
+        address parameterRegistry;
 
         for (uint256 i = 0; i < entries.length; i++) {
             Vm.Log memory log = entries[i];
 
             if (log.topics[0] == eventSig) {
-                (decodedPoolToken, decodedSelfPeggingAsset, decodedWrappedPoolToken, decodedRampAController,,) =
-                    abi.decode(log.data, (address, address, address, address, address, address));
+                (
+                        decodedPoolToken,
+                        decodedSelfPeggingAsset,
+                        decodedWrappedPoolToken,
+                        decodedRampAController,
+                        parameterRegistry,
+                        keeper
+                    ) = abi.decode(log.data, (address, address, address, address, address, address));
             }
         }
 
-        return (decodedPoolToken, decodedSelfPeggingAsset, decodedWrappedPoolToken, decodedRampAController);
+        return (
+            decodedPoolToken,
+            decodedSelfPeggingAsset,
+            decodedWrappedPoolToken,
+            decodedRampAController,
+            parameterRegistry,
+            keeper
+        );
     }
 
     function createChainlinkPool(address tokenA, address tokenB, address tokenAOracle, address tokenBOracle)
         internal
-        returns (address, address, address, address)
+        returns (address, address, address, address, address, address)
     {
         console.log("---------------");
         console.log("create-pool-logs");
@@ -261,22 +338,37 @@ contract Pool is Config {
         address decodedSelfPeggingAsset;
         address decodedWrappedPoolToken;
         address decodedRampAController;
+        address keeper;
+        address parameterRegistry;
 
         for (uint256 i = 0; i < entries.length; i++) {
             Vm.Log memory log = entries[i];
 
             if (log.topics[0] == eventSig) {
-                (decodedPoolToken, decodedSelfPeggingAsset, decodedWrappedPoolToken, decodedRampAController,,) =
-                    abi.decode(log.data, (address, address, address, address, address, address));
+                (
+                        decodedPoolToken,
+                        decodedSelfPeggingAsset,
+                        decodedWrappedPoolToken,
+                        decodedRampAController,
+                        parameterRegistry,
+                        keeper
+                    ) = abi.decode(log.data, (address, address, address, address, address, address));
             }
         }
 
-        return (decodedPoolToken, decodedSelfPeggingAsset, decodedWrappedPoolToken, decodedRampAController);
+        return (
+            decodedPoolToken,
+            decodedSelfPeggingAsset,
+            decodedWrappedPoolToken,
+            decodedRampAController,
+            parameterRegistry,
+            keeper
+        );
     }
 
     function createMockExchangeRatePool(address tokenA, address tokenB, address tokenAOracle, address tokenBOracle)
         internal
-        returns (address, address, address, address)
+        returns (address, address, address, address, address, address)
     {
         console.log("---------------");
         console.log("create-pool-logs");
@@ -304,17 +396,32 @@ contract Pool is Config {
         address decodedSelfPeggingAsset;
         address decodedWrappedPoolToken;
         address decodedRampAController;
+        address keeper;
+        address parameterRegistry;
 
         for (uint256 i = 0; i < entries.length; i++) {
             Vm.Log memory log = entries[i];
 
             if (log.topics[0] == eventSig) {
-                (decodedPoolToken, decodedSelfPeggingAsset, decodedWrappedPoolToken, decodedRampAController,,) =
-                    abi.decode(log.data, (address, address, address, address, address, address));
+                (
+                        decodedPoolToken,
+                        decodedSelfPeggingAsset,
+                        decodedWrappedPoolToken,
+                        decodedRampAController,
+                        parameterRegistry,
+                        keeper
+                    ) = abi.decode(log.data, (address, address, address, address, address, address));
             }
         }
 
-        return (decodedPoolToken, decodedSelfPeggingAsset, decodedWrappedPoolToken, decodedRampAController);
+        return (
+            decodedPoolToken,
+            decodedSelfPeggingAsset,
+            decodedWrappedPoolToken,
+            decodedRampAController,
+            parameterRegistry,
+            keeper
+        );
     }
 
     function initialMint(

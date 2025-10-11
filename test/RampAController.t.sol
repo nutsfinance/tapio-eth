@@ -45,7 +45,7 @@ contract RampAControllerTest is Test {
         fees[1] = 1e8;
         fees[2] = 1e8;
 
-        offPegFeeMultiplier = 5e10; // 5x
+        offPegFeeMultiplier = 5e10; //5x
 
         providers = new MockExchangeRateProvider[](2);
         providers[0] = new MockExchangeRateProvider(1e18, 18); // 1:1
