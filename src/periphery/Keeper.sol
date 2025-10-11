@@ -356,11 +356,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
      * @param currentValue The current value for relative bounds checking
      * @param bounds The bounds object containing min, max, and relative change limits
      */
-    function checkBounds(
-        uint256 newValue,
-        uint256 currentValue,
-        IParameterRegistry.Bounds memory bounds
-    )
+    function checkBounds(uint256 newValue, uint256 currentValue, IParameterRegistry.Bounds memory bounds)
         internal
         pure
     {
@@ -384,14 +380,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
      * @param currentValue The current value to compare against
      * @param bounds The bounds object containing relative change limits
      */
-    function checkRange(
-        uint256 newValue,
-        uint256 currentValue,
-        IParameterRegistry.Bounds memory bounds
-    )
-        internal
-        pure
-    {
+    function checkRange(uint256 newValue, uint256 currentValue, IParameterRegistry.Bounds memory bounds) internal pure {
         // Skip percentage checks if explicitly disabled or if current value is zero
         if (currentValue == 0) return;
         if (bounds.maxDecreasePct == 0 && bounds.maxIncreasePct == 0) return;

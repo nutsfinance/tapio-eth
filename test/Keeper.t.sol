@@ -227,8 +227,8 @@ contract KeeperFuzzTest is Test {
             vm.assume(max <= 365 days);
             min = bound(min, 0, max);
         } else if (paramType == 8 || paramType == 9) {
-            vm.assume(oldValue <= 1_000_000_000e18); //1 billion margin
-            vm.assume(newValue <= 1_000_000_000e18); //1 billion margin
+            vm.assume(oldValue <= 1_000_000_000e18); // 1 billion margin
+            vm.assume(newValue <= 1_000_000_000e18); // 1 billion margin
             vm.assume(max <= type(uint256).max);
             min = bound(min, 0, max);
         } else if (paramType == 10) {
@@ -265,10 +265,7 @@ contract KeeperFuzzTest is Test {
         vm.startPrank(governor);
         // Set boundaries
         IParameterRegistry.Bounds memory bounds = IParameterRegistry.Bounds({
-            min: min,
-            max: max,
-            maxDecreasePct: maxDecreasePct,
-            maxIncreasePct: maxIncreasePct
+            min: min, max: max, maxDecreasePct: maxDecreasePct, maxIncreasePct: maxIncreasePct
         });
 
         // Initial Value

@@ -28,13 +28,7 @@ interface IZap {
      * @param amounts Array of token amounts to add
      * @return wspaAmount Amount of wrapped SPA tokens minted
      */
-    function zapIn(
-        address spa,
-        address wspa,
-        address receiver,
-        uint256 minMintAmount,
-        uint256[] calldata amounts
-    )
+    function zapIn(address spa, address wspa, address receiver, uint256 minMintAmount, uint256[] calldata amounts)
         external
         returns (uint256 wspaAmount);
 

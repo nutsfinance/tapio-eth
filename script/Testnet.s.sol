@@ -5,9 +5,12 @@ import { stdJson } from "forge-std/StdJson.sol";
 import { console } from "forge-std/console.sol";
 
 import { Deploy } from "script/Deploy.sol";
-import { Setup } from "script/Setup.sol";
+import { Pool } from "script/Pool.sol";
+import { MockToken } from "../src/mock/MockToken.sol";
+import { SelfPeggingAsset } from "../src/SelfPeggingAsset.sol";
+import { MockExchangeRateProvider } from "../src/mock/MockExchangeRateProvider.sol";
 
-contract Testnet is Deploy, Setup {
+contract Testnet is Deploy, Pool {
     function init() internal {
         if (vm.envUint("HEX_PRIV_KEY") == 0) revert("No private key found");
         deployerPrivateKey = vm.envUint("HEX_PRIV_KEY");
@@ -21,27 +24,53 @@ contract Testnet is Deploy, Setup {
 
         vm.startBroadcast(deployerPrivateKey);
 
-        deployMocks();
         deployBeacons();
         deployFactory();
         deployZap();
 
-        string memory networkName = getNetworkName(getChainId());
+        uint256 chainId = getChainId();
+        string memory networkName = getNetworkName(chainId);
         string memory path = string.concat("./broadcast/", networkName, ".json");
 
-        vm.writeJson(vm.serializeAddress("contracts", "USDC", usdc), path);
+        if (chainId == 57_054) {
+            MockExchangeRateProvider wSToS = new MockExchangeRateProvider(1e18, 18);
+            MockExchangeRateProvider stSToS = new MockExchangeRateProvider(1.015_58e18, 18);
+            MockExchangeRateProvider OSToS = new MockExchangeRateProvider(1.004_739e18, 18);
 
-        vm.writeJson(vm.serializeAddress("contracts", "USDT", usdt), path);
+            MockToken wS = new MockToken("wS", "wS", 18);
+            MockToken stS = new MockToken("stS", "stS", 18);
+            MockToken OS = new MockToken("OS", "OS", 18);
 
-        vm.writeJson(vm.serializeAddress("contracts", "Factory", address(factory)), path);
+            uint256 amount = 100e18;
 
-        vm.writeJson(vm.serializeAddress("contracts", "SelfPeggingAssetBeacon", selfPeggingAssetBeacon), path);
+            MockToken(wS).mint(DEPLOYER, amount * 2);
+            MockToken(stS).mint(DEPLOYER, amount);
+            MockToken(OS).mint(DEPLOYER, amount);
 
-        vm.writeJson(vm.serializeAddress("contracts", "SPATokenBeacon", spaTokenBeacon), path);
+            (address lpToken, address pool, address wlpToken,,,) =
+                createMockExchangeRatePool(address(wS), address(stS), address(wSToS), address(stSToS));
 
-        vm.writeJson(vm.serializeAddress("contracts", "WSPATokenBeacon", wspaTokenBeacon), path);
+            initialMint(address(wS), address(stS), amount, amount, SelfPeggingAsset(pool));
 
-        vm.writeJson(vm.serializeAddress("contracts", "Zap", zap), path);
+            (address lpToken2, address pool2, address wlpToken2,,,) =
+                createMockExchangeRatePool(address(wS), address(OS), address(wSToS), address(OSToS));
+            initialMint(address(wS), address(OS), amount, amount, SelfPeggingAsset(pool2));
+
+            vm.writeJson(vm.serializeAddress("contracts", "Zap", zap), path);
+            vm.writeJson(vm.serializeAddress("contracts", "Factory", address(factory)), path);
+            vm.writeJson(vm.serializeAddress("contracts", "SelfPeggingAssetBeacon", selfPeggingAssetBeacon), path);
+            vm.writeJson(vm.serializeAddress("contracts", "LPTokenBeacon", lpTokenBeacon), path);
+            vm.writeJson(vm.serializeAddress("contracts", "WLPTokenBeacon", wlpTokenBeacon), path);
+            vm.writeJson(vm.serializeAddress("contracts", "wS", address(wS)), path);
+            vm.writeJson(vm.serializeAddress("contracts", "stS", address(stS)), path);
+            vm.writeJson(vm.serializeAddress("contracts", "OS", address(OS)), path);
+            vm.writeJson(vm.serializeAddress("contracts", "wSstSPool", address(pool)), path);
+            vm.writeJson(vm.serializeAddress("contracts", "wSstSPoolLPToken", lpToken), path);
+            vm.writeJson(vm.serializeAddress("contracts", "wSstSPoolWLPToken", wlpToken), path);
+            vm.writeJson(vm.serializeAddress("contracts", "wSOSPool", address(pool2)), path);
+            vm.writeJson(vm.serializeAddress("contracts", "wSOSPoolLPToken", lpToken2), path);
+            vm.writeJson(vm.serializeAddress("contracts", "wSOSPoolWLPToken", wlpToken2), path);
+        }
 
         vm.stopBroadcast();
     }
