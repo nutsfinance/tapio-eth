@@ -53,9 +53,18 @@ contract Upgrade is Deploy, Pool {
         wlpTokenBeacon = jsonData.WLPTokenBeacon;
 
         // Upgrade
-        SPAToken lpTokenImpl = new SPAToken();
-        WSPAToken wlpTokenImpl = new WSPAToken();
-        SelfPeggingAsset selfPeggingAssetImpl = new SelfPeggingAsset();
+        bytes32 salt = keccak256("SPAToken");
+        bytes memory initCode = type(SPAToken).creationCode;
+        SPAToken lpTokenImpl = SPAToken((deployCreate2(salt, initCode)));
+
+        salt = keccak256("WSPAToken");
+        initCode = type(WSPAToken).creationCode;
+        WSPAToken wlpTokenImpl = WSPAToken((deployCreate2(salt, initCode)));
+
+        salt = keccak256("SelfPeggingAsset");
+        initCode = type(SelfPeggingAsset).creationCode;
+        SelfPeggingAsset selfPeggingAssetImpl = SelfPeggingAsset((deployCreate2(salt, initCode)));
+
         SelfPeggingAssetFactory factoryImpl = SelfPeggingAssetFactory(factory);
 
         UpgradeableBeacon(lpTokenBeacon).upgradeTo(address(lpTokenImpl));

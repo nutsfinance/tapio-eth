@@ -436,7 +436,6 @@ contract Pool is Config {
         console.log("---------------");
         console.log("initial-mint-logs");
         console.log("---------------");
-        console.log("AAAA");
 
         // console.log(MockToken(tokenB).balanceOf(0x3a3C006053a9B40286B9951A11bE4C5808c11dc8));
 

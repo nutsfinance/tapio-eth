@@ -36,6 +36,7 @@ contract Config is Script {
 
     function getNetworkName(uint256 chainId) internal view returns (string memory) {
         if (chainId == 84_532) return "basesepolia";
+        else if (chainId == 59_144) return "linea";
         else if (chainId == 421_614) return "arbitrumsepolia";
         else if (chainId == 11_155_420) return "opsepolia";
         else if (chainId == 10_143) return "monadtestnet";

@@ -14,36 +14,62 @@ import "../src/misc/ConstantExchangeRateProvider.sol";
 import { Zap } from "../src/periphery/Zap.sol";
 import { RampAController } from "../src/periphery/RampAController.sol";
 import { Keeper } from "../src/periphery/Keeper.sol";
+import { CreateXDeployer } from "./CreateXDeployer.sol";
 
-contract Deploy is Config {
+contract Deploy is Config, CreateXDeployer {
     function deployBeacons() internal {
         console.log("---------------");
         console.log("deploy-beacon-logs");
         console.log("---------------");
 
-        selfPeggingAssetImplentation = address(new SelfPeggingAsset());
-        lpTokenImplentation = address(new SPAToken());
-        wlpTokenImplentation = address(new WSPAToken());
-        rampAControllerImplentation = address(new RampAController());
-        keeperImplementation = address(new Keeper());
+        bytes32 salt = keccak256("SelfPeggingAsset");
+        bytes memory initCode = type(SelfPeggingAsset).creationCode;
+        selfPeggingAssetImplentation = deployCreate2(salt, initCode);
 
-        UpgradeableBeacon beacon = new UpgradeableBeacon(selfPeggingAssetImplentation, GOVERNOR);
-        selfPeggingAssetBeacon = address(beacon);
+        salt = keccak256("SPAToken");
+        initCode = type(SPAToken).creationCode;
+        lpTokenImplentation = deployCreate2(salt, initCode);
 
-        beacon = new UpgradeableBeacon(lpTokenImplentation, GOVERNOR);
-        lpTokenBeacon = address(beacon);
+        salt = keccak256("WSPAToken");
+        initCode = type(WSPAToken).creationCode;
+        wlpTokenImplentation = deployCreate2(salt, initCode);
 
-        beacon = new UpgradeableBeacon(wlpTokenImplentation, GOVERNOR);
-        wlpTokenBeacon = address(beacon);
+        salt = keccak256("RampAController");
+        initCode = type(RampAController).creationCode;
+        rampAControllerImplentation = deployCreate2(salt, initCode);
 
-        beacon = new UpgradeableBeacon(rampAControllerImplentation, GOVERNOR);
-        rampAControllerBeacon = address(beacon);
+        salt = keccak256("Keeper");
+        initCode = type(Keeper).creationCode;
+        keeperImplementation = deployCreate2(salt, initCode);
+
+        salt = keccak256("UpgradeableBeacon");
+        initCode = abi.encodePacked(
+            type(UpgradeableBeacon).creationCode, abi.encode(selfPeggingAssetImplentation, GOVERNOR)
+        );
+        selfPeggingAssetBeacon = deployCreate2(salt, initCode);
+
+        salt = keccak256("UpgradeableBeacon");
+        initCode = abi.encodePacked(type(UpgradeableBeacon).creationCode, abi.encode(lpTokenImplentation, GOVERNOR));
+        lpTokenBeacon = deployCreate2(salt, initCode);
+
+        salt = keccak256("UpgradeableBeacon");
+        initCode = abi.encodePacked(type(UpgradeableBeacon).creationCode, abi.encode(wlpTokenImplentation, GOVERNOR));
+        wlpTokenBeacon = deployCreate2(salt, initCode);
+
+        salt = keccak256("UpgradeableBeacon");
+        initCode =
+            abi.encodePacked(type(UpgradeableBeacon).creationCode, abi.encode(rampAControllerImplentation, GOVERNOR));
+        rampAControllerBeacon = deployCreate2(salt, initCode);
     }
 
     function deployFactory() internal {
         console.log("---------------");
         console.log("deploy-factory-logs");
         console.log("---------------");
+
+        bytes32 salt = keccak256("ConstantExchangeRateProvider");
+        bytes memory initCode = type(ConstantExchangeRateProvider).creationCode;
+        address constantExchangeRateProvider = deployCreate2(salt, initCode);
 
         bytes memory data = abi.encodeCall(
             SelfPeggingAssetFactory.initialize,
@@ -61,16 +87,23 @@ contract Deploy is Config {
                 wlpTokenBeacon,
                 rampAControllerBeacon,
                 keeperImplementation,
-                address(new ConstantExchangeRateProvider()),
+                constantExchangeRateProvider,
                 0,
                 1_000_000_000
             )
         );
-        factoryImplementation = address(new SelfPeggingAssetFactory());
-        ERC1967Proxy proxy = new ERC1967Proxy(factoryImplementation, data);
 
-        factory = SelfPeggingAssetFactory(address(proxy));
+        salt = keccak256("SelfPeggingAssetFactory");
+        initCode = type(SelfPeggingAssetFactory).creationCode;
+        factoryImplementation = deployCreate2(salt, initCode);
+
+        salt = keccak256("FactoryProxy");
+        initCode = abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(factoryImplementation, data));
+
+        factory = SelfPeggingAssetFactory(deployCreate2(salt, initCode));
         factory.transferOwnership(GOVERNOR);
+
+        console.log("Factory Proxy: %s", address(factory));
     }
 
     function deployZap() internal {
@@ -78,6 +111,10 @@ contract Deploy is Config {
         console.log("deploy-zap-logs");
         console.log("---------------");
 
-        zap = address(new Zap());
+        bytes32 salt = keccak256("Zap");
+        bytes memory initCode = type(Zap).creationCode;
+        zap = deployCreate2(salt, initCode);
+
+        console.log("Zap: %s", zap);
     }
 }
