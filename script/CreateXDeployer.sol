@@ -10,27 +10,27 @@ import { console } from "forge-std/console.sol";
  * @dev Inherit this contract in your Foundry scripts to deploy with CREATE2 deterministically.
  */
 interface ICreateX {
-    function deployCreate2(bytes32 salt, bytes memory initCode) external payable returns (address newContract);
+    function deployCreate3(bytes32 salt, bytes memory initCode) external payable returns (address newContract);
 
-    function deployCreate2(bytes memory initCode) external payable returns (address newContract);
-
-    function deployCreate2AndInit(
+    function deployCreate3AndInit(
         bytes32 salt,
         bytes memory initCode,
         bytes memory data,
-        Values memory values,
-        address refundAddress
+        Values memory values
     )
         external
         payable
         returns (address newContract);
 
-    function deployCreate2Clone(bytes32 salt, address implementation, bytes memory data)
+    function computeCreate3Address(
+        bytes32 salt,
+        address deployer
+    )
         external
-        payable
-        returns (address proxy);
+        pure
+        returns (address computedAddress);
 
-    function computeCreate2Address(bytes32 salt, bytes32 initCodeHash) external view returns (address computedAddress);
+    function computeCreate3Address(bytes32 salt) external view returns (address computedAddress);
 }
 
 struct Values {
@@ -39,47 +39,81 @@ struct Values {
 }
 
 abstract contract CreateXDeployer is Script {
-    address public constant CREATE_X = 0xba5Ed099633D3B313e4D5F7bdc1305d3c28ba5Ed;
+    address public constant CREATEX = 0xba5Ed099633D3B313e4D5F7bdc1305d3c28ba5Ed;
 
-    ICreateX internal createx = ICreateX(CREATE_X);
+    ICreateX internal createx = ICreateX(CREATEX);
 
-    function deployCreate2(bytes32 salt, bytes memory initCode) internal returns (address deployed) {
-        deployed = createx.deployCreate2(salt, initCode);
-        console.log("Deployed (CREATE2):", deployed);
+    function generateSalt(address deployer, string memory identifier) internal pure returns (bytes32 salt) {
+        bytes32 identifierHash = keccak256(abi.encodePacked(identifier));
+        bytes11 entropy = bytes11(identifierHash);
+
+        salt = bytes32(
+            abi.encodePacked(
+                deployer, // wallet address
+                hex"01", // cross-chain
+                entropy // unique identifier
+            )
+        );
     }
 
-    function deployCreate2(bytes memory initCode) internal returns (address deployed) {
-        deployed = createx.deployCreate2(initCode);
-        console.log("Deployed (CREATE2 - random salt):", deployed);
+    function computeCreate3Address(bytes32 salt, address deployer) internal view returns (address predicted) {
+        bytes32 guardedSalt = keccak256(abi.encode(deployer, block.chainid, salt));
+        predicted = createx.computeCreate3Address(guardedSalt, CREATEX);
     }
 
-    function deployCreate2AndInit(
+    function deployCreate3(
         bytes32 salt,
         bytes memory initCode,
-        bytes memory initData,
-        Values memory values,
-        address refundAddress
+        string memory identifier
     )
         internal
         returns (address deployed)
     {
-        deployed = createx.deployCreate2AndInit(salt, initCode, initData, values, refundAddress);
-        console.log("Deployed + initialized:", deployed);
+        console.log("Identifier:", identifier);
+        console.log("Salt:", vm.toString(salt));
+
+        address expected = computeCreate3Address(salt, msg.sender);
+        console.log("Expected address:", expected);
+
+        if (expected.code.length > 0) return expected;
+
+        deployed = createx.deployCreate3(salt, initCode);
+
+        require(deployed != address(0), "CreateX: Deployment failed");
+        require(deployed.code.length > 0, "CreateX: No code at address");
+        require(deployed == expected, "CreateX: Address mismatch");
+
+        console.log("Deployed to:", deployed);
     }
 
-    function deployCreate2Clone(bytes32 salt, address implementation, bytes memory initData)
+    function deployCreate3AndInit(
+        bytes32 salt,
+        bytes memory initCode,
+        bytes memory initData,
+        string memory identifier
+    )
         internal
-        returns (address clone)
+        returns (address deployed)
     {
-        clone = createx.deployCreate2Clone(salt, implementation, initData);
-        console.log("Deployed minimal proxy (clone):", clone);
+        console.log("Identifier:", identifier);
+        console.log("Salt:", vm.toString(salt));
+        address expected = computeCreate3Address(salt, msg.sender);
+        console.log("Expected address:", expected);
+
+        if (expected.code.length > 0) return expected;
+
+        Values memory values = Values({ constructorAmount: 0, initCallAmount: 0 });
+        deployed = createx.deployCreate3AndInit(salt, initCode, initData, values);
+
+        require(deployed != address(0), "CreateX: Deployment failed");
+        require(deployed.code.length > 0, "CreateX: No code at address");
+        require(deployed == expected, "CreateX: Address mismatch");
+
+        console.log("Deployed to:", deployed);
     }
 
-    // function computeCreate2Address(bytes32 salt, bytes32 initCodeHash)
-    // internal
-    // view
-    // returns (address)
-    //{
-    // return createx.computeCreate2Address(salt, initCodeHash);
-    //}
+    function verifyCreateX() internal view {
+        require(CREATEX.code.length > 0, "CreateX not deployed on this chain");
+        console.log("CreateX verified at:", CREATEX);
+    }
 }

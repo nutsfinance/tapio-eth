@@ -17,60 +17,103 @@ import { Keeper } from "../src/periphery/Keeper.sol";
 import { CreateXDeployer } from "./CreateXDeployer.sol";
 
 contract Deploy is Config, CreateXDeployer {
+    using stdJson for string;
+
+    mapping(string => string) internal saltIds;
+
+    function loadSaltIdentifiers() internal {
+        string memory saltPath = "script/configs/salts.json";
+        string memory saltJson = vm.readFile(saltPath);
+
+        // implementations
+        saltIds["SelfPeggingAsset"] = saltJson.readString(".contracts.implementations.SelfPeggingAsset");
+        saltIds["SPAToken"] = saltJson.readString(".contracts.implementations.SPAToken");
+        saltIds["WSPAToken"] = saltJson.readString(".contracts.implementations.WSPAToken");
+        saltIds["RampAController"] = saltJson.readString(".contracts.implementations.RampAController");
+        saltIds["Keeper"] = saltJson.readString(".contracts.implementations.Keeper");
+
+        // beacons
+        saltIds["SelfPeggingAssetBeacon"] = saltJson.readString(".contracts.beacons.SelfPeggingAssetBeacon");
+        saltIds["SPATokenBeacon"] = saltJson.readString(".contracts.beacons.SPATokenBeacon");
+        saltIds["WSPATokenBeacon"] = saltJson.readString(".contracts.beacons.WSPATokenBeacon");
+        saltIds["RampAControllerBeacon"] = saltJson.readString(".contracts.beacons.RampAControllerBeacon");
+
+        // factory
+        saltIds["FactoryImplementation"] = saltJson.readString(".contracts.factory.FactoryImplementation");
+        saltIds["FactoryProxy"] = saltJson.readString(".contracts.factory.FactoryProxy");
+
+        // periphery
+        saltIds["ConstantExchangeRateProvider"] =
+            saltJson.readString(".contracts.periphery.ConstantExchangeRateProvider");
+        saltIds["Zap"] = saltJson.readString(".contracts.periphery.Zap");
+    }
+
     function deployBeacons() internal {
-        console.log("---------------");
-        console.log("deploy-beacon-logs");
-        console.log("---------------");
+        bytes32 salt;
+        bytes memory initCode;
 
-        bytes32 salt = keccak256("SelfPeggingAsset");
-        bytes memory initCode = type(SelfPeggingAsset).creationCode;
-        selfPeggingAssetImplentation = deployCreate2(salt, initCode);
+        // 1. SelfPeggingAsset Implementation
+        salt = generateSalt(DEPLOYER, saltIds["SelfPeggingAsset"]);
+        initCode = type(SelfPeggingAsset).creationCode;
+        selfPeggingAssetImplementation = deployCreate3(salt, initCode, "SelfPeggingAsset Implementation");
 
-        salt = keccak256("SPAToken");
+        // 2. SPAToken Implementation
+        salt = generateSalt(DEPLOYER, saltIds["SPAToken"]);
         initCode = type(SPAToken).creationCode;
-        lpTokenImplentation = deployCreate2(salt, initCode);
+        spaTokenImplementation = deployCreate3(salt, initCode, "SPAToken Implementation");
 
-        salt = keccak256("WSPAToken");
+        // 3. WSPAToken Implementation
+        salt = generateSalt(DEPLOYER, saltIds["WSPAToken"]);
         initCode = type(WSPAToken).creationCode;
-        wlpTokenImplentation = deployCreate2(salt, initCode);
+        wspaTokenImplementation = deployCreate3(salt, initCode, "WSPAToken Implementation");
 
-        salt = keccak256("RampAController");
+        // 4. RampAController Implementation
+        salt = generateSalt(DEPLOYER, saltIds["RampAController"]);
         initCode = type(RampAController).creationCode;
-        rampAControllerImplentation = deployCreate2(salt, initCode);
+        rampAControllerImplementation = deployCreate3(salt, initCode, "RampAController Implementation");
 
-        salt = keccak256("Keeper");
+        // 5. Keeper Implementation
+        salt = generateSalt(DEPLOYER, saltIds["Keeper"]);
         initCode = type(Keeper).creationCode;
-        keeperImplementation = deployCreate2(salt, initCode);
+        keeperImplementation = deployCreate3(salt, initCode, "Keeper Implementation");
 
-        salt = keccak256("UpgradeableBeacon");
+        // Deploy beacons using CREATE3 (with unique salts!)
+
+        // 6. SelfPeggingAsset Beacon
+        salt = generateSalt(DEPLOYER, saltIds["SelfPeggingAssetBeacon"]);
         initCode = abi.encodePacked(
-            type(UpgradeableBeacon).creationCode, abi.encode(selfPeggingAssetImplentation, GOVERNOR)
+            type(UpgradeableBeacon).creationCode, abi.encode(selfPeggingAssetImplementation, GOVERNOR)
         );
-        selfPeggingAssetBeacon = deployCreate2(salt, initCode);
+        selfPeggingAssetBeacon = deployCreate3(salt, initCode, "SelfPeggingAsset Beacon");
 
-        salt = keccak256("UpgradeableBeacon");
-        initCode = abi.encodePacked(type(UpgradeableBeacon).creationCode, abi.encode(lpTokenImplentation, GOVERNOR));
-        lpTokenBeacon = deployCreate2(salt, initCode);
+        // 7. SPAToken Beacon
+        salt = generateSalt(DEPLOYER, saltIds["SPATokenBeacon"]);
+        initCode = abi.encodePacked(type(UpgradeableBeacon).creationCode, abi.encode(spaTokenImplementation, GOVERNOR));
+        spaTokenBeacon = deployCreate3(salt, initCode, "SPAToken Beacon");
 
-        salt = keccak256("UpgradeableBeacon");
-        initCode = abi.encodePacked(type(UpgradeableBeacon).creationCode, abi.encode(wlpTokenImplentation, GOVERNOR));
-        wlpTokenBeacon = deployCreate2(salt, initCode);
+        // 8. WSPAToken Beacon
+        salt = generateSalt(DEPLOYER, saltIds["WSPATokenBeacon"]);
+        initCode = abi.encodePacked(type(UpgradeableBeacon).creationCode, abi.encode(wspaTokenImplementation, GOVERNOR));
+        wspaTokenBeacon = deployCreate3(salt, initCode, "WSPAToken Beacon");
 
-        salt = keccak256("UpgradeableBeacon");
-        initCode =
-            abi.encodePacked(type(UpgradeableBeacon).creationCode, abi.encode(rampAControllerImplentation, GOVERNOR));
-        rampAControllerBeacon = deployCreate2(salt, initCode);
+        // 9. RampAController Beacon
+        salt = generateSalt(DEPLOYER, saltIds["RampAControllerBeacon"]);
+        initCode = abi.encodePacked(
+            type(UpgradeableBeacon).creationCode, abi.encode(rampAControllerImplementation, GOVERNOR)
+        );
+        rampAControllerBeacon = deployCreate3(salt, initCode, "RampAController Beacon");
     }
 
     function deployFactory() internal {
-        console.log("---------------");
-        console.log("deploy-factory-logs");
-        console.log("---------------");
+        bytes32 salt;
+        bytes memory initCode;
 
-        bytes32 salt = keccak256("ConstantExchangeRateProvider");
-        bytes memory initCode = type(ConstantExchangeRateProvider).creationCode;
-        address constantExchangeRateProvider = deployCreate2(salt, initCode);
+        // 10. ConstantExchangeRateProvider
+        salt = generateSalt(DEPLOYER, saltIds["ConstantExchangeRateProvider"]);
+        initCode = type(ConstantExchangeRateProvider).creationCode;
+        address constantExchangeRateProvider = deployCreate3(salt, initCode, "ConstantExchangeRateProvider");
 
+        // Prepare factory initialization data
         bytes memory data = abi.encodeCall(
             SelfPeggingAssetFactory.initialize,
             SelfPeggingAssetFactory.InitializeArgument(
@@ -83,8 +126,8 @@ contract Deploy is Config, CreateXDeployer {
                 100,
                 30 minutes,
                 selfPeggingAssetBeacon,
-                lpTokenBeacon,
-                wlpTokenBeacon,
+                spaTokenBeacon,
+                wspaTokenBeacon,
                 rampAControllerBeacon,
                 keeperImplementation,
                 constantExchangeRateProvider,
@@ -93,28 +136,24 @@ contract Deploy is Config, CreateXDeployer {
             )
         );
 
-        salt = keccak256("SelfPeggingAssetFactory");
+        // 11. Factory Implementation
+        salt = generateSalt(DEPLOYER, saltIds["FactoryImplementation"]);
         initCode = type(SelfPeggingAssetFactory).creationCode;
-        factoryImplementation = deployCreate2(salt, initCode);
+        factoryImplementation = deployCreate3(salt, initCode, "Factory Implementation");
 
-        salt = keccak256("FactoryProxy");
+        // 12. Factory Proxy
+        salt = generateSalt(DEPLOYER, saltIds["FactoryProxy"]);
         initCode = abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(factoryImplementation, data));
+        address factoryProxy = deployCreate3(salt, initCode, "Factory Proxy");
 
-        factory = SelfPeggingAssetFactory(deployCreate2(salt, initCode));
+        factory = SelfPeggingAssetFactory(factoryProxy);
         factory.transferOwnership(GOVERNOR);
-
-        console.log("Factory Proxy: %s", address(factory));
     }
 
     function deployZap() internal {
-        console.log("---------------");
-        console.log("deploy-zap-logs");
-        console.log("---------------");
-
-        bytes32 salt = keccak256("Zap");
+        // 13. Zap
+        bytes32 salt = generateSalt(DEPLOYER, saltIds["Zap"]);
         bytes memory initCode = type(Zap).creationCode;
-        zap = deployCreate2(salt, initCode);
-
-        console.log("Zap: %s", zap);
+        zap = deployCreate3(salt, initCode, "Zap");
     }
 }

@@ -1,0 +1,28 @@
+{
+  "version": "1.0.0",
+  "description": "Salt identifiers for Tapio Protocol deterministic deployments using CREATE3",
+  "note": "Identifiers hashed with deployer and cross-chain flag to generate salts",
+  "contracts": {
+    "implementations": {
+      "SelfPeggingAsset": "Tapio-SelfPeggingAsset-Impl-v1.0.2",
+      "SPAToken": "Tapio-SPAToken-Impl-v1.0.2",
+      "WSPAToken": "Tapio-WSPAToken-Impl-v1.0.2",
+      "RampAController": "Tapio-RampAController-Impl-v1.0.2",
+      "Keeper": "Tapio-Keeper-Impl-v1.0.2"
+    },
+    "beacons": {
+      "SelfPeggingAssetBeacon": "Tapio-SelfPeggingAsset-Beacon-v1.0.2",
+      "SPATokenBeacon": "Tapio-SPAToken-Beacon-v1.0.2",
+      "WSPATokenBeacon": "Tapio-WSPAToken-Beacon-v1.0.2",
+      "RampAControllerBeacon": "Tapio-RampAController-Beacon-v1.0.2"
+    },
+    "factory": {
+      "FactoryImplementation": "Tapio-Factory-Impl-v1.0.2",
+      "FactoryProxy": "Tapio-Factory-Proxy-v1.0.2"
+    },
+    "periphery": {
+      "ConstantExchangeRateProvider": "Tapio-ConstantExchangeRate-v1.0.2",
+      "Zap": "Tapio-Zap-v1.0.2"
+    }
+  }
+}

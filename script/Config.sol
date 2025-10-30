@@ -15,15 +15,15 @@ contract Config is Script {
 
     SelfPeggingAssetFactory factory;
     address selfPeggingAssetBeacon;
-    address lpTokenBeacon;
-    address wlpTokenBeacon;
+    address spaTokenBeacon;
+    address wspaTokenBeacon;
     address rampAControllerBeacon;
     address factoryImplementation;
     address keeperImplementation;
-    address selfPeggingAssetImplentation;
-    address lpTokenImplentation;
-    address wlpTokenImplentation;
-    address rampAControllerImplentation;
+    address selfPeggingAssetImplementation;
+    address spaTokenImplementation;
+    address wspaTokenImplementation;
+    address rampAControllerImplementation;
     address zap;
 
     function loadConfig() internal {
