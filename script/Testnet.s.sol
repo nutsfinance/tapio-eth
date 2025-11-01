@@ -59,8 +59,8 @@ contract Testnet is Deploy, Pool {
             vm.writeJson(vm.serializeAddress("contracts", "Zap", zap), path);
             vm.writeJson(vm.serializeAddress("contracts", "Factory", address(factory)), path);
             vm.writeJson(vm.serializeAddress("contracts", "SelfPeggingAssetBeacon", selfPeggingAssetBeacon), path);
-            vm.writeJson(vm.serializeAddress("contracts", "LPTokenBeacon", lpTokenBeacon), path);
-            vm.writeJson(vm.serializeAddress("contracts", "WLPTokenBeacon", wlpTokenBeacon), path);
+            vm.writeJson(vm.serializeAddress("contracts", "SPATokenBeacon", spaTokenBeacon), path);
+            vm.writeJson(vm.serializeAddress("contracts", "WSPATokenBeacon", wspaTokenBeacon), path);
             vm.writeJson(vm.serializeAddress("contracts", "wS", address(wS)), path);
             vm.writeJson(vm.serializeAddress("contracts", "stS", address(stS)), path);
             vm.writeJson(vm.serializeAddress("contracts", "OS", address(OS)), path);

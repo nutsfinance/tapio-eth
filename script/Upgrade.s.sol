@@ -19,9 +19,9 @@ import { ERC1967Proxy } from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy
 contract Upgrade is Deploy, Pool {
     struct JSONData {
         address Factory;
-        address LPTokenBeacon;
+        address SPATokenBeacon;
         address SelfPeggingAssetBeacon;
-        address WLPTokenBeacon;
+        address WSPATokenBeacon;
         address Zap;
     }
 
@@ -34,6 +34,7 @@ contract Upgrade is Deploy, Pool {
     function run() public payable {
         init();
         loadConfig();
+        loadSaltIdentifiers();
 
         vm.startBroadcast(deployerPrivateKey);
 
@@ -49,26 +50,26 @@ contract Upgrade is Deploy, Pool {
 
         factory = SelfPeggingAssetFactory(jsonData.Factory);
         selfPeggingAssetBeacon = jsonData.SelfPeggingAssetBeacon;
-        lpTokenBeacon = jsonData.LPTokenBeacon;
-        wlpTokenBeacon = jsonData.WLPTokenBeacon;
+        spaTokenBeacon = jsonData.SPATokenBeacon;
+        wspaTokenBeacon = jsonData.WSPATokenBeacon;
 
         // Upgrade
-        bytes32 salt = keccak256("SPAToken");
+        bytes32 salt = generateSalt(DEPLOYER, saltIds["SPAToken"]);
         bytes memory initCode = type(SPAToken).creationCode;
-        SPAToken lpTokenImpl = SPAToken((deployCreate2(salt, initCode)));
+        SPAToken lpTokenImpl = SPAToken((deployCreate3(salt, initCode, "SPAToken Implementation")));
 
-        salt = keccak256("WSPAToken");
+        salt = generateSalt(DEPLOYER, saltIds["WSPAToken"]);
         initCode = type(WSPAToken).creationCode;
-        WSPAToken wlpTokenImpl = WSPAToken((deployCreate2(salt, initCode)));
+        WSPAToken wlpTokenImpl = WSPAToken((deployCreate3(salt, initCode, "WSPAToken Implementation")));
 
-        salt = keccak256("SelfPeggingAsset");
+        salt = generateSalt(DEPLOYER, saltIds["SelfPeggingAsset"]);
         initCode = type(SelfPeggingAsset).creationCode;
-        SelfPeggingAsset selfPeggingAssetImpl = SelfPeggingAsset((deployCreate2(salt, initCode)));
+        SelfPeggingAsset selfPeggingAssetImpl = SelfPeggingAsset((deployCreate3(salt, initCode, "SelfPeggingAsset Implementation")));
 
         SelfPeggingAssetFactory factoryImpl = SelfPeggingAssetFactory(factory);
 
-        UpgradeableBeacon(lpTokenBeacon).upgradeTo(address(lpTokenImpl));
-        UpgradeableBeacon(wlpTokenBeacon).upgradeTo(address(wlpTokenImpl));
+        UpgradeableBeacon(spaTokenBeacon).upgradeTo(address(lpTokenImpl));
+        UpgradeableBeacon(wspaTokenBeacon).upgradeTo(address(wlpTokenImpl));
         UpgradeableBeacon(selfPeggingAssetBeacon).upgradeTo(address(selfPeggingAssetImpl));
         factory.upgradeToAndCall(address(factoryImpl), bytes(""));
 

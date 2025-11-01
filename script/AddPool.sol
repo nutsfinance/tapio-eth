@@ -17,12 +17,12 @@ import { MockExchangeRateProvider } from "../src/mock/MockExchangeRateProvider.s
 contract AddPool is Deploy, Pool {
     struct JSONData {
         address Factory;
-        address LPTokenBeacon;
+        address SPATokenBeacon;
         address SelfPeggingAssetBeacon;
         address WETHwstETHPool;
         address WETHwstETHPoolLPToken;
         address WETHwstETHPoolWLPToken;
-        address WLPTokenBeacon;
+        address WSPATokenBeacon;
         address Zap;
         address wstETHweETHPool;
         address wstETHweETHPoolLPToken;
@@ -31,11 +31,11 @@ contract AddPool is Deploy, Pool {
 
     struct JSONDataTestnet {
         address Factory;
-        address LPTokenBeacon;
+        address SPATokenBeacon;
         address SelfPeggingAssetBeacon;
         address USDC;
         address USDT;
-        address WLPTokenBeacon;
+        address WSPATokenBeacon;
         address Zap;
     }
 
@@ -63,8 +63,8 @@ contract AddPool is Deploy, Pool {
 
             factory = SelfPeggingAssetFactory(jsonData.Factory);
             selfPeggingAssetBeacon = jsonData.SelfPeggingAssetBeacon;
-            lpTokenBeacon = jsonData.LPTokenBeacon;
-            wlpTokenBeacon = jsonData.WLPTokenBeacon;
+            spaTokenBeacon = jsonData.SPATokenBeacon;
+            wspaTokenBeacon = jsonData.WSPATokenBeacon;
             zap = jsonData.Zap;
 
             address wstETHTostETHFeed = 0xB88BAc61a4Ca37C43a3725912B1f472c9A5bc061;
@@ -125,12 +125,12 @@ contract AddPool is Deploy, Pool {
             initialMint(weth, wstETH, ethAmount, ethAmount, SelfPeggingAsset(pool2));
 
             vm.writeJson(vm.serializeAddress("contracts", "Factory", address(factory)), path);
-            vm.writeJson(vm.serializeAddress("contracts", "LPTokenBeacon", lpTokenBeacon), path);
+            vm.writeJson(vm.serializeAddress("contracts", "SPATokenBeacon", spaTokenBeacon), path);
             vm.writeJson(vm.serializeAddress("contracts", "SelfPeggingAssetBeacon", selfPeggingAssetBeacon), path);
             vm.writeJson(vm.serializeAddress("contracts", "WETHwstETHPool", pool2), path);
             vm.writeJson(vm.serializeAddress("contracts", "WETHwstETHPoolLPToken", lpToken2), path);
             vm.writeJson(vm.serializeAddress("contracts", "WETHwstETHPoolWLPToken", wlpToken2), path);
-            vm.writeJson(vm.serializeAddress("contracts", "WLPTokenBeacon", wlpTokenBeacon), path);
+            vm.writeJson(vm.serializeAddress("contracts", "WSPATokenBeacon", wspaTokenBeacon), path);
             vm.writeJson(vm.serializeAddress("contracts", "Zap", zap), path);
             vm.writeJson(vm.serializeAddress("contracts", "wstETHweETHPool", pool), path);
             vm.writeJson(vm.serializeAddress("contracts", "wstETHweETHPoolLPToken", lpToken), path);
@@ -140,15 +140,15 @@ contract AddPool is Deploy, Pool {
 
             factory = SelfPeggingAssetFactory(jsonData.Factory);
             selfPeggingAssetBeacon = jsonData.SelfPeggingAssetBeacon;
-            lpTokenBeacon = jsonData.LPTokenBeacon;
-            wlpTokenBeacon = jsonData.WLPTokenBeacon;
+            spaTokenBeacon = jsonData.SPATokenBeacon;
+            wspaTokenBeacon = jsonData.WSPATokenBeacon;
             zap = jsonData.Zap;
 
             vm.writeJson(vm.serializeAddress("contracts", "Zap", zap), path);
             vm.writeJson(vm.serializeAddress("contracts", "Factory", address(factory)), path);
             vm.writeJson(vm.serializeAddress("contracts", "SelfPeggingAssetBeacon", selfPeggingAssetBeacon), path);
-            vm.writeJson(vm.serializeAddress("contracts", "LPTokenBeacon", lpTokenBeacon), path);
-            vm.writeJson(vm.serializeAddress("contracts", "WLPTokenBeacon", wlpTokenBeacon), path);
+            vm.writeJson(vm.serializeAddress("contracts", "SPATokenBeacon", spaTokenBeacon), path);
+            vm.writeJson(vm.serializeAddress("contracts", "WSPATokenBeacon", wspaTokenBeacon), path);
             vm.writeJson(vm.serializeAddress("contracts", "USDC", jsonData.USDC), path);
             vm.writeJson(vm.serializeAddress("contracts", "USDT", jsonData.USDT), path);
 
