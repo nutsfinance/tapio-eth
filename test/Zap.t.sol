@@ -9,11 +9,13 @@ import { MockToken } from "../src/mock/MockToken.sol";
 import { MaliciousSPA } from "./utils/MaliciousSPA.sol";
 import { Zap } from "../src/periphery/Zap.sol";
 import { RampAController } from "../src/periphery/RampAController.sol";
+import { ParameterRegistry } from "../src/periphery/ParameterRegistry.sol";
 import { SelfPeggingAsset } from "../src/SelfPeggingAsset.sol";
 import { WSPAToken } from "../src/WSPAToken.sol";
 import { ConstantExchangeRateProvider } from "../src/misc/ConstantExchangeRateProvider.sol";
 import { IExchangeRateProvider } from "../src/interfaces/IExchangeRateProvider.sol";
 import { SPAToken } from "../src/SPAToken.sol";
+import { Keeper } from "../src/periphery/Keeper.sol";
 import { ERC1967Proxy } from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 contract ZapTest is Test {
@@ -25,6 +27,8 @@ contract ZapTest is Test {
     SPAToken public spaToken;
     WSPAToken public wspaToken;
     RampAController public rampAController;
+    ParameterRegistry public parameterRegistry;
+    Keeper public keeper;
 
     address public governance;
     address public admin;
@@ -72,19 +76,30 @@ contract ZapTest is Test {
         fees[1] = 0;
         fees[2] = 0;
 
+        address[] memory wholesalers = new address[](0);
+        uint16[] memory rates = new uint16[](0);
+
+        // parameterRegistry = new ParameterRegistry(admin, spaToken.pool());
+
         bytes memory data = abi.encodeCall(RampAController.initialize, (100, 30 minutes, governance));
         proxy = new ERC1967Proxy(address(new RampAController()), data);
         rampAController = RampAController(address(proxy));
+
+        // data = abi.encodeCall(Keeper.initialize, (admin, admin, admin, admin, address(rampAController),
+        // rampAController, spaToken.pool(), spaToken)); proxy = new ERC1967Proxy(address(new Keeper()), data);
+        // keeper = Keeper(address(proxy));
 
         data = abi.encodeWithSelector(
             SelfPeggingAsset.initialize.selector,
             tokens,
             precisions,
             fees,
-            0,
+            wholesalers,
+            rates,
             spaToken,
             100,
             providers,
+            address(rampAController),
             address(rampAController)
         );
         proxy = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
@@ -378,6 +393,9 @@ contract ZapTest is Test {
     }
 
     function testZapIn_CrossPoolMismatch() public {
+        address[] memory wholesalers = new address[](0);
+        uint16[] memory rates = new uint16[](0);
+
         ERC1967Proxy proxy = new ERC1967Proxy(address(new SPAToken()), new bytes(0));
         SPAToken secondSPAToken = SPAToken(address(proxy));
 
@@ -405,10 +423,12 @@ contract ZapTest is Test {
             tokens,
             precisions,
             fees,
-            0,
+            wholesalers,
+            rates,
             secondSPAToken,
             100,
             providers,
+            address(secondRampAController),
             address(secondRampAController)
         );
         proxy = new ERC1967Proxy(address(new SelfPeggingAsset()), data);

@@ -191,14 +191,14 @@ contract GovernanceTest is Test {
     function test_onlyGovernor_canSetSwapFee() external {
         uint256 newFee = 1e7;
 
-        bytes32 governorRole = keeper.GOVERNOR_ROLE();
+        bytes32 curatorRole = keeper.CURATOR_ROLE();
         vm.expectRevert(
-            abi.encodeWithSignature("AccessControlUnauthorizedAccount(address,bytes32)", curator, governorRole)
+            abi.encodeWithSignature("AccessControlUnauthorizedAccount(address,bytes32)", governor, curatorRole)
         );
-        vm.prank(curator);
+        vm.prank(governor);
         keeper.setSwapFee(newFee);
 
-        vm.prank(governor);
+        vm.prank(curator);
         keeper.setSwapFee(newFee);
     }
 

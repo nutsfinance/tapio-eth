@@ -205,7 +205,7 @@ contract SelfPeggingAssetTest is Test {
         assertEq(pool.balances(0), 105e18);
         assertEq(pool.balances(1), 85e18);
 
-        assertEq(pool.totalSupply(), 189.994704791049550806e18);
+        assertEq(pool.totalSupply(), 189.994_704_791_049_550_806e18);
 
         assertEq(pool.totalSupply(), spaToken.totalSupply());
 
@@ -259,8 +259,8 @@ contract SelfPeggingAssetTest is Test {
         assertEq(pool.balances(0), 105e18);
         assertEq(pool.balances(1), 85e18);
 
-        assertEq(pool.totalSupply(), 189.994704791049550806e18);
-        assertEq(spaToken.totalSupply(), 189.994704791049550806e18);
+        assertEq(pool.totalSupply(), 189.994_704_791_049_550_806e18);
+        assertEq(spaToken.totalSupply(), 189.994_704_791_049_550_806e18);
 
         uint256 amountToRedeem = spaToken.balanceOf(user2);
         vm.startPrank(user2);
@@ -463,11 +463,11 @@ contract SelfPeggingAssetTest is Test {
 
         (uint256 exchangeAmount, uint256 feeAmount) = pool.getSwapAmount(1, 0, 8e18);
 
-        assertEq(exchangeAmount, 7.992985053666343961e18);
-        assertEq(feeAmount, 0.016018006119571831e18);
+        assertEq(exchangeAmount, 7.992_985_053_666_343_961e18);
+        assertEq(feeAmount, 0.016_018_006_119_571_831e18);
     }
 
-    function testDynamicFeeForSwap() external {
+    function testStaticFeeForSwap() external {
         WETH.mint(user, 105e18);
         frxETH.mint(user, 85e18);
 
@@ -498,14 +498,14 @@ contract SelfPeggingAssetTest is Test {
         assertEq(pool.balances(0), 105e18);
         assertEq(pool.balances(1), 85e18);
 
-        assertEq(pool.totalSupply(), 189.994704791049550806e18);
+        assertEq(pool.totalSupply(), 189.994_704_791_049_550_806e18);
 
         assertEq(pool.totalSupply(), spaToken.totalSupply());
 
         vm.prank(user2);
         pool.swap(1, 0, 8e18, 0);
 
-        assertLt(WETH.balanceOf(user2), exchangeAmount);
+        assertEq(WETH.balanceOf(user2), exchangeAmount);
     }
 
     function test_FeeAmount() external {
@@ -536,7 +536,7 @@ contract SelfPeggingAssetTest is Test {
     }
 
     function test_BurnValue_With_Losing_Shares() public {
-        //two users, user and user2, enter as liquidity providers.
+        // two users, user and user2, enter as liquidity providers.
         uint256 liquidity = 100e18;
         WETH.mint(user, liquidity);
         frxETH.mint(user, liquidity);
@@ -559,7 +559,7 @@ contract SelfPeggingAssetTest is Test {
         pool.mint(amounts, 0);
         vm.stopPrank();
 
-        //we create a profit balance (totalSupply > totalShares) via donation.
+        // we create a profit balance (totalSupply > totalShares) via donation.
         uint256 donation = 100e18;
         WETH.mint(owner, donation);
         vm.prank(owner);
@@ -575,7 +575,7 @@ contract SelfPeggingAssetTest is Test {
         uint256 user_Balance_before = spaToken.balanceOf(user);
         uint256 totalSupply_before = spaToken.totalSupply();
 
-        //attack: User `user2` calls burnShares(1) in a loop to destroy the value.
+        // attack: User `user2` calls burnShares(1) in a loop to destroy the value.
         uint256 iterations = 100;
         vm.startPrank(user2);
         for (uint256 i = 0; i < iterations; i++) {
@@ -583,15 +583,15 @@ contract SelfPeggingAssetTest is Test {
         }
         vm.stopPrank();
 
-        //check
+        // check
         uint256 user2_Shares_after = spaToken.sharesOf(user2);
         uint256 user_Balance_after = spaToken.balanceOf(user);
         uint256 totalSupply_after = spaToken.totalSupply();
 
-        //user2 shares are dropped
+        // user2 shares are dropped
         assertGt(user2_Shares_before, user2_Shares_after, "User2's shares should have decreased");
 
-        //total supply decreased by the amount that user2 burned
+        // total supply decreased by the amount that user2 burned
         assertEq(
             totalSupply_after,
             totalSupply_before - iterations,
@@ -675,7 +675,7 @@ contract SelfPeggingAssetTest is Test {
         uint256 wstETHBalance = wstETH.balanceOf(user2);
 
         assertEq(rETHBalance, 0);
-        assertIsCloseTo(wstETHBalance, 1e18, 0.00005 ether);
+        assertIsCloseTo(wstETHBalance, 1e18, 0.000_05 ether);
 
         // Set buffer percentage to 5%
         vm.prank(owner);
@@ -930,7 +930,7 @@ contract SelfPeggingAssetTest is Test {
         assertTrue(donationAmount >= minDonationAmount);
     }
 
-    function test_ExchangeRateFee() external {
+    function test_ExchangeRateFeeRemoval() external {
         MockExchangeRateProvider rETHExchangeRateProvider1 = new MockExchangeRateProvider(1e18, 18);
         MockExchangeRateProvider wstETHExchangeRateProvider1 = new MockExchangeRateProvider(1e18, 18);
 
@@ -967,7 +967,7 @@ contract SelfPeggingAssetTest is Test {
 
         uint256[] memory _fees = new uint256[](3);
         _fees[0] = 0;
-        _fees[1] = 0.00001e10;
+        _fees[1] = 0.000_01e10;
         _fees[2] = 0;
 
         uint256[] memory _precisions = new uint256[](2);
@@ -1076,279 +1076,7 @@ contract SelfPeggingAssetTest is Test {
         uint256 rETHBalance1 = rETH1.balanceOf(user2);
         uint256 rETHBalance2 = rETH2.balanceOf(user2);
 
-        assertGt(rETHBalance1, rETHBalance2);
-    }
-
-    function test_ExchangeRateFeeSkipPeriod() external {
-        MockExchangeRateProvider rETHExchangeRateProvider1 = new MockExchangeRateProvider(1e18, 18);
-        MockExchangeRateProvider wstETHExchangeRateProvider1 = new MockExchangeRateProvider(1e18, 18);
-
-        MockExchangeRateProvider rETHExchangeRateProvider2 = new MockExchangeRateProvider(1e18, 18);
-        MockExchangeRateProvider wstETHExchangeRateProvider2 = new MockExchangeRateProvider(1e18, 18);
-
-        MockToken rETH1 = new MockToken("rETH", "rETH", 18);
-        MockToken wstETH1 = new MockToken("wstETH", "wstETH", 18);
-
-        MockToken rETH2 = new MockToken("rETH", "rETH", 18);
-        MockToken wstETH2 = new MockToken("wstETH", "wstETH", 18);
-
-        address[] memory _tokens1 = new address[](2);
-        _tokens1[0] = address(rETH1);
-        _tokens1[1] = address(wstETH1);
-
-        address[] memory _tokens2 = new address[](2);
-        _tokens2[0] = address(rETH2);
-        _tokens2[1] = address(wstETH2);
-
-        IExchangeRateProvider[] memory exchangeRateProviders1 = new IExchangeRateProvider[](2);
-        exchangeRateProviders1[0] = IExchangeRateProvider(rETHExchangeRateProvider1);
-        exchangeRateProviders1[1] = IExchangeRateProvider(wstETHExchangeRateProvider1);
-
-        IExchangeRateProvider[] memory exchangeRateProviders2 = new IExchangeRateProvider[](2);
-        exchangeRateProviders2[0] = IExchangeRateProvider(rETHExchangeRateProvider2);
-        exchangeRateProviders2[1] = IExchangeRateProvider(wstETHExchangeRateProvider2);
-
-        ERC1967Proxy proxy1 = new ERC1967Proxy(address(new SPAToken()), new bytes(0));
-        SPAToken _spaToken1 = SPAToken(address(proxy1));
-
-        ERC1967Proxy proxy2 = new ERC1967Proxy(address(new SPAToken()), new bytes(0));
-        SPAToken _spaToken2 = SPAToken(address(proxy2));
-
-        uint256[] memory _fees = new uint256[](3);
-        _fees[0] = 0;
-        _fees[1] = 0.00001e10;
-        _fees[2] = 0;
-
-        uint256[] memory _precisions = new uint256[](2);
-        _precisions[0] = 1;
-        _precisions[1] = 1;
-
-        bytes memory data = abi.encodeCall(
-            SelfPeggingAsset.initialize,
-            (
-                _tokens1,
-                _precisions,
-                _fees,
-                new address[](0),
-                new uint16[](0),
-                _spaToken1,
-                A,
-                exchangeRateProviders1,
-                address(0),
-                owner
-            )
-        );
-
-        proxy1 = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
-        SelfPeggingAsset _pool1 = SelfPeggingAsset(address(proxy1));
-        _spaToken1.initialize("SPA Token", "SPAT", 5e8, owner, address(_pool1));
-
-        data = abi.encodeCall(
-            SelfPeggingAsset.initialize,
-            (
-                _tokens2,
-                _precisions,
-                _fees,
-                new address[](0),
-                new uint16[](0),
-                _spaToken2,
-                A,
-                exchangeRateProviders2,
-                address(0),
-                owner
-            )
-        );
-
-        proxy2 = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
-        SelfPeggingAsset _pool2 = SelfPeggingAsset(address(proxy2));
-
-        _spaToken2.initialize("SPA Token", "SPAT", 5e8, owner, address(_pool2));
-
-        vm.prank(address(_pool1));
-        _spaToken1.addBuffer(100e18, true);
-
-        vm.prank(address(_pool2));
-        _spaToken2.addBuffer(100e18, true);
-
-        uint256[] memory amounts = new uint256[](2);
-        amounts[0] = 100e18;
-        amounts[1] = 100e18;
-
-        rETH1.mint(user, 100e18);
-        wstETH1.mint(user, 100e18);
-
-        rETH2.mint(user, 100e18);
-        wstETH2.mint(user, 100e18);
-
-        vm.startPrank(user);
-        rETH1.approve(address(_pool1), 100e18);
-        wstETH1.approve(address(_pool1), 100e18);
-
-        rETH2.approve(address(_pool2), 100e18);
-        wstETH2.approve(address(_pool2), 100e18);
-
-        _pool1.mint(amounts, 0);
-        _pool2.mint(amounts, 0);
-        vm.stopPrank();
-
-        rETH1.mint(user2, 1e18);
-        rETH2.mint(user2, 1e18);
-
-        vm.startPrank(user2);
-        rETH1.approve(address(_pool1), 1e18);
-        rETH2.approve(address(_pool2), 1e18);
-
-        _pool1.swap(0, 1, 1e18, 0);
-        _pool2.swap(0, 1, 1e18, 0);
-        vm.stopPrank();
-
-        uint256 wstETHBalance1 = wstETH1.balanceOf(user2);
-        uint256 wstETHBalance2 = wstETH2.balanceOf(user2);
-
-        assertLt(wstETHBalance1, 1e18);
-        assertLt(wstETHBalance2, 1e18);
-
-        rETHExchangeRateProvider1.setExchangeRate(0.994e18);
-        rETHExchangeRateProvider2.setExchangeRate(0.994e18);
-
-        vm.warp(block.timestamp + 4 minutes);
-
-        vm.startPrank(user2);
-        wstETH1.approve(address(_pool1), wstETHBalance1);
-
-        wstETH2.mint(user2, 1);
-        wstETH2.approve(address(_pool2), wstETHBalance2 + 1);
-
-        _pool1.swap(1, 0, wstETHBalance1, 0);
-        _pool2.swap(1, 0, 1, 0);
-        _pool2.swap(1, 0, wstETHBalance2, 0);
-        vm.stopPrank();
-
-        uint256 rETHBalance1 = rETH1.balanceOf(user2);
-        uint256 rETHBalance2 = rETH2.balanceOf(user2);
-
-        assertGt(rETHBalance1, rETHBalance2);
-    }
-
-    function test_VolatilityFee_SkipPeriod() external {
-        MockToken rETH = new MockToken("rETH", "rETH", 18);
-        MockToken wstETH = new MockToken("wstETH", "wstETH", 18);
-
-        MockExchangeRateProvider provider0 = new MockExchangeRateProvider(1e18, 18);
-        MockExchangeRateProvider provider1 = new MockExchangeRateProvider(1e18, 18);
-
-        ERC1967Proxy proxy = new ERC1967Proxy(address(new SPAToken()), new bytes(0));
-        SPAToken spaToken1 = SPAToken(address(proxy));
-
-        address[] memory tokens = new address[](2);
-        tokens[0] = address(rETH);
-        tokens[1] = address(wstETH);
-
-        IExchangeRateProvider[] memory providers = new IExchangeRateProvider[](2);
-        providers[0] = provider0;
-        providers[1] = provider1;
-
-        uint256[] memory fees = new uint256[](3);
-        fees[0] = 0.001e10; // 0.1% mint fee
-        fees[1] = 0.001e10; // 0.1% swap fee
-        fees[2] = 0.001e10; // 0.1% redeem fee
-
-        uint256[] memory precisionsArray = new uint256[](2);
-        precisionsArray[0] = 1;
-        precisionsArray[1] = 1;
-
-        bytes memory data = abi.encodeCall(
-            SelfPeggingAsset.initialize,
-            (
-                tokens,
-                precisionsArray,
-                fees,
-                new address[](0),
-                new uint16[](0),
-                spaToken1,
-                100,
-                providers,
-                address(0),
-                owner
-            )
-        );
-
-        proxy = new ERC1967Proxy(address(new SelfPeggingAsset()), data);
-        SelfPeggingAsset spa = SelfPeggingAsset(address(proxy));
-        spaToken1.initialize("SPA Token", "TSPA", 5e8, owner, address(spa));
-
-        vm.prank(address(spa));
-        spaToken1.addBuffer(100e18, true);
-
-        rETH.mint(user, 100e18);
-        wstETH.mint(user, 100e18);
-
-        vm.startPrank(user);
-        rETH.approve(address(spa), 100e18);
-        wstETH.approve(address(spa), 100e18);
-
-        uint256[] memory amounts = new uint256[](2);
-        amounts[0] = 100e18;
-        amounts[1] = 100e18;
-        spa.mint(amounts, 0);
-        vm.stopPrank();
-
-        (, uint256 initFee) = spa.getRedeemSingleAmount(10e18, 0);
-        console2.log("Initial fee:", initFee);
-
-        // Change exchange rate
-        provider0.setExchangeRate(0.9e18);
-        (, uint256 volatilityFee) = spa.getRedeemSingleAmount(10e18, 0);
-        console2.log("fee after volatility period:", volatilityFee);
-
-        // during decay period
-        vm.warp(block.timestamp + 9 seconds);
-        (, uint256 beforeSkipFee) = spa.getRedeemSingleAmount(10e18, 0);
-        console2.log("fee before skip period:", beforeSkipFee);
-
-        // do an operation and fee spike
-        vm.startPrank(user);
-        spaToken1.approve(address(spa), 10e18);
-        spa.redeemSingle(10e18, 0, 0);
-        vm.stopPrank();
-
-        (, uint256 postOpFeeSpike) = spa.getRedeemSingleAmount(10e18, 0);
-        console2.log("Fee after operation:", postOpFeeSpike);
-
-        bool feeSpikeAfterOp =
-            (postOpFeeSpike <= beforeSkipFee * 995 / 1000) || (postOpFeeSpike >= beforeSkipFee * 1005 / 1000);
-
-        // Change exchange rate further
-        provider0.setExchangeRate(0.8e18);
-        (, uint256 volatilityFee2) = spa.getRedeemSingleAmount(10e18, 0);
-        console2.log("fee after volatility period:", volatilityFee2);
-
-        // during decay period
-        vm.warp(block.timestamp + 9 seconds);
-        (, uint256 beforeSkipFee2) = spa.getRedeemSingleAmount(10e18, 0);
-        console2.log("fee after skip period:", beforeSkipFee2);
-
-        // skip past decay period
-        vm.warp(block.timestamp + 1 hours);
-        (, uint256 afterSkipFee) = spa.getRedeemSingleAmount(10e18, 0);
-        console2.log("fee after skip period:", afterSkipFee);
-
-        // do an operation and fee doesn't spike
-        vm.startPrank(user);
-        spaToken1.approve(address(spa), 10e18);
-        spa.redeemSingle(10e18, 0, 0);
-        vm.stopPrank();
-
-        (, uint256 postOpFee) = spa.getRedeemSingleAmount(10e18, 0);
-        console2.log("Fee after operation:", postOpFee);
-
-        bool feeAfterOp = (postOpFee >= afterSkipFee * 995 / 1000) && (postOpFee <= afterSkipFee * 1005 / 1000);
-
-        assertNotEq(volatilityFee, initFee, "fee changed during volatility");
-        assertEq(feeSpikeAfterOp, true, "fee spike out of range after redeem");
-        assertEq(beforeSkipFee2, volatilityFee2, "fee keep spiked before skip");
-        assertLe(afterSkipFee, volatilityFee2, "fee stabilized after skip");
-        assertEq(feeAfterOp, true, "fee stayed within range after redeem");
+        assertEq(rETHBalance1, rETHBalance2);
     }
 
     function testFuzz_ExchangeRateFee(
@@ -1401,7 +1129,7 @@ contract SelfPeggingAssetTest is Test {
 
         uint256[] memory fees = new uint256[](3);
         fees[0] = 0;
-        fees[1] = 0.00001e10;
+        fees[1] = 0.000_01e10;
         fees[2] = 0;
         precisions[0] = 1;
         precisions[1] = 1;
@@ -1581,7 +1309,7 @@ contract SelfPeggingAssetTest is Test {
         uint256 token1newRate = 2e18;
         testToken1Rate.newRate(token1newRate);
 
-        //after setting new buffer and new exchange, an estimate of what rebase added value to contract would look like
+        // after setting new buffer and new exchange, an estimate of what rebase added value to contract would look like
         // is calculated below, rebase should correctly give a value close to this if precision mutiplication was
         // handled correctly, based on current supply value
         value1 = token1.balanceOf(address(_pool));
