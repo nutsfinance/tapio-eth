@@ -890,7 +890,6 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         require(_amount > 0, ZeroAmount());
         require(_i < _balances.length, InvalidToken());
 
-        uint256 oldBalanceI = _balances[_i];
         uint256 newD = D - _amount;
         uint256 y = _getY(_balances, _i, newD, getCurrentA());
         uint256 dy = (_balances[_i] - y - 1) / precisions[_i];
