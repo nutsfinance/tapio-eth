@@ -1,0 +1,19 @@
+{
+  "chainId": 8453,
+  "name": "Base",
+  "rpcUrl": "https://mainnet.base.org",
+  "tokens": {
+    "usdc": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    "usdt": "0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2"
+  },
+  "factoryDefaults": {
+    "mintFee": 0,
+    "swapFee": 5000000,
+    "redeemFee": 0,
+    "offPegFeeMultiplier": 10000000000,
+    "A": 100,
+    "minRampTime": 1800,
+    "exchangeRateFeeFactor": 0,
+    "bufferPercent": 1000000000
+  }
+}

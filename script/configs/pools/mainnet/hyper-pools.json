@@ -1,0 +1,24 @@
+{
+  "pools": [
+    {
+      "name": "whypeBehype",
+      "description": "Whype/Behype SPA",
+      "enabled": true,
+      "tokenA": "whype",
+      "tokenB": "behype",
+      "tokenAType": "Standard",
+      "tokenBType": "Oracle",
+      "tokenAOracle": {},
+      "tokenBOracle": {
+        "type": "chainlink",
+        "feeds": [
+          {
+            "feed": "0xcAED794504b747629BE4E96463D61DF7B62D52be",
+            "heartbeat": 86400,
+            "decimals": 18
+          }
+        ]
+      }
+    }
+  ]
+}

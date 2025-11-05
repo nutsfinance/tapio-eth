@@ -1,0 +1,27 @@
+{
+  "version": "1.0.0",
+  "description": "Salt identifiers for Tapio Protocol deterministic deployments using CREATE3",
+  "contracts": {
+    "implementations": {
+      "SelfPeggingAsset": "Tapio-SelfPeggingAsset-Impl-v1.0.2@e861622-Prod",
+      "SPAToken": "Tapio-SPAToken-Impl-v1.0.2@e861622-Prod",
+      "WSPAToken": "Tapio-WSPAToken-Impl-v1.0.2@e861622-Prod",
+      "RampAController": "Tapio-RampAController-Impl-v1.0.2@e861622-Prod",
+      "Keeper": "Tapio-Keeper-Impl-v1.0.2@e861622-Prod"
+    },
+    "beacons": {
+      "SelfPeggingAssetBeacon": "Tapio-SelfPeggingAsset-Beacon-v1.0.2@e861622-Prod",
+      "SPATokenBeacon": "Tapio-SPAToken-Beacon-v1.0.2@e861622-Prod",
+      "WSPATokenBeacon": "Tapio-WSPAToken-Beacon-v1.0.2@e861622-Prod",
+      "RampAControllerBeacon": "Tapio-RampAController-Beacon-v1.0.2@e861622-Prod"
+    },
+    "factory": {
+      "FactoryImplementation": "Tapio-Factory-Impl-v1.0.2@e861622-Prod",
+      "FactoryProxy": "Tapio-Factory-Proxy-v1.0.2@e861622-Prod"
+    },
+    "periphery": {
+      "ConstantExchangeRateProvider": "Tapio-ConstantRateProvider-v1.0.2@e861622-Prod",
+      "Zap": "Tapio-Zap-v1.0.2@e861622-Prod"
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "chainId": 999,
+  "name": "HyperEVM",
+  "rpcUrl": "https://api.hyper.network",
+  "tokens": {
+    "whype": "0x5555555555555555555555555555555555555555",
+    "behype": "0xd8FC8F0b03eBA61F64D08B0bef69d80916E5DdA9"
+  },
+  "factoryDefaults": {
+    "mintFee": 0,
+    "swapFee": 5000000,
+    "redeemFee": 0,
+    "offPegFeeMultiplier": 10000000000,
+    "A": 100,
+    "minRampTime": 1800,
+    "exchangeRateFeeFactor": 0,
+    "bufferPercent": 1000000000
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "chainId": 1,
+  "name": "Ethereum",
+  "rpcUrl": "https://eth.llamarpc.com",
+  "tokens": {
+    "weth": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+    "wstETH": "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0",
+    "rETH": "0xae78736Cd615f374D3085123A210448E74Fc6393",
+    "cbETH": "0xBe9895146f7AF43049ca1c1AE358B0541Ea49704",
+    "usdc": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+    "usdt": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+    "dai": "0x6B175474E89094C44Da98b954EedeAC495271d0F"
+  },
+  "factoryDefaults": {
+    "mintFee": 0,
+    "swapFee": 5000000,
+    "redeemFee": 0,
+    "offPegFeeMultiplier": 10000000000,
+    "A": 100,
+    "minRampTime": 1800,
+    "exchangeRateFeeFactor": 0,
+    "bufferPercent": 1000000000
+  }
+}

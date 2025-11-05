@@ -1,0 +1,46 @@
+{
+  "pools": [
+    {
+      "name": "usdcUsdt",
+      "description": "USDC/USDT Stablecoin Pool",
+      "enabled": true,
+      "tokenA": "usdc",
+      "tokenB": "usdt",
+      "tokenAType": "Standard",
+      "tokenBType": "Standard",
+      "tokenAOracle": {},
+      "tokenBOracle": {},
+      "spa": {
+        "mintFee": 0,
+        "swapFee": 5000000,
+        "redeemFee": 0,
+        "offPegFeeMultiplier": 10000000000,
+        "A": 100,
+        "minRampTime": 1800,
+        "exchangeRateFeeFactor": 0,
+        "bufferPercent": 1000000000
+      }
+    },
+    {
+      "name": "usdcUsdt2",
+      "description": "USDC/USDT Stablecoin Pool 2",
+      "enabled": true,
+      "tokenA": "usdc",
+      "tokenB": "usdt",
+      "tokenAType": "Standard",
+      "tokenBType": "Standard",
+      "tokenAOracle": {},
+      "tokenBOracle": {},
+      "spa": {
+        "mintFee": 0,
+        "swapFee": 5000000,
+        "redeemFee": 0,
+        "offPegFeeMultiplier": 10000000000,
+        "A": 100,
+        "minRampTime": 1800,
+        "exchangeRateFeeFactor": 0,
+        "bufferPercent": 1000000000
+      }
+    }
+  ]
+}
