@@ -1079,6 +1079,24 @@ contract SelfPeggingAssetTest is Test {
         assertEq(rETHBalance1, rETHBalance2);
     }
 
+    function test_setWholesalerRates() external {
+        address[] memory wholesalers = new address[](0);
+        uint16[] memory rates = new uint16[](1);
+
+        vm.prank(owner);
+        vm.expectRevert(abi.encodeWithSignature("InputMismatch()"));
+        pool.setWholesalerRates(wholesalers, rates);
+
+        wholesalers = new address[](1);
+        wholesalers[0] = address(1);
+
+        rates[0] = 1e4 + 1;
+
+        vm.prank(owner);
+        vm.expectRevert(abi.encodeWithSignature("InvalidAmount()"));
+        pool.setWholesalerRates(wholesalers, rates);
+    }
+
     function testFuzz_ExchangeRateFee(
         uint256 initialLiquidity,
         uint256 swapAmount,

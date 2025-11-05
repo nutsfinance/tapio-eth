@@ -442,10 +442,6 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         paused = false;
     }
 
-    function setWholesalerRates(address[] memory wholesalers, uint16[] memory rates) external onlyOwner {
-        _setWholesalerRates(wholesalers, rates);
-    }
-
     /**
      * @dev Mints new pool token.
      * @param _amounts Unconverted token balances used to mint pool token.
@@ -727,6 +723,15 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         feeAmount = collectFeeOrYield(true);
         emit Redeemed(msg.sender, redeemAmount, amounts, feeAmount);
         return amounts;
+    }
+
+    /**
+     * @dev Updates the wholesalers discount rates
+     * @param wholesalers Array of whitelisted addresses
+     * @param rates Array of discount rates denominated in 1e4
+     */
+    function setWholesalerRates(address[] memory wholesalers, uint16[] memory rates) external onlyOwner {
+        _setWholesalerRates(wholesalers, rates);
     }
 
     /**
