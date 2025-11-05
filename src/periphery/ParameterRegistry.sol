@@ -12,7 +12,6 @@ import "../SelfPeggingAsset.sol";
  * Each SPA has its own ParameterRegistry
  */
 contract ParameterRegistry is IParameterRegistry, Ownable {
-    uint256 private constant MIN_MULTIPLIER = 1e10; // min offpeg multiplier 1
 
     uint256 private constant MAX_A = 10 ** 6; // 1M
     uint64 private constant MAX_DECREASE_PCT_A = 0.9e10; // -90%
@@ -31,9 +30,6 @@ contract ParameterRegistry is IParameterRegistry, Ownable {
         // set default values for A boundry
         bounds[ParamKey.A] =
             Bounds({ max: MAX_A, min: 0, maxDecreasePct: MAX_DECREASE_PCT_A, maxIncreasePct: MAX_INCREASE_PCT_A });
-
-        // set default values for A boundry
-        bounds[ParamKey.OffPeg] = Bounds({ max: 0, min: MIN_MULTIPLIER, maxDecreasePct: 0, maxIncreasePct: 0 });
     }
 
     /**
@@ -49,6 +45,13 @@ contract ParameterRegistry is IParameterRegistry, Ownable {
      */
     function aParams() external view returns (Bounds memory) {
         return bounds[ParamKey.A];
+    }
+
+    /**
+     * @inheritdoc IParameterRegistry
+     */
+    function wholesalerRateParams() external view returns (Bounds memory) {
+        return bounds[ParamKey.WholesalerRate];
     }
 
     /**
@@ -70,34 +73,6 @@ contract ParameterRegistry is IParameterRegistry, Ownable {
      */
     function redeemFeeParams() external view returns (Bounds memory) {
         return bounds[ParamKey.RedeemFee];
-    }
-
-    /**
-     * @inheritdoc IParameterRegistry
-     */
-    function offPegParams() external view returns (Bounds memory) {
-        return bounds[ParamKey.OffPeg];
-    }
-
-    /**
-     * @inheritdoc IParameterRegistry
-     */
-    function exchangeRateFeeParams() external view returns (Bounds memory) {
-        return bounds[ParamKey.ExchangeRateFee];
-    }
-
-    /**
-     * @inheritdoc IParameterRegistry
-     */
-    function decayPeriodParams() external view returns (Bounds memory) {
-        return bounds[ParamKey.DecayPeriod];
-    }
-
-    /**
-     * @inheritdoc IParameterRegistry
-     */
-    function rateChangeSkipPeriodParams() external view returns (Bounds memory) {
-        return bounds[ParamKey.RateChangeSkipPeriod];
     }
 
     /**

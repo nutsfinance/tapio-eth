@@ -13,14 +13,11 @@ interface IParameterRegistry {
         SwapFee,
         MintFee,
         RedeemFee,
-        OffPeg,
-        ExchangeRateFee,
-        DecayPeriod,
-        RateChangeSkipPeriod,
         FeeErrorMargin,
         YieldErrorMargin,
         MinRampTime,
-        BufferPercent
+        BufferPercent,
+        WholesalerRate
     }
 
     /**
@@ -56,6 +53,9 @@ interface IParameterRegistry {
      */
     function setBounds(ParamKey key, Bounds calldata newBounds) external;
 
+    /// @return Bounds for the 'wholesalerRate' discount
+    function wholesalerRateParams() external view returns (Bounds memory);
+
     /// @return Bounds for the 'A' coefficient parameter
     function aParams() external view returns (Bounds memory);
 
@@ -67,18 +67,6 @@ interface IParameterRegistry {
 
     /// @return Bounds for the redeem fee
     function redeemFeeParams() external view returns (Bounds memory);
-
-    /// @return Bounds for the off-peg multiplier
-    function offPegParams() external view returns (Bounds memory);
-
-    /// @return Bounds for exchange rate fee changes
-    function exchangeRateFeeParams() external view returns (Bounds memory);
-
-    /// @return Bounds for decay period
-    function decayPeriodParams() external view returns (Bounds memory);
-
-    /// @return Bounds for the rate change skip period
-    function rateChangeSkipPeriodParams() external view returns (Bounds memory);
 
     /// @return Bounds for the fee error margin
     function feeErrorMarginParams() external view returns (Bounds memory);

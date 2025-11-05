@@ -92,6 +92,21 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
     /**
      * @inheritdoc IKeeper
      */
+    function setWholesalerRates(address[] memory wholesalers, uint16[] memory rates) external onlyRole(CURATOR_ROLE) {
+        IParameterRegistry.Bounds memory wholesalerRateParams = registry.wholesalerRateParams();
+
+        for (uint256 i = 0; i < wholesalers.length; i++) {
+            uint16 curRate = spa.wholesalerRate(wholesalers[i]);
+            checkBounds(rates[i], curRate, wholesalerRateParams);
+        }
+
+        spa.setWholesalerRates(wholesalers, rates);
+        emit WholesalersUpdated(wholesalers, rates);
+    }
+
+    /**
+     * @inheritdoc IKeeper
+     */
     function rampA(uint256 newA, uint256 endTime) external override onlyRole(CURATOR_ROLE) {
         IParameterRegistry.Bounds memory aParams = registry.aParams();
 

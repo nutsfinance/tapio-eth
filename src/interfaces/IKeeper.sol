@@ -27,6 +27,14 @@ interface IKeeper {
     event RampCancelled();
     event TreasuryChanged(address indexed oldTreasury, address indexed newTreasury);
     event AdminFeeWithdrawn(address indexed to, uint256 amount, uint256 bufferLeft);
+    event WholesalersUpdated(address[] wholesalers, uint16[] rates);
+
+    /**
+     * @notice Allows curators to set wholesalers and discount rates on swap fees
+     * @param wholesalers Array of whitelisted wholesalers addresses
+     * @param rates Array of discount rates denominated in 1e4
+     */
+    function setWholesalerRates(address[] memory wholesalers, uint16[] memory rates) external;
 
     /**
      * @notice Allows curators to gradually ramp the A coefficient within allowed bounds

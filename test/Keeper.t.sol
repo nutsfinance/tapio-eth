@@ -202,7 +202,7 @@ contract KeeperFuzzTest is Test {
     )
         public
     {
-        paramType = uint8(bound(paramType, 0, 7));
+        paramType = uint8(bound(paramType, 0, 8));
 
         IParameterRegistry.ParamKey paramKey = getParamKey(paramType);
         // inputs based on parameter type
@@ -226,6 +226,11 @@ contract KeeperFuzzTest is Test {
             oldValue = bound(oldValue, curretnA / 10, curretnA * 10); // defult -90% and +900% is allowed
             newValue = bound(newValue, 1, 1e6);
             vm.assume(max <= 1e6);
+            vm.assume(min <= max);
+        }  else if (paramType == 8) {
+            oldValue = bound(oldValue, 0, 1e4);
+            newValue = bound(newValue, 0, 1e4);
+            vm.assume(max <= 1e4);
             vm.assume(min <= max);
         }
         if (paramType == 6) {
@@ -316,6 +321,7 @@ contract KeeperFuzzTest is Test {
         if (paramType == 5) return IParameterRegistry.ParamKey.YieldErrorMargin;
         if (paramType == 6) return IParameterRegistry.ParamKey.A;
         if (paramType == 7) return IParameterRegistry.ParamKey.MinRampTime;
+        if (paramType == 8) return IParameterRegistry.ParamKey.WholesalerRate;
         revert("Invalid ParamType");
     }
 
@@ -338,6 +344,13 @@ contract KeeperFuzzTest is Test {
             skip(1 hours);
         } else if (paramType == 7) {
             keeper.setMinRampTime(value);
+        } else if (paramType == 8) {
+            address[] memory wholesalers = new address[](1);
+            wholesalers[0] = address(1);
+
+            uint16[] memory rates = new uint16[](1);
+            rates[0] = uint16(value);
+            keeper.setWholesalerRates(wholesalers, rates);
         }
     }
 
@@ -351,6 +364,7 @@ contract KeeperFuzzTest is Test {
         if (paramType == 5) return spa.yieldErrorMargin();
         if (paramType == 6) return rampAController.getA();
         if (paramType == 7) return rampAController.minRampTime();
+        if (paramType == 8) return spa.wholesalerRate(address(1));
         revert("Invalid ParamType");
     }
 
