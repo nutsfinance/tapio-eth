@@ -436,6 +436,8 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         rampAController = IRampAController(_rampAController);
 
         A = _A;
+        feeErrorMargin = DEFAULT_FEE_ERROR_MARGIN;
+        yieldErrorMargin = DEFAULT_YIELD_ERROR_MARGIN;
 
         paused = false;
     }
