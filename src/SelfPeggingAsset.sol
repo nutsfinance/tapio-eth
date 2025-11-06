@@ -279,8 +279,6 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
     /// @notice Error thrown when the input parameters do not match the expected values.
     error InputMismatch();
 
-    error NotWholesaler();
-
     /// @notice Error thrown when fees are not set
     error NoFees();
 
@@ -525,46 +523,48 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         syncRamping
         returns (uint256)
     {
-        (uint256 dy, uint256[] memory _balances) = _swapPreFee(_i, _j, _dx);
+        require(!paused, Paused());
+        require(_i != _j, SameToken());
+        require(_i < balances.length, InvalidIn());
+        require(_j < balances.length, InvalidOut());
+        require(_dx != 0, InvalidAmount());
 
-        if (swapFee > 0) {
-            uint256 fee = (dy * swapFee) / FEE_DENOMINATOR;
-            dy -= fee;
-        }
+        collectFeeOrYield(false);
 
-        return _swapPostFee(_i, _j, _dx, dy, _minDy, _balances, 0);
-    }
+        uint256[] memory _balances = balances;
+        _balances[_i] +=
+            (_dx * exchangeRateProviders[_i].exchangeRate() * precisions[_i]) / (10 ** exchangeRateDecimals[_i]);
 
-    /**
-     * @dev Exchange between two underlying tokens with a discount for the whitelisted wholesalers.
-     * @param _i Token index to swap in.
-     * @param _j Token index to swap out.
-     * @param _dx Unconverted amount of token _i to swap in.
-     * @param _minDy Minimum token _j to swap out in converted balance.
-     * @return Amount of swap out.
-     */
-    function swapWholesale(
-        uint256 _i,
-        uint256 _j,
-        uint256 _dx,
-        uint256 _minDy
-    )
-        external
-        nonReentrant
-        syncRamping
-        returns (uint256)
-    {
-        (uint256 dy, uint256[] memory _balances) = _swapPreFee(_i, _j, _dx);
-        require(wholesalerRate[msg.sender] != 0, NotWholesaler());
+        uint256 y = _getY(_balances, _j, totalSupply, A);
+        uint256 dy = (_balances[_j] - y - 1) / precisions[_j];
+
+        // update balances in storage
+        balances[_j] = y;
+        balances[_i] = _balances[_i];
 
         uint256 discount;
         if (swapFee > 0) {
             uint256 feeAmount = (dy * swapFee) / FEE_DENOMINATOR;
-            discount = wholesalerRate[msg.sender] / RATE_DENOMINATOR;
+            discount = wholesalerRate[msg.sender] * feeAmount / RATE_DENOMINATOR;
             dy -= (feeAmount - discount);
         }
 
-        return _swapPostFee(_i, _j, _dx, dy, _minDy, _balances, discount);
+        uint256 _minDy = (_minDy * exchangeRateProviders[_j].exchangeRate()) / (10 ** exchangeRateDecimals[_j]);
+        if (dy < _minDy) revert InsufficientSwapOutAmount(dy, _minDy);
+
+        IERC20(tokens[_i]).safeTransferFrom(msg.sender, address(this), _dx);
+
+        uint256 transferAmountJ = (dy * (10 ** exchangeRateDecimals[_j])) / exchangeRateProviders[_j].exchangeRate();
+        IERC20(tokens[_j]).safeTransfer(msg.sender, transferAmountJ);
+
+        uint256[] memory amounts = new uint256[](_balances.length);
+        amounts[_i] = _dx;
+        amounts[_j] = transferAmountJ;
+
+        uint256 feeAmountActual = collectFeeOrYield(true);
+        emit TokenSwapped(msg.sender, transferAmountJ, amounts, feeAmountActual, discount);
+
+        return transferAmountJ;
     }
 
     /**
@@ -1235,63 +1235,5 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
             wholesalerRate[_wholesalers[i]] = _rates[i];
             emit WholesalerRateUpdated(_wholesalers[i], oldRate, _rates[i]);
         }
-    }
-
-    function _swapPreFee(
-        uint256 _i,
-        uint256 _j,
-        uint256 _dx
-    )
-        private
-        returns (uint256 dy, uint256[] memory _balances)
-    {
-        require(!paused, Paused());
-        require(_i != _j, SameToken());
-        require(_i < balances.length, InvalidIn());
-        require(_j < balances.length, InvalidOut());
-        require(_dx != 0, InvalidAmount());
-
-        collectFeeOrYield(false);
-
-        _balances = balances;
-        _balances[_i] +=
-            (_dx * exchangeRateProviders[_i].exchangeRate() * precisions[_i]) / (10 ** exchangeRateDecimals[_i]);
-
-        uint256 y = _getY(_balances, _j, totalSupply, A);
-        dy = (_balances[_j] - y - 1) / precisions[_j];
-
-        // update balances in storage
-        balances[_j] = y;
-        balances[_i] = _balances[_i];
-    }
-
-    function _swapPostFee(
-        uint256 _i,
-        uint256 _j,
-        uint256 _dx,
-        uint256 dy,
-        uint256 _minDy,
-        uint256[] memory _balances,
-        uint256 discount
-    )
-        private
-        returns (uint256)
-    {
-        _minDy = (_minDy * exchangeRateProviders[_j].exchangeRate()) / (10 ** exchangeRateDecimals[_j]);
-        if (dy < _minDy) revert InsufficientSwapOutAmount(dy, _minDy);
-
-        IERC20(tokens[_i]).safeTransferFrom(msg.sender, address(this), _dx);
-
-        uint256 transferAmountJ = (dy * (10 ** exchangeRateDecimals[_j])) / exchangeRateProviders[_j].exchangeRate();
-        IERC20(tokens[_j]).safeTransfer(msg.sender, transferAmountJ);
-
-        uint256[] memory amounts = new uint256[](_balances.length);
-        amounts[_i] = _dx;
-        amounts[_j] = transferAmountJ;
-
-        uint256 feeAmountActual = collectFeeOrYield(true);
-        emit TokenSwapped(msg.sender, transferAmountJ, amounts, feeAmountActual, discount);
-
-        return transferAmountJ;
     }
 }
