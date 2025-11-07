@@ -30,6 +30,10 @@ contract SelfPeggingAssetTest is Test {
     MockToken frxETH;
     uint256[] precisions;
 
+    event TokenSwapped(
+        address indexed sender, uint256 amountOut, uint256[] amounts, uint256 feeAmountActual, uint256 discount
+    );
+
     function setUp() public {
         WETH = new MockToken("WETH", "WETH", 18);
         frxETH = new MockToken("frxETH", "frxETH", 18);
@@ -1095,6 +1099,90 @@ contract SelfPeggingAssetTest is Test {
         vm.prank(owner);
         vm.expectRevert(abi.encodeWithSignature("InvalidAmount()"));
         pool.setWholesalerRates(wholesalers, rates);
+
+        wholesalers[0] = user2;
+        rates[0] = 5000;
+
+        vm.prank(owner);
+        pool.setWholesalerRates(wholesalers, rates);
+
+        assertEq(pool.wholesalerRate(user2), rates[0]);
+
+        WETH.mint(user, 105e18);
+        frxETH.mint(user, 85e18);
+
+        vm.startPrank(user);
+        WETH.approve(address(pool), 105e18);
+        frxETH.approve(address(pool), 85e18);
+
+        uint256[] memory amounts = new uint256[](2);
+        amounts[0] = 105e18;
+        amounts[1] = 85e18;
+
+        pool.mint(amounts, 0);
+        vm.stopPrank();
+
+        frxETH.mint(user2, 8e18);
+        vm.startPrank(user2);
+        frxETH.approve(address(pool), 8e18);
+        vm.stopPrank();
+
+        (, uint256 feeAmount) = pool.getSwapAmount(1, 0, 8e18);
+        uint256 expectedDiscount = (rates[0] * feeAmount) / 1e4;
+
+        vm.recordLogs();
+
+        vm.prank(user2);
+        pool.swap(1, 0, 8e18, 0);
+
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+        bytes32 eventSig = keccak256("TokenSwapped(address,uint256,uint256[],uint256,uint256)");
+
+        writeLogsToJson(entries, "test/utils/swap.json");
+        _checkDiscount(entries, eventSig, expectedDiscount);
+    }
+
+    function writeLogsToJson(Vm.Log[] memory entries, string memory path) internal {
+        string memory json;
+        for (uint256 i; i < entries.length; ++i) {
+            Vm.Log memory logEntry = entries[i];
+
+            // Each log object
+            string memory logJson =
+                vm.serializeAddress(string.concat("event_", vm.toString(i)), "emitter", logEntry.emitter);
+            logJson = vm.serializeBytes(string.concat("event_", vm.toString(i)), "data", logEntry.data);
+
+            for (uint256 j; j < logEntry.topics.length; ++j) {
+                string memory topicKey = string.concat("topic_", vm.toString(j));
+                logJson = vm.serializeBytes32(string.concat("event_", vm.toString(i)), topicKey, logEntry.topics[j]);
+            }
+
+            json = vm.serializeString("events", vm.toString(i), logJson);
+        }
+
+        // Write to file
+        vm.writeJson(json, path);
+    }
+
+    function _checkDiscount(Vm.Log[] memory entries, bytes32 eventSig, uint256 expectedDiscount) internal view {
+        for (uint256 i; i < entries.length; ++i) {
+            if (entries[i].topics[0] == eventSig) {
+                bytes memory discountBytes = slice(entries[i].data, 96, 128);
+                uint256 discount = abi.decode(discountBytes, (uint256));
+
+                assertEq(discount, expectedDiscount, "Discount mismatch");
+                return;
+            }
+        }
+        revert("TokenSwapped event not found");
+    }
+
+    function slice(bytes memory data, uint256 start, uint256 end) internal pure returns (bytes memory result) {
+        require(end > start, "Invalid slice range");
+        result = new bytes(end - start);
+        for (uint256 i; i < end - start; ++i) {
+            result[i] = data[i + start];
+        }
     }
 
     function testFuzz_ExchangeRateFee(
