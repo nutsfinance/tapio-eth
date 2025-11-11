@@ -4,6 +4,8 @@ cache
 coverage
 node_modules
 out
+script/simulation
+test/utils
 
 # files
 *.env

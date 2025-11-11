@@ -217,14 +217,7 @@ contract SPAToken is Initializable, OwnableUpgradeable, ISPAToken {
      * Requirements:
      * - the caller must have allowance for `_sender`'s tokens of at least `getPeggedTokenByShares(_sharesAmount)`.
      */
-    function transferSharesFrom(
-        address _sender,
-        address _recipient,
-        uint256 _sharesAmount
-    )
-        external
-        returns (uint256)
-    {
+    function transferSharesFrom(address _sender, address _recipient, uint256 _sharesAmount) external returns (uint256) {
         uint256 tokensAmount = getPeggedTokenByShares(_sharesAmount);
         if (tokensAmount == 0 && _sharesAmount > 0) tokensAmount = 1; // Prevent zero-cost transfers
         _spendAllowance(_sender, msg.sender, tokensAmount);
@@ -327,6 +320,7 @@ contract SPAToken is Initializable, OwnableUpgradeable, ISPAToken {
         _approve(msg.sender, _spender, currentAllowance - _subtractedValue);
         return true;
     }
+
     // solhint-enable max-line-length
 
     /**

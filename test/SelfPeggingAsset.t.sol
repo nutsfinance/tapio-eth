@@ -209,7 +209,7 @@ contract SelfPeggingAssetTest is Test {
         assertEq(pool.balances(0), 105e18);
         assertEq(pool.balances(1), 85e18);
 
-        assertEq(pool.totalSupply(), 189.994_704_791_049_550_806e18);
+        assertEq(pool.totalSupply(), 189.994704791049550806e18);
 
         assertEq(pool.totalSupply(), spaToken.totalSupply());
 
@@ -263,8 +263,8 @@ contract SelfPeggingAssetTest is Test {
         assertEq(pool.balances(0), 105e18);
         assertEq(pool.balances(1), 85e18);
 
-        assertEq(pool.totalSupply(), 189.994_704_791_049_550_806e18);
-        assertEq(spaToken.totalSupply(), 189.994_704_791_049_550_806e18);
+        assertEq(pool.totalSupply(), 189.994704791049550806e18);
+        assertEq(spaToken.totalSupply(), 189.994704791049550806e18);
 
         uint256 amountToRedeem = spaToken.balanceOf(user2);
         vm.startPrank(user2);
@@ -467,8 +467,8 @@ contract SelfPeggingAssetTest is Test {
 
         (uint256 exchangeAmount, uint256 feeAmount) = pool.getSwapAmount(1, 0, 8e18);
 
-        assertEq(exchangeAmount, 7.992_985_053_666_343_961e18);
-        assertEq(feeAmount, 0.016_018_006_119_571_831e18);
+        assertEq(exchangeAmount, 7.992985053666343961e18);
+        assertEq(feeAmount, 0.016018006119571831e18);
     }
 
     function testStaticFeeForSwap() external {
@@ -502,7 +502,7 @@ contract SelfPeggingAssetTest is Test {
         assertEq(pool.balances(0), 105e18);
         assertEq(pool.balances(1), 85e18);
 
-        assertEq(pool.totalSupply(), 189.994_704_791_049_550_806e18);
+        assertEq(pool.totalSupply(), 189.994704791049550806e18);
 
         assertEq(pool.totalSupply(), spaToken.totalSupply());
 
@@ -971,7 +971,7 @@ contract SelfPeggingAssetTest is Test {
 
         uint256[] memory _fees = new uint256[](3);
         _fees[0] = 0;
-        _fees[1] = 0.000_01e10;
+        _fees[1] = 0.00001e10;
         _fees[2] = 0;
 
         uint256[] memory _precisions = new uint256[](2);
@@ -1235,7 +1235,7 @@ contract SelfPeggingAssetTest is Test {
 
         uint256[] memory fees = new uint256[](3);
         fees[0] = 0;
-        fees[1] = 0.000_01e10;
+        fees[1] = 0.00001e10;
         fees[2] = 0;
         precisions[0] = 1;
         precisions[1] = 1;

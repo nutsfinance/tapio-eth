@@ -49,7 +49,8 @@ contract WETH9 {
         // solhint-disable max-line-length
         if (
             src != msg.sender
-                && allowance[src][msg.sender] != uint256(0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff)
+                && allowance[src][msg.sender]
+                    != uint256(0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff)
         ) {
             require(allowance[src][msg.sender] >= wad, NoAllowance());
             allowance[src][msg.sender] -= wad;

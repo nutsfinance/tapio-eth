@@ -12,8 +12,7 @@ import "../SelfPeggingAsset.sol";
  * Each SPA has its own ParameterRegistry
  */
 contract ParameterRegistry is IParameterRegistry, Ownable {
-
-    uint256 private constant MAX_A = 10 ** 6; // 1M
+    uint256 private constant MAX_A = 10 ** 6; //1M
     uint64 private constant MAX_DECREASE_PCT_A = 0.9e10; // -90%
     uint64 private constant MAX_INCREASE_PCT_A = 9e10; // +900%
 

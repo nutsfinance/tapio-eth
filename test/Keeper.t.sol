@@ -207,10 +207,10 @@ contract KeeperFuzzTest is Test {
         IParameterRegistry.ParamKey paramKey = getParamKey(paramType);
         // inputs based on parameter type
         if (paramType == 0 || paramType == 1 || paramType == 2 || paramType == 3) {
-            vm.assume(oldValue < DENOMINATOR);
-            vm.assume(newValue < DENOMINATOR);
-            vm.assume(max <= DENOMINATOR);
-            vm.assume(min <= max);
+            oldValue = bound(oldValue, 0, DENOMINATOR - 1);
+            newValue = bound(newValue, 0, DENOMINATOR - 1);
+            max = bound(max, 0, DENOMINATOR);
+            min = bound(min, 0, max);
         } else if (paramType == 7) {
             vm.assume(oldValue <= 365 days);
             vm.assume(newValue <= 365 days);
@@ -227,18 +227,18 @@ contract KeeperFuzzTest is Test {
             newValue = bound(newValue, 1, 1e6);
             vm.assume(max <= 1e6);
             vm.assume(min <= max);
-        }  else if (paramType == 8) {
+        } else if (paramType == 8) {
             oldValue = bound(oldValue, 0, 1e4);
             newValue = bound(newValue, 0, 1e4);
-            vm.assume(max <= 1e4);
-            vm.assume(min <= max);
+            max = bound(max, 0, 1e4);
+            min = bound(min, 0, max);
         }
         if (paramType == 6) {
             maxDecreasePct = uint64(bound(maxDecreasePct, 1, type(uint64).max));
             maxIncreasePct = uint64(bound(maxIncreasePct, 1, type(uint64).max));
         } else {
-            vm.assume(maxDecreasePct <= DENOMINATOR);
-            vm.assume(maxIncreasePct <= DENOMINATOR);
+            maxDecreasePct = uint64(bound(maxDecreasePct, 0, DENOMINATOR));
+            maxIncreasePct = uint64(bound(maxIncreasePct, 0, DENOMINATOR));
         }
 
         checkParameterBounds(paramType, paramKey, min, max, maxDecreasePct, maxIncreasePct, oldValue, newValue);

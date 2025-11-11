@@ -532,8 +532,8 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         collectFeeOrYield(false);
 
         uint256[] memory _balances = balances;
-        _balances[_i] +=
-            (_dx * exchangeRateProviders[_i].exchangeRate() * precisions[_i]) / (10 ** exchangeRateDecimals[_i]);
+        _balances[_i] += (_dx * exchangeRateProviders[_i].exchangeRate() * precisions[_i])
+            / (10 ** exchangeRateDecimals[_i]);
 
         uint256 y = _getY(_balances, _j, totalSupply, A);
         uint256 dy = (_balances[_j] - y - 1) / precisions[_j];
@@ -960,18 +960,19 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         uint256 mintAmount = newD - oldD;
         uint256 feeAmount = 0;
         if (mintFee > 0 && oldD != 0) {
+            uint256 preFeeMintAmount = mintAmount;
             uint256[] memory fees = new uint256[](_balances.length);
             for (uint256 i = 0; i < _balances.length; i++) {
                 uint256 idealBalance = newD * balances[i] / oldD;
                 uint256 difference =
                     idealBalance > _balances[i] ? idealBalance - _balances[i] : _balances[i] - idealBalance;
                 fees[i] = (difference * mintFee) / FEE_DENOMINATOR;
-                feeAmount += fees[i];
                 _balances[i] -= fees[i];
             }
 
             newD = _getD(_balances, getCurrentA());
             mintAmount = newD - oldD;
+            feeAmount = preFeeMintAmount - mintAmount;
         }
 
         return (mintAmount, feeAmount);
@@ -995,8 +996,8 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
 
         // balance[i] = balance[i] + dx * precisions[i]
 
-        _balances[_i] +=
-            (_dx * exchangeRateProviders[_i].exchangeRate() * precisions[_i]) / (10 ** exchangeRateDecimals[_i]);
+        _balances[_i] += (_dx * exchangeRateProviders[_i].exchangeRate() * precisions[_i])
+            / (10 ** exchangeRateDecimals[_i]);
         uint256 y = _getY(_balances, _j, D, getCurrentA());
         // dy = (balance[j] - y - 1) / precisions[j] in case there was rounding errors
         uint256 dy = (_balances[_j] - y - 1) / precisions[_j];
@@ -1230,7 +1231,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         require(_wholesalers.length == _rates.length, InputMismatch());
 
         for (uint256 i = 0; i < _wholesalers.length; i++) {
-            require(_rates[i] < RATE_DENOMINATOR, InvalidAmount());
+            require(_rates[i] <= RATE_DENOMINATOR, InvalidAmount());
             uint16 oldRate = wholesalerRate[_wholesalers[i]];
             wholesalerRate[_wholesalers[i]] = _rates[i];
             emit WholesalerRateUpdated(_wholesalers[i], oldRate, _rates[i]);
