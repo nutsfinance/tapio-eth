@@ -38,6 +38,8 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
      * @dev This is the denominator used for calculating transaction fees in the SelfPeggingAsset contract.
      */
     uint256 private constant FEE_DENOMINATOR = 10 ** 10;
+
+    uint16 private constant RATE_DENOMINATOR = 10 ** 4;
     /**
      *  @dev This is the maximum error margin for calculating transaction fees in the SelfPeggingAsset contract.
      */
@@ -57,16 +59,6 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
      *  @dev This is minimum initial mint
      */
     uint256 private constant INITIAL_MINT_MIN = 100_000;
-
-    /**
-     * @dev This is the default decay period
-     */
-    uint256 private constant DEFAULT_DECAY_PERIOD = 5 minutes;
-
-    /**
-     * @dev This is the default rate change skip period
-     */
-    uint256 private constant DEFAULT_RATE_CHANGE_SKIP_PERIOD = 1 days;
 
     /**
      * @dev This is an array of addresses representing the tokens currently supported by the SelfPeggingAsset contract.
@@ -163,12 +155,12 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
     uint256 public decayPeriod;
 
     /**
-     * @notice The time (in seconds) after which the multiplier is skipped when the rate is changed.
+     * @notice (deprecated) the time (in seconds) after which the multiplier is skipped when the rate is changed.
      */
     uint256 public rateChangeSkipPeriod;
 
     /**
-     * @dev Tracks the last time a transaction occurred in the SelfPeggingAsset contract.
+     * @dev (deprecated) Tracks the last time a transaction occurred in the SelfPeggingAsset contract.
      */
     uint256 public lastActivity;
 
@@ -178,13 +170,21 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
     mapping(uint256 => TokenFeeStatus) public feeStatusByToken;
 
     /**
+     * @notice Mapping of aggregator to
+     */
+    mapping(address => uint16) public wholesalerRate;
+
+    /**
      * @notice This event is emitted when a token swap occurs.
      * @param buyer is the address of the account that made the swap.
      * @param swapAmount is the amount of the token swapped by the buyer.
      * @param amounts is an array containing the amounts of each token received by the buyer.
      * @param feeAmount is the amount of transaction fee charged for the swap.
+     * @param discount is the amount of swap fee discounted for using the wholesaler address.
      */
-    event TokenSwapped(address indexed buyer, uint256 swapAmount, uint256[] amounts, uint256 feeAmount);
+    event TokenSwapped(
+        address indexed buyer, uint256 swapAmount, uint256[] amounts, uint256 feeAmount, uint256 discount
+    );
 
     /**
      * @notice This event is emitted when liquidity is added to the SelfPeggingAsset contract.
@@ -250,12 +250,6 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
     event RedeemFeeModified(uint256 redeemFee);
 
     /**
-     * @dev This event is emitted when the off peg fee multiplier is modified.
-     * @param offPegFeeMultiplier is the new value of the off peg fee multiplier.
-     */
-    event OffPegFeeMultiplierModified(uint256 offPegFeeMultiplier);
-
-    /**
      * @dev This event is emitted when the fee margin is modified.
      * @param margin is the new value of the margin.
      */
@@ -268,24 +262,6 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
     event YieldMarginModified(uint256 margin);
 
     /**
-     * @dev This event is emitted when the exchange rate fee factor is modified.
-     * @param factor is the new value of the factor.
-     */
-    event ExchangeRateFeeFactorModified(uint256 factor);
-
-    /**
-     * @dev This event is emitted when the decay period is modified.
-     * @param decayPeriod is the new value of the decay period.
-     */
-    event DecayPeriodModified(uint256 decayPeriod);
-
-    /**
-     * @dev This event is emitted when the rate change skip period is modified.
-     * @param rateChangeSkipPeriod is the new value of the rate change skip period.
-     */
-    event RateChangeSkipPeriodModified(uint256 rateChangeSkipPeriod);
-
-    /**
      * @dev This event is emitted when the pool is paused.
      */
     event PoolPaused();
@@ -294,6 +270,11 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
      * @dev This event is emitted when the pool is unpaused.
      */
     event PoolUnpaused();
+
+    /**
+     * @dev Emitted when new rate is set for a wholesaler
+     */
+    event WholesalerRateUpdated(address indexed wholesaler, uint16 oldRate, uint16 newRate);
 
     /// @notice Error thrown when the input parameters do not match the expected values.
     error InputMismatch();
@@ -390,7 +371,6 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
      * @param _tokens The tokens in the pool.
      * @param _precisions The precisions of each token (10 ** (18 - token decimals)).
      * @param _fees The fees for minting, swapping, and redeeming.
-     * @param _offPegFeeMultiplier The off peg fee multiplier.
      * @param _poolToken The address of the pool token.
      * @param _A The initial value of the amplification coefficient A for the pool.
      * @param _exchangeRateProviders The exchange rate providers for the tokens.
@@ -400,12 +380,12 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         address[] memory _tokens,
         uint256[] memory _precisions,
         uint256[] memory _fees,
-        uint256 _offPegFeeMultiplier,
+        address[] memory _wholesalers,
+        uint16[] memory _rates,
         ISPAToken _poolToken,
         uint256 _A,
         IExchangeRateProvider[] memory _exchangeRateProviders,
         address _rampAController,
-        uint256 _exchangeRateFeeFactor,
         address _keeper
     )
         public
@@ -416,6 +396,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
                 && _tokens.length == _exchangeRateProviders.length,
             InputMismatch()
         );
+
         require(_fees.length == 3, NoFees());
         for (uint256 i = 0; i < 3; i++) {
             require(_fees[i] < FEE_DENOMINATOR, FeePercentageTooLarge());
@@ -435,6 +416,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
                 require(_tokens[i] != _tokens[j], DuplicateToken());
             }
         }
+        _setWholesalerRates(_wholesalers, _rates);
         require(address(_poolToken) != address(0), PoolTokenNotSet());
         require(_A > 0 && _A < MAX_A, ANotSet());
 
@@ -448,25 +430,14 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         redeemFee = _fees[2];
         poolToken = _poolToken;
         exchangeRateProviders = _exchangeRateProviders;
-        offPegFeeMultiplier = _offPegFeeMultiplier;
-        exchangeRateFeeFactor = _exchangeRateFeeFactor;
 
         rampAController = IRampAController(_rampAController);
 
         A = _A;
         feeErrorMargin = DEFAULT_FEE_ERROR_MARGIN;
         yieldErrorMargin = DEFAULT_YIELD_ERROR_MARGIN;
-        decayPeriod = DEFAULT_DECAY_PERIOD;
-        rateChangeSkipPeriod = DEFAULT_RATE_CHANGE_SKIP_PERIOD;
 
         paused = false;
-        lastActivity = block.timestamp;
-
-        for (uint256 i = 0; i < _exchangeRateProviders.length; i++) {
-            uint256 initRate = _exchangeRateProviders[i].exchangeRate();
-            feeStatusByToken[i] =
-                TokenFeeStatus({ lastRate: initRate, multiplier: FEE_DENOMINATOR, raisedAt: block.timestamp });
-        }
     }
 
     /**
@@ -487,10 +458,6 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         require(!paused, Paused());
         require(balances.length == _amounts.length, InvalidAmount());
 
-        for (uint256 i = 0; i < _amounts.length; i++) {
-            _updateMultiplierForToken(i);
-        }
-
         collectFeeOrYield(false);
         uint256[] memory _balances = balances;
         uint256 oldD = totalSupply;
@@ -508,14 +475,12 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
 
         uint256 feeAmount = 0;
         if (mintFee > 0 && oldD != 0) {
-            uint256 ys = (newD + oldD) / _balances.length;
             uint256[] memory fees = new uint256[](_balances.length);
             for (uint256 i = 0; i < _balances.length; i++) {
                 uint256 idealBalance = newD * balances[i] / oldD;
                 uint256 difference =
                     idealBalance > _balances[i] ? idealBalance - _balances[i] : _balances[i] - idealBalance;
-                uint256 xs = balances[i] + _balances[i];
-                fees[i] = (difference * (_dynamicFee(xs, ys, mintFee) + _volatilityFee(i, mintFee))) / FEE_DENOMINATOR;
+                fees[i] = difference * mintFee / FEE_DENOMINATOR;
                 _balances[i] -= fees[i];
             }
 
@@ -535,7 +500,6 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         totalSupply = oldD + mintAmount;
         poolToken.mintShares(msg.sender, mintAmount);
         feeAmount = collectFeeOrYield(true);
-        lastActivity = block.timestamp;
         emit Minted(msg.sender, mintAmount, _amounts, feeAmount);
         return mintAmount;
     }
@@ -565,35 +529,31 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         require(_j < balances.length, InvalidOut());
         require(_dx != 0, InvalidAmount());
 
-        _updateMultiplierForToken(_i);
-        _updateMultiplierForToken(_j);
-
         collectFeeOrYield(false);
+
         uint256[] memory _balances = balances;
-        uint256 prevBalanceI = _balances[_i];
-        _balances[_i] +=
-            (_dx * exchangeRateProviders[_i].exchangeRate() * precisions[_i]) / (10 ** exchangeRateDecimals[_i]);
+        _balances[_i] += (_dx * exchangeRateProviders[_i].exchangeRate() * precisions[_i])
+            / (10 ** exchangeRateDecimals[_i]);
+
         uint256 y = _getY(_balances, _j, totalSupply, A);
-        // dy = (balance[j] - y - 1) / precisions[j] in case there was rounding errors
         uint256 dy = (_balances[_j] - y - 1) / precisions[_j];
-        // Update token balance in storage
+
+        // update balances in storage
         balances[_j] = y;
         balances[_i] = _balances[_i];
 
-        uint256 feeAmount = 0;
+        uint256 discount;
         if (swapFee > 0) {
-            feeAmount = _calcSwapFee(_i, _j, prevBalanceI, _balances[_i], _balances[_j], y, dy);
-            dy -= feeAmount;
+            uint256 feeAmount = (dy * swapFee) / FEE_DENOMINATOR;
+            discount = wholesalerRate[msg.sender] * feeAmount / RATE_DENOMINATOR;
+            dy -= (feeAmount - discount);
         }
-        _minDy = (_minDy * exchangeRateProviders[_j].exchangeRate()) / (10 ** exchangeRateDecimals[_j]);
+
+        uint256 _minDy = (_minDy * exchangeRateProviders[_j].exchangeRate()) / (10 ** exchangeRateDecimals[_j]);
         if (dy < _minDy) revert InsufficientSwapOutAmount(dy, _minDy);
 
         IERC20(tokens[_i]).safeTransferFrom(msg.sender, address(this), _dx);
-        // Important: When swap fee > 0, the swap fee is charged on the output token.
-        // Therefore, balances[j] < tokens[j].balanceOf(this)
-        // Since balances[j] is used to compute D, D is unchanged.
-        // collectFees() is used to convert the difference between balances[j] and tokens[j].balanceOf(this)
-        // into pool token as fees!
+
         uint256 transferAmountJ = (dy * (10 ** exchangeRateDecimals[_j])) / exchangeRateProviders[_j].exchangeRate();
         IERC20(tokens[_j]).safeTransfer(msg.sender, transferAmountJ);
 
@@ -602,8 +562,8 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         amounts[_j] = transferAmountJ;
 
         uint256 feeAmountActual = collectFeeOrYield(true);
-        lastActivity = block.timestamp;
-        emit TokenSwapped(msg.sender, transferAmountJ, amounts, feeAmountActual);
+        emit TokenSwapped(msg.sender, transferAmountJ, amounts, feeAmountActual, discount);
+
         return transferAmountJ;
     }
 
@@ -677,12 +637,9 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         require(_amount > 0, ZeroAmount());
         require(_i < balances.length, InvalidToken());
 
-        _updateMultiplierForToken(_i);
-
         collectFeeOrYield(false);
         uint256[] memory _balances = balances;
         uint256 oldD = totalSupply;
-        uint256 oldBalanceI = _balances[_i];
 
         uint256 newD = oldD - _amount;
         // y is converted(18 decimals)
@@ -692,11 +649,7 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         uint256 dy = (_balances[_i] - y - 1) / precisions[_i];
         uint256 feeAmount = 0;
         if (redeemFee > 0) {
-            uint256 xs = (oldBalanceI + y) / 2;
-            uint256 ys = (oldD + newD) / (_balances.length * 2);
-            uint256 dynamicFee = _dynamicFee(xs, ys, redeemFee);
-            feeAmount = (dy * (dynamicFee + _volatilityFee(_i, redeemFee))) / FEE_DENOMINATOR;
-            dy -= feeAmount;
+            dy -= (dy * redeemFee) / FEE_DENOMINATOR;
         }
         _minRedeemAmount =
             (_minRedeemAmount * exchangeRateProviders[_i].exchangeRate()) / (10 ** exchangeRateDecimals[_i]);
@@ -711,7 +664,6 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         totalSupply = newD;
         poolToken.burnSharesFrom(msg.sender, _amount);
         feeAmount = collectFeeOrYield(true);
-        lastActivity = block.timestamp;
         emit Redeemed(msg.sender, _amount, amounts, feeAmount);
         return transferAmount;
     }
@@ -734,10 +686,6 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         require(_amounts.length == balances.length, InputMismatch());
         require(!paused, Paused());
 
-        for (uint256 i = 0; i < _amounts.length; i++) {
-            _updateMultiplierForToken(i);
-        }
-
         collectFeeOrYield(false);
         uint256[] memory _balances = balances;
         uint256 oldD = totalSupply;
@@ -748,15 +696,12 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         uint256 redeemAmount = oldD - newD;
         uint256 feeAmount = 0;
         if (redeemFee > 0) {
-            uint256 ys = (newD + oldD) / _balances.length;
             uint256[] memory fees = new uint256[](_balances.length);
             for (uint256 i = 0; i < _balances.length; i++) {
                 uint256 idealBalance = newD * balances[i] / oldD;
                 uint256 difference =
                     idealBalance > _balances[i] ? idealBalance - _balances[i] : _balances[i] - idealBalance;
-                uint256 xs = balances[i] + _balances[i];
-                fees[i] =
-                    (difference * (_dynamicFee(xs, ys, redeemFee) + _volatilityFee(i, redeemFee))) / FEE_DENOMINATOR;
+                fees[i] = (difference * redeemFee) / FEE_DENOMINATOR;
                 _balances[i] -= fees[i];
             }
 
@@ -776,9 +721,17 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
             IERC20(tokens[i]).safeTransfer(msg.sender, _amounts[i]);
         }
         feeAmount = collectFeeOrYield(true);
-        lastActivity = block.timestamp;
         emit Redeemed(msg.sender, redeemAmount, amounts, feeAmount);
         return amounts;
+    }
+
+    /**
+     * @dev Updates the wholesalers discount rates
+     * @param wholesalers Array of whitelisted addresses
+     * @param rates Array of discount rates denominated in 1e4
+     */
+    function setWholesalerRates(address[] memory wholesalers, uint16[] memory rates) external onlyOwner {
+        _setWholesalerRates(wholesalers, rates);
     }
 
     /**
@@ -809,42 +762,6 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         require(_redeemFee < FEE_DENOMINATOR, LimitExceeded());
         redeemFee = _redeemFee;
         emit RedeemFeeModified(_redeemFee);
-    }
-
-    /**
-     * @dev Updates the off peg fee multiplier.
-     * @param _offPegFeeMultiplier The new off peg fee multiplier.
-     */
-    function setOffPegFeeMultiplier(uint256 _offPegFeeMultiplier) external onlyOwner {
-        offPegFeeMultiplier = _offPegFeeMultiplier;
-        emit OffPegFeeMultiplierModified(_offPegFeeMultiplier);
-    }
-
-    /**
-     * @dev Updates the exchange rate fee factor.
-     * @param _exchangeRateFeeFactor The new exchange rate fee factor.
-     */
-    function setExchangeRateFeeFactor(uint256 _exchangeRateFeeFactor) external onlyOwner {
-        exchangeRateFeeFactor = _exchangeRateFeeFactor;
-        emit ExchangeRateFeeFactorModified(_exchangeRateFeeFactor);
-    }
-
-    /**
-     * @dev Updates the decay period.
-     * @param _decayPeriod The new decay period.
-     */
-    function setDecayPeriod(uint256 _decayPeriod) external onlyOwner {
-        decayPeriod = _decayPeriod;
-        emit DecayPeriodModified(_decayPeriod);
-    }
-
-    /**
-     * @dev Updates the rate change skip period.
-     * @param _rateChangeSkipPeriod The new rate change skip period.
-     */
-    function setRateChangeSkipPeriod(uint256 _rateChangeSkipPeriod) external onlyOwner {
-        rateChangeSkipPeriod = _rateChangeSkipPeriod;
-        emit RateChangeSkipPeriodModified(_rateChangeSkipPeriod);
     }
 
     /**
@@ -980,16 +897,12 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         require(_amount > 0, ZeroAmount());
         require(_i < _balances.length, InvalidToken());
 
-        uint256 oldBalanceI = _balances[_i];
         uint256 newD = D - _amount;
         uint256 y = _getY(_balances, _i, newD, getCurrentA());
         uint256 dy = (_balances[_i] - y - 1) / precisions[_i];
         uint256 feeAmount = 0;
         if (redeemFee > 0) {
-            uint256 xs = (oldBalanceI + y) / 2;
-            uint256 ys = (D + newD) / (_balances.length * 2);
-            uint256 dynamicFee = _dynamicFee(xs, ys, redeemFee);
-            feeAmount = (dy * (dynamicFee + _volatilityFee(_i, redeemFee))) / FEE_DENOMINATOR;
+            feeAmount = (dy * redeemFee) / FEE_DENOMINATOR;
             dy -= feeAmount;
         }
         uint256 transferAmount = (dy * (10 ** exchangeRateDecimals[_i])) / exchangeRateProviders[_i].exchangeRate();
@@ -1013,15 +926,12 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         uint256 redeemAmount = oldD - newD;
         uint256 feeAmount = 0;
         if (redeemFee > 0) {
-            uint256 ys = (newD + oldD) / _balances.length;
             uint256[] memory fees = new uint256[](_balances.length);
             for (uint256 i = 0; i < _balances.length; i++) {
                 uint256 idealBalance = newD * balances[i] / oldD;
                 uint256 difference =
                     idealBalance > _balances[i] ? idealBalance - _balances[i] : _balances[i] - idealBalance;
-                uint256 xs = balances[i] + _balances[i];
-                fees[i] =
-                    (difference * (_dynamicFee(xs, ys, redeemFee) + _volatilityFee(i, redeemFee))) / FEE_DENOMINATOR;
+                fees[i] = (difference * redeemFee) / FEE_DENOMINATOR;
                 _balances[i] -= fees[i];
             }
 
@@ -1051,14 +961,12 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         uint256 feeAmount = 0;
         if (mintFee > 0 && oldD != 0) {
             uint256 preFeeMintAmount = mintAmount;
-            uint256 ys = (newD + oldD) / _balances.length;
             uint256[] memory fees = new uint256[](_balances.length);
             for (uint256 i = 0; i < _balances.length; i++) {
                 uint256 idealBalance = newD * balances[i] / oldD;
                 uint256 difference =
                     idealBalance > _balances[i] ? idealBalance - _balances[i] : _balances[i] - idealBalance;
-                uint256 xs = balances[i] + _balances[i];
-                fees[i] = (difference * (_dynamicFee(xs, ys, mintFee) + _volatilityFee(i, mintFee))) / FEE_DENOMINATOR;
+                fees[i] = (difference * mintFee) / FEE_DENOMINATOR;
                 _balances[i] -= fees[i];
             }
 
@@ -1086,18 +994,17 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         require(_i < _balances.length, InvalidIn());
         require(_j < _balances.length, InvalidOut());
 
-        uint256 prevBalanceI = _balances[_i];
         // balance[i] = balance[i] + dx * precisions[i]
 
-        _balances[_i] +=
-            (_dx * exchangeRateProviders[_i].exchangeRate() * precisions[_i]) / (10 ** exchangeRateDecimals[_i]);
+        _balances[_i] += (_dx * exchangeRateProviders[_i].exchangeRate() * precisions[_i])
+            / (10 ** exchangeRateDecimals[_i]);
         uint256 y = _getY(_balances, _j, D, getCurrentA());
         // dy = (balance[j] - y - 1) / precisions[j] in case there was rounding errors
         uint256 dy = (_balances[_j] - y - 1) / precisions[_j];
         uint256 feeAmount = 0;
 
         if (swapFee > 0) {
-            feeAmount = _calcSwapFee(_i, _j, prevBalanceI, _balances[_i], _balances[_j], y, dy);
+            feeAmount = (dy * swapFee) / FEE_DENOMINATOR;
             dy -= feeAmount;
         }
         uint256 transferAmountJ = (dy * (10 ** exchangeRateDecimals[_j])) / exchangeRateProviders[_j].exchangeRate();
@@ -1149,43 +1056,6 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         return A;
     }
 
-    /**
-     * @dev Updates the fee multiplier for token i if there's a significant rate change.
-     */
-    function _updateMultiplierForToken(uint256 i) internal {
-        uint256 newRate = exchangeRateProviders[i].exchangeRate();
-        TokenFeeStatus storage st = feeStatusByToken[i];
-
-        if (isInactive(st.raisedAt)) {
-            st.lastRate = newRate;
-            st.multiplier = FEE_DENOMINATOR;
-            st.raisedAt = block.timestamp;
-            return;
-        }
-
-        uint256 oldRate = st.lastRate;
-        if (oldRate == 0) {
-            st.lastRate = newRate;
-            return;
-        }
-
-        uint256 diff = (newRate > oldRate) ? (newRate - oldRate) : (oldRate - newRate);
-        if (diff == 0) {
-            st.lastRate = newRate;
-            return;
-        }
-
-        uint256 ratio = (diff * FEE_DENOMINATOR) / (oldRate > newRate ? oldRate : newRate);
-        uint256 candidateMultiplier = FEE_DENOMINATOR + (ratio * exchangeRateFeeFactor) / FEE_DENOMINATOR;
-        uint256 currentMult = _currentMultiplier(st);
-
-        if (candidateMultiplier > currentMult) {
-            st.multiplier = candidateMultiplier;
-            st.raisedAt = block.timestamp;
-        }
-        st.lastRate = newRate;
-    }
-
     function _syncTotalSupply() internal {
         uint256 newD;
         (balances, newD) = getUpdatedBalancesAndD();
@@ -1231,59 +1101,6 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         if (isFee) emit FeeCollected(feeAmount, totalSupply);
         else emit YieldCollected(feeAmount, totalSupply);
         return feeAmount;
-    }
-
-    /**
-     * @dev Computes current multiplier for a given TokenFeeStatus.
-     */
-    function _currentMultiplier(TokenFeeStatus memory st) internal view returns (uint256) {
-        if (isInactive(st.raisedAt)) {
-            return FEE_DENOMINATOR;
-        }
-        uint256 timePassed = block.timestamp - st.raisedAt;
-        uint256 fraction = (timePassed * 1e6) / decayPeriod;
-        if (fraction > 1e6) {
-            fraction = 1e6;
-        }
-        if (st.multiplier <= FEE_DENOMINATOR) {
-            return FEE_DENOMINATOR;
-        }
-        uint256 diff = st.multiplier - FEE_DENOMINATOR;
-        uint256 diffReduction = (diff * fraction) / 1e6;
-        return st.multiplier - diffReduction;
-    }
-
-    function _currentMultiplier(uint256 index) internal view returns (uint256) {
-        return _currentMultiplier(feeStatusByToken[index]);
-    }
-
-    /**
-     * @dev Indicates if the pool is inactive based on latest token fee status
-     */
-    function isInactive(uint256 raisedAt) internal view returns (bool) {
-        return ((block.timestamp >= raisedAt + decayPeriod) || (block.timestamp - lastActivity > rateChangeSkipPeriod));
-    }
-
-    /**
-     * @dev Calculate extra fee from volatility between tokens i, j
-     */
-    function _volatilityFee(uint256 _i, uint256 _j, uint256 _baseFee) internal view returns (uint256) {
-        uint256 multI = _currentMultiplier(_i);
-        uint256 multJ = _currentMultiplier(_j);
-        uint256 worstMult = (multI > multJ) ? multI : multJ;
-        if (worstMult <= FEE_DENOMINATOR) return 0;
-        uint256 diff = worstMult - FEE_DENOMINATOR;
-        return (_baseFee * diff) / FEE_DENOMINATOR;
-    }
-
-    /**
-     * @dev Calculate extra fee from volatility for i
-     */
-    function _volatilityFee(uint256 _i, uint256 _baseFee) internal view returns (uint256) {
-        uint256 multI = _currentMultiplier(_i);
-        if (multI <= FEE_DENOMINATOR) return 0;
-        uint256 diff = multI - FEE_DENOMINATOR;
-        return (_baseFee * diff) / FEE_DENOMINATOR;
     }
 
     /**
@@ -1350,42 +1167,6 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
     }
 
     /**
-     * @notice Calculates the swap fee based on token balances and dynamic fee adjustment.
-     * @return Fee amount in output token units (token decimals).
-     */
-    function _calcSwapFee(
-        uint256 i,
-        uint256 j,
-        uint256 prevBalanceI,
-        uint256 newBalanceI,
-        uint256 oldBalanceJ,
-        uint256 newBalanceJ,
-        uint256 dy
-    )
-        internal
-        view
-        returns (uint256)
-    {
-        uint256 volFee = _volatilityFee(i, j, swapFee);
-        uint256 dynamicFee = _dynamicFee((prevBalanceI + newBalanceI) / 2, (oldBalanceJ + newBalanceJ) / 2, swapFee);
-        return (dy * (dynamicFee + volFee)) / FEE_DENOMINATOR;
-    }
-
-    /**
-     * @dev Calculates the dynamic fee based on liquidity imbalances.
-     * @param xpi The liquidity before or first asset liqidity.
-     * @param xpj The liqduity after or second asset liquidity.
-     * @param _fee The base fee value.
-     * @return The dynamically adjusted fee.
-     */
-    function _dynamicFee(uint256 xpi, uint256 xpj, uint256 _fee) internal view returns (uint256) {
-        if (offPegFeeMultiplier <= FEE_DENOMINATOR) return _fee;
-        uint256 xps2 = (xpi + xpj) * (xpi + xpj);
-        return (offPegFeeMultiplier * _fee)
-            / (((offPegFeeMultiplier - FEE_DENOMINATOR) * 4 * xpi * xpj) / xps2 + FEE_DENOMINATOR);
-    }
-
-    /**
      * @dev Computes D given token balances.
      * @param _balances Normalized balance of each token.
      * @return D The SelfPeggingAsset invariant.
@@ -1444,5 +1225,16 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
             if (y > prevY && y - prevY <= 1 || y <= prevY && prevY - y <= 1) break;
         }
         return y;
+    }
+
+    function _setWholesalerRates(address[] memory _wholesalers, uint16[] memory _rates) private {
+        require(_wholesalers.length == _rates.length, InputMismatch());
+
+        for (uint256 i = 0; i < _wholesalers.length; i++) {
+            require(_rates[i] <= RATE_DENOMINATOR, InvalidAmount());
+            uint16 oldRate = wholesalerRate[_wholesalers[i]];
+            wholesalerRate[_wholesalers[i]] = _rates[i];
+            emit WholesalerRateUpdated(_wholesalers[i], oldRate, _rates[i]);
+        }
     }
 }

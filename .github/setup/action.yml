@@ -7,7 +7,7 @@ runs:
     - name: Install Foundry
       uses: foundry-rs/foundry-toolchain@v1
       with:
-        version: nightly
+        version: nightly-25196faecd57fc9b2feda4d9beb6e43b6daab5d8
 
     - uses: actions/setup-node@v4
       with:

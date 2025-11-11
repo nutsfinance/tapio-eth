@@ -45,7 +45,7 @@ contract RampAControllerTest is Test {
         fees[1] = 1e8;
         fees[2] = 1e8;
 
-        offPegFeeMultiplier = 5e10; // 5x
+        offPegFeeMultiplier = 5e10; //5x
 
         providers = new MockExchangeRateProvider[](2);
         providers[0] = new MockExchangeRateProvider(1e18, 18); // 1:1
@@ -68,12 +68,12 @@ contract RampAControllerTest is Test {
                 tokens,
                 precisions,
                 fees,
-                offPegFeeMultiplier,
+                new address[](0),
+                new uint16[](0),
                 spaToken,
                 INITIAL_A,
                 providerArray,
                 address(rampAControllerProxy),
-                0,
                 owner
             )
         );
@@ -113,8 +113,8 @@ contract RampAControllerTest is Test {
         vm.warp(block.timestamp + 1 hours + 1);
         uint256[] memory redeemAmounts = new uint256[](2);
         spa.rebase();
-        assertEq(spaToken.totalSupply(), 200_500_546_385_029_087_909);
-        assertEq(spaToken.bufferAmount(), 33_708_635_384_971_624);
+        assertEq(spaToken.totalSupply(), 200_475_571_529_369_609_738);
+        assertEq(spaToken.bufferAmount(), 32_400_891_847_228_790);
     }
 
     function test_rebase_after_sync() public {
@@ -136,11 +136,11 @@ contract RampAControllerTest is Test {
         vm.warp(block.timestamp + 1 hours + 1);
         uint256[] memory redeemAmounts = new uint256[](2);
         spa.redeemMulti(redeemAmounts, 1e36); // redeem 0 amounts for `redeemMulti` function to call
-            // `syncRamping` and compare after rebase
+        // `syncRamping` and compare after rebase
         spa.rebase();
 
-        assertEq(spaToken.totalSupply(), 200_500_546_385_029_087_909);
-        assertEq(spaToken.bufferAmount(), 33_708_635_384_971_624);
+        assertEq(spaToken.totalSupply(), 200_475_571_529_369_609_738);
+        assertEq(spaToken.bufferAmount(), 32_400_891_847_228_790);
     }
 
     function testRampA() public {
@@ -388,12 +388,12 @@ contract RampAControllerTest is Test {
                 tokens,
                 precisions,
                 fees,
-                offPegFeeMultiplier,
+                new address[](0),
+                new uint16[](0),
                 newSpaToken,
                 1, // initialA
                 providerArray,
                 address(lowAController),
-                0,
                 owner
             )
         );

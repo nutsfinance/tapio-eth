@@ -92,6 +92,21 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
     /**
      * @inheritdoc IKeeper
      */
+    function setWholesalerRates(address[] memory wholesalers, uint16[] memory rates) external onlyRole(CURATOR_ROLE) {
+        IParameterRegistry.Bounds memory wholesalerRateParams = registry.wholesalerRateParams();
+
+        for (uint256 i = 0; i < wholesalers.length; i++) {
+            uint16 curRate = spa.wholesalerRate(wholesalers[i]);
+            checkBounds(rates[i], curRate, wholesalerRateParams);
+        }
+
+        spa.setWholesalerRates(wholesalers, rates);
+        emit WholesalersUpdated(wholesalers, rates);
+    }
+
+    /**
+     * @inheritdoc IKeeper
+     */
     function rampA(uint256 newA, uint256 endTime) external override onlyRole(CURATOR_ROLE) {
         IParameterRegistry.Bounds memory aParams = registry.aParams();
 
@@ -126,7 +141,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
     /**
      * @inheritdoc IKeeper
      */
-    function setSwapFee(uint256 newFee) external override onlyRole(GOVERNOR_ROLE) {
+    function setSwapFee(uint256 newFee) external override onlyRole(CURATOR_ROLE) {
         IParameterRegistry.Bounds memory swapFeeParams = registry.swapFeeParams();
 
         uint256 cur = spa.swapFee();
@@ -173,32 +188,6 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
     /**
      * @inheritdoc IKeeper
      */
-    function setOffPegFeeMultiplier(uint256 newMultiplier) external override onlyRole(GOVERNOR_ROLE) {
-        IParameterRegistry.Bounds memory offPegParams = registry.offPegParams();
-
-        uint256 cur = spa.offPegFeeMultiplier();
-        checkBounds(newMultiplier, cur, offPegParams);
-
-        spa.setOffPegFeeMultiplier(newMultiplier);
-        emit OffPegFeeMultiplierUpdated(cur, newMultiplier);
-    }
-
-    /**
-     * @inheritdoc IKeeper
-     */
-    function setExchangeRateFeeFactor(uint256 newFeeFactor) external override onlyRole(GOVERNOR_ROLE) {
-        IParameterRegistry.Bounds memory exchangeRateFeeParams = registry.exchangeRateFeeParams();
-
-        uint256 cur = spa.exchangeRateFeeFactor();
-        checkBounds(newFeeFactor, cur, exchangeRateFeeParams);
-
-        spa.setExchangeRateFeeFactor(newFeeFactor);
-        emit ExchangeRateFeeFactorUpdated(cur, newFeeFactor);
-    }
-
-    /**
-     * @inheritdoc IKeeper
-     */
     function setBufferPercent(uint256 newBuffer) external override onlyRole(GOVERNOR_ROLE) {
         IParameterRegistry.Bounds memory bufferParams = registry.bufferPercentParams();
 
@@ -221,32 +210,6 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
 
         spaToken.setSymbol(newSymbol);
         emit TokenSymbolUpdated(cur, newSymbol);
-    }
-
-    /**
-     * @inheritdoc IKeeper
-     */
-    function setDecayPeriod(uint256 newDecayPeriod) external override onlyRole(GOVERNOR_ROLE) {
-        IParameterRegistry.Bounds memory decayPeriodParams = registry.decayPeriodParams();
-
-        uint256 cur = spa.decayPeriod();
-        checkBounds(newDecayPeriod, cur, decayPeriodParams);
-
-        spa.setDecayPeriod(newDecayPeriod);
-        emit DecayPeriodUpdated(cur, newDecayPeriod);
-    }
-
-    /**
-     * @inheritdoc IKeeper
-     */
-    function setRateChangeSkipPeriod(uint256 newSkipPeriod) external override onlyRole(GOVERNOR_ROLE) {
-        IParameterRegistry.Bounds memory rateChangeSkipPeriodParams = registry.rateChangeSkipPeriodParams();
-
-        uint256 cur = spa.rateChangeSkipPeriod();
-        checkBounds(newSkipPeriod, cur, rateChangeSkipPeriodParams);
-
-        spa.setRateChangeSkipPeriod(newSkipPeriod);
-        emit RateChangeSkipPeriodUpdated(cur, newSkipPeriod);
     }
 
     /**
@@ -384,14 +347,7 @@ contract Keeper is AccessControlUpgradeable, UUPSUpgradeable, IKeeper {
      * @param currentValue The current value to compare against
      * @param bounds The bounds object containing relative change limits
      */
-    function checkRange(
-        uint256 newValue,
-        uint256 currentValue,
-        IParameterRegistry.Bounds memory bounds
-    )
-        internal
-        pure
-    {
+    function checkRange(uint256 newValue, uint256 currentValue, IParameterRegistry.Bounds memory bounds) internal pure {
         // Skip percentage checks if explicitly disabled or if current value is zero
         if (currentValue == 0) return;
         if (bounds.maxDecreasePct == 0 && bounds.maxIncreasePct == 0) return;

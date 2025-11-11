@@ -15,11 +15,11 @@ jobs:
     runs-on: "ubuntu-latest"
     steps:
       - name: "Check out the repo"
-        uses: "actions/checkout@v4"
+        uses: "actions/checkout@v5"
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
           cache: "yarn"
 
       - name: "Install the Node.js dependencies"
@@ -27,6 +27,8 @@ jobs:
 
       - name: "Install Foundry"
         uses: "foundry-rs/foundry-toolchain@v1"
+        with:
+          version: nightly-25196faecd57fc9b2feda4d9beb6e43b6daab5d8
 
       - name: "Lint the code"
         run: "yarn run lint"
@@ -40,11 +42,11 @@ jobs:
     runs-on: "ubuntu-latest"
     steps:
       - name: "Check out the repo"
-        uses: "actions/checkout@v4"
+        uses: "actions/checkout@v5"
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
           cache: "yarn"
 
       - name: "Install the Node.js dependencies"
@@ -52,6 +54,8 @@ jobs:
 
       - name: "Install Foundry"
         uses: "foundry-rs/foundry-toolchain@v1"
+        with:
+          version: nightly-25196faecd57fc9b2feda4d9beb6e43b6daab5d8
 
       - name: "Build the contracts and print their size"
         run: "forge build --sizes"
@@ -66,11 +70,11 @@ jobs:
     runs-on: "ubuntu-latest"
     steps:
       - name: "Check out the repo"
-        uses: "actions/checkout@v4"
+        uses: "actions/checkout@v5"
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
           cache: "yarn"
 
       - name: "Install the Node.js dependencies"
@@ -78,6 +82,8 @@ jobs:
 
       - name: "Install Foundry"
         uses: "foundry-rs/foundry-toolchain@v1"
+        with:
+          version: nightly-25196faecd57fc9b2feda4d9beb6e43b6daab5d8
 
       - name: "Show the Foundry config"
         run: "forge config"

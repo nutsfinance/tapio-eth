@@ -1,4 +1,4 @@
-//SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.28;
 
 import "@chainlink/contracts/shared/interfaces/AggregatorV3Interface.sol";
@@ -158,13 +158,10 @@ contract ChainlinkCompositeOracleProvider {
         }
 
         (
-            /*uint80 roundID*/
-            ,
+            /* uint80 roundID*/,
             int256 answer,
             uint256 startedAt,
-            /*uint256 updatedAt*/
-            ,
-            /*uint80 answeredInRound*/
+            /* uint256 updatedAt*/, /* uint80 answeredInRound*/
         ) = sequencerUptimeFeed.latestRoundData();
 
         // Answer == 0: Sequencer is up

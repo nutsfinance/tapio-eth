@@ -236,8 +236,9 @@ contract Zap is IZap, ReentrancyGuard {
         internal
         returns (uint256)
     {
-        (bool success, bytes memory data) =
-            spa.call(abi.encodeWithSignature("redeemSingle(uint256,uint256,uint256)", amount, tokenIndex, minAmountOut));
+        (bool success, bytes memory data) = spa.call(
+            abi.encodeWithSignature("redeemSingle(uint256,uint256,uint256)", amount, tokenIndex, minAmountOut)
+        );
 
         if (!success) _revertBytes(data);
 

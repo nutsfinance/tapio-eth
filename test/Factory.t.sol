@@ -51,7 +51,6 @@ contract FactoryTest is Test {
             0,
             0,
             0,
-            0,
             100,
             30 minutes,
             selfPeggingAssetBeacon,
@@ -60,7 +59,6 @@ contract FactoryTest is Test {
             rampAControllerBeacon,
             keeperImplementation,
             address(new ConstantExchangeRateProvider()),
-            0,
             0
         );
 
@@ -74,6 +72,8 @@ contract FactoryTest is Test {
         MockToken tokenB = new MockToken("test 2", "T2", 18);
 
         SelfPeggingAssetFactory.CreatePoolArgument memory arg = SelfPeggingAssetFactory.CreatePoolArgument({
+            wholesalers: new address[](0),
+            rates: new uint16[](0),
             tokenA: address(tokenA),
             tokenB: address(tokenB),
             tokenAType: SelfPeggingAssetFactory.TokenType.Standard,
@@ -147,6 +147,8 @@ contract FactoryTest is Test {
         vaultTokenB.initialize(tokenB);
 
         SelfPeggingAssetFactory.CreatePoolArgument memory arg = SelfPeggingAssetFactory.CreatePoolArgument({
+            wholesalers: new address[](0),
+            rates: new uint16[](0),
             tokenA: address(vaultTokenA),
             tokenB: address(vaultTokenB),
             tokenAType: SelfPeggingAssetFactory.TokenType.ERC4626,
@@ -203,6 +205,8 @@ contract FactoryTest is Test {
         MockOracle oracle = new MockOracle();
 
         SelfPeggingAssetFactory.CreatePoolArgument memory arg = SelfPeggingAssetFactory.CreatePoolArgument({
+            wholesalers: new address[](0),
+            rates: new uint16[](0),
             tokenA: address(tokenA),
             tokenB: address(tokenB),
             tokenAType: SelfPeggingAssetFactory.TokenType.Oracle,
@@ -255,7 +259,6 @@ contract FactoryTest is Test {
             0,
             0,
             0,
-            0,
             100,
             30 minutes,
             address(0),
@@ -264,7 +267,6 @@ contract FactoryTest is Test {
             address(0),
             address(0),
             address(exchangeRateProvider),
-            0,
             0
         );
 
@@ -278,7 +280,16 @@ contract FactoryTest is Test {
         IExchangeRateProvider[] memory _exchangeRateProviders;
         vm.expectRevert(Initializable.InvalidInitialization.selector);
         selfPeggingAsset.initialize(
-            _tokens, _precisions, _fees, 0, SPAToken(address(0)), 0, _exchangeRateProviders, address(0), 0, governor
+            _tokens,
+            _precisions,
+            _fees,
+            new address[](0),
+            new uint16[](0),
+            SPAToken(address(0)),
+            0,
+            _exchangeRateProviders,
+            address(0),
+            governor
         );
 
         SPAToken spaToken = new SPAToken();
