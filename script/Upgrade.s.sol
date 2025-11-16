@@ -44,24 +44,28 @@ contract Upgrade is CoreDeployer {
     }
 
     function run() public payable {
-        deployerPrivateKey = vm.envUint("DEV_PROD_KEY");
-        DEPLOYER = vm.addr(deployerPrivateKey);
-
-        uint256 chainId = block.chainid;
-        string memory networkName = getNetworkName(chainId);
+        string memory chain = vm.envString("CHAIN");
+        uint256 chainId = vm.envUint("CHAIN_ID");
+        string memory version = vm.envString("VERSION");
+        bool dryRun = vm.envBool("DRY_RUN");
+        address safeAddress = vm.envOr("SAFE_ADDRESS", address(0));
+        bool useSafe = safeAddress != address(0);
 
         console2.log("====================================");
         console2.log("Upgrading Tapio Protocol");
         console2.log("====================================");
         console2.log("Chain ID:", chainId);
-        console2.log("Network:", networkName);
+        console2.log("Network:", chain);
         console2.log("Deployer:", DEPLOYER);
+
+        setUp();
+        vm.createSelectFork(vm.envString(rpcs[chainId]));
 
         loadSaltIdentifiers();
 
         vm.startBroadcast(deployerPrivateKey);
 
-        string memory path = string.concat("./broadcast/", networkName, ".json");
+        string memory path = string.concat("./deployment/", version, "/", chain, ".impl.json");
 
         string memory json = vm.readFile(path);
         bytes memory data = vm.parseJson(json);

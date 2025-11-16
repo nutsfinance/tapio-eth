@@ -571,8 +571,8 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         collectFeeOrYield(false);
         uint256[] memory _balances = balances;
         uint256 prevBalanceI = _balances[_i];
-        _balances[_i] +=
-            (_dx * exchangeRateProviders[_i].exchangeRate() * precisions[_i]) / (10 ** exchangeRateDecimals[_i]);
+        _balances[_i] += (_dx * exchangeRateProviders[_i].exchangeRate() * precisions[_i])
+            / (10 ** exchangeRateDecimals[_i]);
         uint256 y = _getY(_balances, _j, totalSupply, A);
         // dy = (balance[j] - y - 1) / precisions[j] in case there was rounding errors
         uint256 dy = (_balances[_j] - y - 1) / precisions[_j];
@@ -1089,8 +1089,8 @@ contract SelfPeggingAsset is Initializable, ReentrancyGuardUpgradeable, OwnableU
         uint256 prevBalanceI = _balances[_i];
         // balance[i] = balance[i] + dx * precisions[i]
 
-        _balances[_i] +=
-            (_dx * exchangeRateProviders[_i].exchangeRate() * precisions[_i]) / (10 ** exchangeRateDecimals[_i]);
+        _balances[_i] += (_dx * exchangeRateProviders[_i].exchangeRate() * precisions[_i])
+            / (10 ** exchangeRateDecimals[_i]);
         uint256 y = _getY(_balances, _j, D, getCurrentA());
         // dy = (balance[j] - y - 1) / precisions[j] in case there was rounding errors
         uint256 dy = (_balances[_j] - y - 1) / precisions[_j];

@@ -25,13 +25,7 @@ interface ISPAToken is IERC20 {
     function transferShares(address _recipient, uint256 _sharesAmount) external returns (uint256);
 
     /// @dev Transfer the shares from the sender to the recipient
-    function transferSharesFrom(
-        address _sender,
-        address _recipient,
-        uint256 _sharesAmount
-    )
-        external
-        returns (uint256);
+    function transferSharesFrom(address _sender, address _recipient, uint256 _sharesAmount) external returns (uint256);
 
     /// @dev Mint the shares to the account
     function mintShares(address _account, uint256 _sharesAmount) external;

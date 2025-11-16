@@ -1,0 +1,39 @@
+{
+  "factoryDefaults": {
+    "owner": "0xe80bbcab9e20fc193ef768b68d69f363a7f9a2a1",
+    "governor": "0xe80bbcab9e20fc193ef768b68d69f363a7f9a2a1",
+    "mintFee": 0,
+    "swapFee": 5000000,
+    "redeemFee": 0,
+    "offPegFeeMultiplier": 10000000000,
+    "A": 100,
+    "minRampTime": 1800,
+    "exchangeRateFeeFactor": 0,
+    "bufferPercent": 1000000000
+  },
+  "pools": [
+    {
+      "name": "usdcUsdt",
+      "description": "USDC/USDT Stablecoin Pool",
+      "enabled": true,
+      "tokenA": "usdc",
+      "tokenAAddress": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+      "tokenB": "usdt",
+      "tokenBAddress": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+      "tokenAType": "Standard",
+      "tokenBType": "Standard",
+      "tokenAOracle": {},
+      "tokenBOracle": {},
+      "spa": {
+        "mintFee": 0,
+        "swapFee": 5000000,
+        "redeemFee": 0,
+        "offPegFeeMultiplier": 10000000000,
+        "A": 100,
+        "minRampTime": 1800,
+        "exchangeRateFeeFactor": 0,
+        "bufferPercent": 1000000000
+      }
+    }
+  ]
+}

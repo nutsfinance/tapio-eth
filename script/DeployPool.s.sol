@@ -25,31 +25,37 @@ contract CreatePool is ChainConfig, PoolDeployer {
     }
 
     mapping(string => bool) existingPools;
-    uint256 deployerPrivateKey;
-    address DEPLOYER;
 
     function run() public payable {
-        deployerPrivateKey = vm.envUint("DEV_PROD_KEY");
-        DEPLOYER = vm.addr(deployerPrivateKey);
+        string memory chain = vm.envString("CHAIN");
+        uint256 chainId = vm.envUint("CHAIN_ID");
+        string memory version = vm.envString("VERSION");
+        bool dryRun = vm.envBool("DRY_RUN");
+        address safeAddress = vm.envOr("SAFE_ADDRESS", address(0));
+        bool useSafe = safeAddress != address(0);
 
-        uint256 chainId = block.chainid;
-        string memory networkName = getNetworkName(chainId);
+        string memory baseDir = getBaseDir(dryRun);
+
+        setUp();
+        vm.createSelectFork(vm.envString(rpcs[chainId]));
+        console2.log("code length:", block.number);
+        console2.log("logic chainid", block.chainid);
 
         console2.log("====================================");
         console2.log("Adding Pools to Existing Deployment");
         console2.log("====================================");
         console2.log("Chain ID:", chainId);
-        console2.log("Network:", networkName);
+        console2.log("Network:", chain);
         console2.log("Deployer:", DEPLOYER);
 
         // Load existing deployment
         console2.log("\n--- Loading Existing Deployment ---");
-        loadExistingDeployment(networkName);
+        loadExistingDeployment(chain, version);
 
         // Load pool configurations
         console2.log("\n--- Loading Pool Configs ---");
-        loadChainConfig(networkName, "mainnet");
-        loadPoolConfigs(networkName, "mainnet");
+        loadConfig(chain, version);
+        loadPoolConfigs(chain, version);
 
         // Filter out existing pools
         console2.log("\n--- Filtering New Pools ---");
@@ -60,60 +66,23 @@ contract CreatePool is ChainConfig, PoolDeployer {
             return;
         }
 
-        // Deploy new pools
-        vm.startBroadcast(deployerPrivateKey);
+        if (useSafe) {
+            } else {
+            // deploy
+            vm.startBroadcast(deployerPrivateKey);
+            console2.log("\n--- Deploying New Pools ---");
+            deployPools();
 
-        console2.log("\n--- Deploying New Pools ---");
-        deployPools();
-
-        vm.stopBroadcast();
+            vm.stopBroadcast();
+        }
 
         // Update deployment artifacts
         console2.log("\n--- Updating Artifacts ---");
-        updateDeploymentArtifacts(networkName);
+        updateDeploymentArtifacts(chain, version, dryRun);
 
         console2.log("\n====================================");
         console2.log("Pool Deployment Complete!");
         console2.log("====================================");
-    }
-
-    function loadExistingDeployment(string memory networkName) internal {
-        string memory path = string.concat("./broadcast/", networkName, ".json");
-
-        if (!vm.isFile(path)) {
-            revert(string.concat("No existing deployment found at: ", path));
-        }
-
-        string memory json = vm.readFile(path);
-
-        // Load core contracts
-        address factoryAddr = json.readAddress(".Factory");
-        poolFactory = SelfPeggingAssetFactory(factoryAddr);
-
-        console2.log("  Factory:", address(poolFactory));
-
-        // Load existing pool names from all contract keys ending with "Pool"
-        // Deploy.s.sol saves pools as: {poolName}Pool, {poolName}SPAToken, etc.
-        // Artifacts are saved at root level, so we parse keys from root
-        string[] memory keys = vm.parseJsonKeys(json, ".");
-        uint256 existingCount = 0;
-
-        for (uint256 i = 0; i < keys.length; i++) {
-            string memory key = keys[i];
-
-            // Check if key ends with "Pool" and is not a beacon
-            if (endsWith(key, "Pool") && !equals(key, "SelfPeggingAssetBeacon")) {
-                // Extract pool name by removing "Pool" suffix
-                string memory poolName = substring(key, 0, bytes(key).length - 4);
-                existingPools[poolName] = true;
-                existingCount++;
-                console2.log("  Existing pool:", poolName);
-            }
-        }
-
-        if (existingCount == 0) {
-            console2.log("  No existing pools found");
-        }
     }
 
     /**
@@ -180,8 +149,10 @@ contract CreatePool is ChainConfig, PoolDeployer {
     /**
      * @notice Update deployment artifacts with new pools
      */
-    function updateDeploymentArtifacts(string memory networkName) internal {
-        string memory path = string.concat("./broadcast/", networkName, ".json");
+    function updateDeploymentArtifacts(string memory chain, string memory version, bool dryRun) internal {
+        string memory path = dryRun
+            ? string.concat("./deployments/", version, "/dryRun/", chain, ".json")
+            : string.concat("./deployments/", version, "/", chain, ".json");
 
         // Read existing JSON to preserve all data
         string memory existingJson = vm.readFile(path);
@@ -222,5 +193,44 @@ contract CreatePool is ChainConfig, PoolDeployer {
         vm.writeJson(finalJson, path);
 
         console2.log("  Updated artifacts at:", path);
+    }
+
+    function loadExistingDeployment(string memory chain, string memory version) internal {
+        string memory path = string.concat("./deployments/", version, "/", chain, ".json");
+
+        if (!vm.isFile(path)) {
+            revert(string.concat("No existing deployment found at: ", path));
+        }
+
+        string memory json = vm.readFile(path);
+
+        // Load core contracts
+        address factoryAddr = json.readAddress(".Factory");
+        poolFactory = SelfPeggingAssetFactory(factoryAddr);
+
+        console2.log("  Factory:", address(poolFactory));
+
+        // Load existing pool names from all contract keys ending with "Pool"
+        // DeployPool.s.sol saves pools as: {poolName}Pool, {poolName}SPAToken, etc.
+        // Artifacts are saved at root level, so we parse keys from root
+        string[] memory keys = vm.parseJsonKeys(json, ".");
+        uint256 existingCount = 0;
+
+        for (uint256 i = 0; i < keys.length; i++) {
+            string memory key = keys[i];
+
+            // Check if key ends with "Pool" and is not a beacon
+            if (endsWith(key, "Pool") && !equals(key, "SelfPeggingAssetBeacon")) {
+                // Extract pool name by removing "Pool" suffix
+                string memory poolName = substring(key, 0, bytes(key).length - 4);
+                existingPools[poolName] = true;
+                existingCount++;
+                console2.log("  Existing pool:", poolName);
+            }
+        }
+
+        if (existingCount == 0) {
+            console2.log("  No existing pools found");
+        }
     }
 }

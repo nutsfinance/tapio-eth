@@ -136,7 +136,7 @@ contract RampAControllerTest is Test {
         vm.warp(block.timestamp + 1 hours + 1);
         uint256[] memory redeemAmounts = new uint256[](2);
         spa.redeemMulti(redeemAmounts, 1e36); // redeem 0 amounts for `redeemMulti` function to call
-            // `syncRamping` and compare after rebase
+        // `syncRamping` and compare after rebase
         spa.rebase();
 
         assertEq(spaToken.totalSupply(), 200_500_546_385_029_087_909);

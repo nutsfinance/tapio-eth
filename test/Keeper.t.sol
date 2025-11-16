@@ -265,10 +265,7 @@ contract KeeperFuzzTest is Test {
         vm.startPrank(governor);
         // Set boundaries
         IParameterRegistry.Bounds memory bounds = IParameterRegistry.Bounds({
-            min: min,
-            max: max,
-            maxDecreasePct: maxDecreasePct,
-            maxIncreasePct: maxIncreasePct
+            min: min, max: max, maxDecreasePct: maxDecreasePct, maxIncreasePct: maxIncreasePct
         });
 
         // Initial Value

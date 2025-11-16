@@ -19,10 +19,6 @@ import { Zap } from "../../src/periphery/Zap.sol";
 contract CoreDeployer is ChainConfig, CreateXDeployer {
     using stdJson for string;
 
-    uint256 internal deployerPrivateKey;
-    address internal DEPLOYER;
-    address internal GOVERNOR;
-
     // deployed
     SelfPeggingAssetFactory internal factory;
     address internal selfPeggingAssetBeacon;
@@ -38,6 +34,8 @@ contract CoreDeployer is ChainConfig, CreateXDeployer {
     address internal zap;
 
     mapping(string => string) internal saltIds;
+
+    constructor() ChainConfig() { }
 
     function loadSaltIdentifiers() internal {
         string memory saltPath = "script/configs/salts.json";
@@ -132,8 +130,8 @@ contract CoreDeployer is ChainConfig, CreateXDeployer {
         bytes memory data = abi.encodeCall(
             SelfPeggingAssetFactory.initialize,
             SelfPeggingAssetFactory.InitializeArgument(
-                GOVERNOR,
-                GOVERNOR,
+                defaults.owner,
+                defaults.governor,
                 defaults.mintFee,
                 defaults.swapFee,
                 defaults.redeemFee,
@@ -162,7 +160,9 @@ contract CoreDeployer is ChainConfig, CreateXDeployer {
         address factoryProxy = deployCreate3(salt, initCode, "Factory Proxy");
 
         factory = SelfPeggingAssetFactory(factoryProxy);
-        factory.transferOwnership(GOVERNOR);
+
+        // no need since owner address is specified in config
+        // factory.transferOwnership(GOVERNOR);
     }
 
     function deployZap() internal {

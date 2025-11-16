@@ -38,17 +38,10 @@ contract PoolDeployer is ChainConfig {
     DeployedOracle[] public deployedOracles;
 
     /**
-     * @notice Set the factory instance for pool deployment
-     */
-    function setPoolFactory(SelfPeggingAssetFactory _factory) internal {
-        poolFactory = _factory;
-    }
-
-    /**
      * @notice Deploy pools based on configuration
      */
     function deployPools() internal {
-        uint256 poolCount = getPoolCount();
+        uint256 poolCount = pools.length;
 
         for (uint256 i = 0; i < poolCount; i++) {
             PoolConfig memory config = getPool(i);
@@ -62,8 +55,8 @@ contract PoolDeployer is ChainConfig {
             console2.log("  Description:", config.description);
 
             // Get token addresses
-            address tokenA = getTokenAddress(config.tokenA);
-            address tokenB = getTokenAddress(config.tokenB);
+            address tokenA = config.tokenAAddress;
+            address tokenB = config.tokenBAddress;
 
             console2.log("  TokenA:", tokenA);
             console2.log("  TokenB:", tokenB);
@@ -217,13 +210,6 @@ contract PoolDeployer is ChainConfig {
     }
 
     /**
-     * @notice Parse address from string (hex format)
-     */
-    function _parseAddress(string memory addressStr) private pure returns (address) {
-        return vm.parseAddress(addressStr);
-    }
-
-    /**
      * @notice Get deployed oracle address by name
      */
     function _getDeployedOracle(string memory name) internal view returns (address) {
@@ -238,13 +224,6 @@ contract PoolDeployer is ChainConfig {
         }
 
         revert(string.concat("Oracle not found: ", name));
-    }
-
-    /**
-     * @notice Get number of deployed pools
-     */
-    function getDeployedPoolCount() internal view returns (uint256) {
-        return deployedPools.length;
     }
 
     /**

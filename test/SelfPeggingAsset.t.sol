@@ -645,7 +645,7 @@ contract SelfPeggingAssetTest is Test {
         uint256 wstETHBalance = wstETH.balanceOf(user2);
 
         assertEq(rETHBalance, 0);
-        assertIsCloseTo(wstETHBalance, 1e18, 0.00005 ether);
+        assertIsCloseTo(wstETHBalance, 1e18, 0.000_05 ether);
 
         // Set buffer percentage to 5%
         vm.prank(owner);
