@@ -84,7 +84,7 @@ jobs:
         uses: "foundry-rs/foundry-toolchain@v1"
         with:
           version: v1.3.6
-          
+
       - name: "Show the Foundry config"
         run: "forge config"
 
