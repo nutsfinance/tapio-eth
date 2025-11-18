@@ -27,6 +27,8 @@ jobs:
 
       - name: "Install Foundry"
         uses: "foundry-rs/foundry-toolchain@v1"
+        with:
+          version: v1.3.4
 
       - name: "Lint the code"
         run: "yarn run lint"
@@ -52,6 +54,8 @@ jobs:
 
       - name: "Install Foundry"
         uses: "foundry-rs/foundry-toolchain@v1"
+        with:
+          version: v1.3.4
 
       - name: "Build the contracts and print their size"
         run: "forge build --sizes"
@@ -78,6 +82,8 @@ jobs:
 
       - name: "Install Foundry"
         uses: "foundry-rs/foundry-toolchain@v1"
+        with:
+          version: v1.3.4
 
       - name: "Show the Foundry config"
         run: "forge config"

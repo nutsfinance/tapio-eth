@@ -97,9 +97,8 @@ contract CoreDeployer is ChainConfig, CreateXDeployer {
 
         // 6. SPA beacon
         salt = generateSalt(DEPLOYER, saltIds["SelfPeggingAssetBeacon"]);
-        initCode = abi.encodePacked(
-            type(UpgradeableBeacon).creationCode, abi.encode(selfPeggingAssetImplementation, GOVERNOR)
-        );
+        initCode =
+            abi.encodePacked(type(UpgradeableBeacon).creationCode, abi.encode(selfPeggingAssetImplementation, GOVERNOR));
         selfPeggingAssetBeacon = deployCreate3(salt, initCode, "SelfPeggingAsset Beacon");
 
         // 7. SPAToken beacon
@@ -114,9 +113,8 @@ contract CoreDeployer is ChainConfig, CreateXDeployer {
 
         // 9. RampAController beacon
         salt = generateSalt(DEPLOYER, saltIds["RampAControllerBeacon"]);
-        initCode = abi.encodePacked(
-            type(UpgradeableBeacon).creationCode, abi.encode(rampAControllerImplementation, GOVERNOR)
-        );
+        initCode =
+            abi.encodePacked(type(UpgradeableBeacon).creationCode, abi.encode(rampAControllerImplementation, GOVERNOR));
         rampAControllerBeacon = deployCreate3(salt, initCode, "RampAController Beacon");
     }
 
