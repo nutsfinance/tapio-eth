@@ -1,36 +1,21 @@
 {
   "pools": [
     {
-      "name": "usdcUsdt",
-      "description": "USDC/USDT Stablecoin Pool",
+      "name": "wstETHweETH",
+      "description": "WSTETH/WEETH ETH Pool",
       "enabled": true,
-      "tokenA": "usdc",
-      "tokenB": "usdt",
-      "tokenAType": "Standard",
-      "tokenBType": "Standard",
-      "tokenAOracle": {},
-      "tokenBOracle": {},
-      "spa": {
-        "mintFee": 0,
-        "swapFee": 5000000,
-        "redeemFee": 0,
-        "offPegFeeMultiplier": 10000000000,
-        "A": 100,
-        "minRampTime": 1800,
-        "exchangeRateFeeFactor": 0,
-        "bufferPercent": 1000000000
-      }
-    },
-    {
-      "name": "usdcUsdt2",
-      "description": "USDC/USDT Stablecoin Pool 2",
-      "enabled": true,
-      "tokenA": "usdc",
-      "tokenB": "usdt",
-      "tokenAType": "Standard",
-      "tokenBType": "Standard",
-      "tokenAOracle": {},
-      "tokenBOracle": {},
+      "tokenA": "wsteth",
+      "tokenB": "weeth",
+      "tokenAType": "Oracle",
+      "tokenBType": "Oracle",
+      "tokenAOracle": {
+        "type": "chainlink",
+        "feeds": [{ "feed": "0x43a5C292A453A3bF3606fa856197f09D7B74251a", "heartbeat": "84600", "decimals": "18" }]
+      },
+      "tokenBOracle": {
+        "type": "chainlink",
+        "feeds": [{ "feed": "0xFC1415403EbB0c693f9a7844b92aD2Ff24775C65", "heartbeat": "84600", "decimals": "18" }]
+      },
       "spa": {
         "mintFee": 0,
         "swapFee": 5000000,
