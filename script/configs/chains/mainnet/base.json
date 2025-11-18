@@ -4,7 +4,10 @@
   "rpcUrl": "https://mainnet.base.org",
   "tokens": {
     "usdc": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-    "usdt": "0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2"
+    "usdt": "0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2",
+    "weth": "0x4200000000000000000000000000000000000006",
+    "weeth": "0x04C0599Ae5A44757c0af6F9eC3b93da8976c150A",
+    "wsteth": "0xc1CBa3fCea344f92D9239c08C0568f6F2F0ee452"
   },
   "factoryDefaults": {
     "mintFee": 0,
@@ -15,5 +18,8 @@
     "minRampTime": 1800,
     "exchangeRateFeeFactor": 0,
     "bufferPercent": 1000000000
+  },
+  "oracles": {
+    "sequencer": "0xBCF85224fc0756B9Fa45aA7892530B47e10b6433"
   }
 }
