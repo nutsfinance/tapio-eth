@@ -14,6 +14,10 @@ import { SelfPeggingAssetFactory } from "../../src/SelfPeggingAssetFactory.sol";
 contract ChainConfig is Script {
     using stdJson for string;
 
+    uint256 internal deployerPrivateKey;
+    address internal DEPLOYER;
+    address internal GOVERNOR;
+
     struct TapioChainData {
         uint256 chainId;
         string name;
@@ -56,6 +60,12 @@ contract ChainConfig is Script {
         OracleFeedConfig[] feeds; // Single feed for chainlink, multiple for composite
     }
 
+    struct InitialMint {
+        bool enabled;
+        uint256 amountTokenA;
+        uint256 amountTokenB;
+    }
+
     struct PoolConfig {
         string name;
         string tokenA;
@@ -67,6 +77,7 @@ contract ChainConfig is Script {
         bool enabled;
         string description;
         SPAParameters spa;
+        InitialMint initialMint;
     }
 
     TapioChainData internal chainData;
@@ -193,6 +204,16 @@ contract ChainConfig is Script {
                 pool.spa.minRampTime = poolJson.readUint(string.concat(spaPath, ".minRampTime"));
                 pool.spa.exchangeRateFeeFactor = poolJson.readUint(string.concat(spaPath, ".exchangeRateFeeFactor"));
                 pool.spa.bufferPercent = poolJson.readUint(string.concat(spaPath, ".bufferPercent"));
+            }
+
+            // Load initialMint (optional)
+            string memory imPath = string.concat(basePath, ".initialMint");
+            if (vm.keyExists(poolJson, imPath)) {
+                pool.initialMint.enabled = poolJson.readBool(string.concat(imPath, ".enabled"));
+                pool.initialMint.amountTokenA = poolJson.readUint(string.concat(imPath, ".amountTokenA"));
+                pool.initialMint.amountTokenB = poolJson.readUint(string.concat(imPath, ".amountTokenB"));
+            } else {
+                pool.initialMint.enabled = false;
             }
 
             pools.push(pool);

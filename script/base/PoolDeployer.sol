@@ -9,6 +9,7 @@ import { SelfPeggingAsset } from "../../src/SelfPeggingAsset.sol";
 import { RampAController } from "../../src/periphery/RampAController.sol";
 import { ChainlinkOracleProvider } from "../../src/misc/ChainlinkOracleProvider.sol";
 import { ChainlinkCompositeOracleProvider } from "../../src/misc/ChainlinkCompositeOracleProvider.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@chainlink/contracts/shared/interfaces/AggregatorV3Interface.sol";
 
 /**
@@ -152,6 +153,36 @@ contract PoolDeployer is ChainConfig {
         }
 
         revert("Pool creation event not found");
+    }
+
+    function _runInitialMints() internal {
+        for (uint256 i = 0; i < getPoolCount(); i++) {
+            PoolConfig memory p = getPool(i);
+            if (!p.enabled || !p.initialMint.enabled) continue;
+
+            address spaAddr = deployedPools[i].selfPeggingAsset;
+            if (SelfPeggingAsset(spaAddr).totalSupply() != 0) continue;
+
+            address tokenA = SelfPeggingAsset(spaAddr).tokens(0);
+            address tokenB = SelfPeggingAsset(spaAddr).tokens(1);
+
+            // Approve & mint (deployer currently broadcasting)
+            // Approve tokens to SPA
+            if (p.initialMint.amountTokenA > 0) {
+                IERC20(tokenA).approve(spaAddr, p.initialMint.amountTokenA);
+            }
+            if (p.initialMint.amountTokenB > 0) {
+                IERC20(tokenB).approve(spaAddr, p.initialMint.amountTokenB);
+            }
+            uint256[] memory _amounts = new uint256[](2);
+            _amounts[0] = p.initialMint.amountTokenA;
+            _amounts[1] = p.initialMint.amountTokenB;
+
+            // Execute mint (deployer must hold those tokens beforehand)
+            SelfPeggingAsset(spaAddr).mint(_amounts, 0);
+
+            console2.log("  Initial mint done for:", p.name);
+        }
     }
 
     /**
