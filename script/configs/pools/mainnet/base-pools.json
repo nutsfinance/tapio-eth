@@ -25,6 +25,11 @@
         "minRampTime": 1800,
         "exchangeRateFeeFactor": 0,
         "bufferPercent": 1000000000
+      },
+      "initialMint": {
+        "enabled": true,
+        "amountTokenA": "10000000000000",
+        "amountTokenB": "10000000000000"
       }
     }
   ]

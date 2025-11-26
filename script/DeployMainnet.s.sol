@@ -48,6 +48,9 @@ contract DeployMainnet is CoreDeployer, PoolDeployer {
         setPoolFactory(factory);
         deployPools();
 
+        console2.log("\n--- Initial minting (if configured) ---");
+        _runInitialMints();
+
         vm.stopBroadcast();
 
         // save artifacts

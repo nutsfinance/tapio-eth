@@ -25,8 +25,6 @@ contract CreatePool is ChainConfig, PoolDeployer {
     }
 
     mapping(string => bool) existingPools;
-    uint256 deployerPrivateKey;
-    address DEPLOYER;
 
     function run() public payable {
         deployerPrivateKey = vm.envUint("DEV_PROD_KEY");
@@ -65,6 +63,9 @@ contract CreatePool is ChainConfig, PoolDeployer {
 
         console2.log("\n--- Deploying New Pools ---");
         deployPools();
+
+        console2.log("\n--- Initial minting (if configured) ---");
+        _runInitialMints();
 
         vm.stopBroadcast();
 

@@ -19,10 +19,6 @@ import { Zap } from "../../src/periphery/Zap.sol";
 contract CoreDeployer is ChainConfig, CreateXDeployer {
     using stdJson for string;
 
-    uint256 internal deployerPrivateKey;
-    address internal DEPLOYER;
-    address internal GOVERNOR;
-
     // deployed
     SelfPeggingAssetFactory internal factory;
     address internal selfPeggingAssetBeacon;
