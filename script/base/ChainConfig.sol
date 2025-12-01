@@ -86,6 +86,7 @@ contract ChainConfig is Script {
     // Track current network and environment for config loading
     string internal currentNetwork;
     string internal currentEnvironment;
+    string internal currentVersion = "1.0.1";
 
     /**
      * @notice Load chain configuration from JSON file
@@ -96,22 +97,22 @@ contract ChainConfig is Script {
         currentNetwork = networkName;
         currentEnvironment = environment;
 
-        string memory chainPath = string.concat("./script/configs/chains/", environment, "/", networkName, ".json");
+        string memory chainPath = string.concat("./script/configs/", networkName, ".json");
         string memory chainJson = vm.readFile(chainPath);
 
-        // Load basic chain data
-        chainData.chainId = chainJson.readUint(".chainId");
-        chainData.name = chainJson.readString(".name");
-        chainData.rpcUrl = chainJson.readString(".rpcUrl");
+        string memory basePath = string.concat(".versions.", currentVersion);
 
-        // Load sequencer if exists (only for L2s)
-        if (vm.keyExists(chainJson, ".oracles.sequencer")) {
-            chainData.sequencer = chainJson.readAddress(".oracles.sequencer");
+        chainData.chainId = chainJson.readUint(string.concat(basePath, ".chainId"));
+        chainData.name = chainJson.readString(string.concat(basePath, ".name"));
+        chainData.rpcUrl = chainJson.readString(string.concat(basePath, ".rpcUrl"));
+
+        if (vm.keyExists(chainJson, string.concat(basePath, ".oracles.sequencer"))) {
+            chainData.sequencer = chainJson.readAddress(string.concat(basePath, ".oracles.sequencer"));
         } else {
             chainData.sequencer = address(0);
         }
 
-        console2.log("Loaded config for:", networkName);
+        console2.log("Loaded config for:", networkName, "version:", currentVersion);
         console2.log("Loaded chain ID:", chainData.chainId);
     }
 
@@ -126,15 +127,12 @@ contract ChainConfig is Script {
             return chainData.tokens[tokenKey];
         }
 
-        // Load from JSON
-        string memory chainPath =
-            string.concat("./script/configs/chains/", currentEnvironment, "/", currentNetwork, ".json");
+        string memory chainPath = string.concat("./script/configs/", currentNetwork, ".json");
         string memory chainJson = vm.readFile(chainPath);
-        string memory tokenPath = string.concat(".tokens.", tokenKey);
+        string memory tokenPath = string.concat(".versions.", currentVersion, ".tokens.", tokenKey);
 
         address tokenAddress = chainJson.readAddress(tokenPath);
         chainData.tokens[tokenKey] = tokenAddress;
-
         return tokenAddress;
     }
 
@@ -143,12 +141,11 @@ contract ChainConfig is Script {
      * @return Factory defaults for this chain
      */
     function loadFactoryDefaults() internal view returns (FactoryDefaults memory) {
-        string memory chainPath =
-            string.concat("./script/configs/chains/", currentEnvironment, "/", currentNetwork, ".json");
+        string memory chainPath = string.concat("./script/configs/", currentNetwork, ".json");
         string memory chainJson = vm.readFile(chainPath);
 
         FactoryDefaults memory defaults;
-        string memory basePath = ".factoryDefaults";
+        string memory basePath = string.concat(".versions.", currentVersion, ".factoryDefaults");
 
         defaults.mintFee = chainJson.readUint(string.concat(basePath, ".mintFee"));
         defaults.swapFee = chainJson.readUint(string.concat(basePath, ".swapFee"));
@@ -168,13 +165,13 @@ contract ChainConfig is Script {
      * @param environment The environment ("mainnet" or "testnet")
      */
     function loadPoolConfigs(string memory networkName, string memory environment) internal {
-        string memory poolPath = string.concat("./script/configs/pools/", environment, "/", networkName, "-pools.json");
+        string memory poolPath = string.concat("./script/configs/", networkName, ".json");
         string memory poolJson = vm.readFile(poolPath);
 
         // Load pools by iterating until we hit an error
         uint256 i = 0;
         while (true) {
-            string memory basePath = string.concat(".pools[", vm.toString(i), "]");
+            string memory basePath = string.concat(".versions.", currentVersion, ".pools[", vm.toString(i), "]");
 
             // Check if this index exists
             if (!vm.keyExists(poolJson, string.concat(basePath, ".name"))) {
@@ -190,6 +187,7 @@ contract ChainConfig is Script {
             // Load oracle configurations (optional - only for Oracle token types)
             pool.tokenAOracle = _loadOracleConfig(poolJson, string.concat(basePath, ".tokenAOracle"));
             pool.tokenBOracle = _loadOracleConfig(poolJson, string.concat(basePath, ".tokenBOracle"));
+
             pool.enabled = poolJson.readBool(string.concat(basePath, ".enabled"));
             pool.description = poolJson.readString(string.concat(basePath, ".description"));
 
@@ -279,20 +277,7 @@ contract ChainConfig is Script {
     }
 
     /**
-     * @notice Helper to get array length from JSON bytes
-     */
-    function _getArrayLength(bytes memory data) private pure returns (uint256) {
-        // Decode as a dynamic array to get length
-        // The first 32 bytes contain the array length
-        uint256 len;
-        assembly {
-            len := mload(add(data, 0x20))
-        }
-        return len;
-    }
-
-    /**
-     * @notice Get configured chain ID from loaded config
+     * View helpers
      */
     function getConfiguredChainId() internal view returns (uint256) {
         return chainData.chainId;
