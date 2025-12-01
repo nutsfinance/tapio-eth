@@ -39,22 +39,14 @@ wrap_comments = true
 single_line_statement_blocks = "preserve"
 
 [rpc_endpoints]
-arbitrum = "https://arb1.arbitrum.io/rpc"
-base = "https://mainnet.base.org"
-mainnet = "https://ethereum.blockpi.network/v1/rpc/public"
-optimism = "https://mainnet.optimism.io"
-sepolia = "https://ethereum-sepolia.blockpi.network/v1/rpc/public"
-basesepolia = "https://sepolia.base.org"
-arbitrumsepolia = "https://sepolia-rollup.arbitrum.io/rpc"
-opsepolia = "https://sepolia.optimism.io"
-monadtestnet = "https://testnet-rpc.monad.xyz"
-bera-bepolia = "https://bepolia.rpc.berachain.com"
-hyper-testnet = "https://rpc.hyperliquid-testnet.xyz/evm"
+mainnet = "${MAINNET_RPC}"
+optimism = "${OPTIMISM_RPC}"
+arbitrum = "${ARBITRUM_RPC}"
+base = "${BASE_RPC}"
 
 [etherscan]
-arbitrumsepolia = { key = "${ETHERSCAN_ARBITRUM_KEY}", chain = 421614 }
-basesepolia = { key = "${ETHERSCAN_BASE_KEY}", chain = 84532 }
-opsepolia = { key = "${ETHERSCAN_OP_KEY}", chain = 11155420 }
-arbitrum = { key = "${ETHERSCAN_ARBITRUM_KEY}", chain = 42161 }
-base = { key = "${ETHERSCAN_BASE_KEY}", chain = 8453 }
-optimism = { key = "${ETHERSCAN_OP_KEY}", chain = 10 }
+mainnet = { key = "${ETHERSCAN_V2_KEY}", chain = 1 }
+arbitrum = { key = "${ETHERSCAN_V2_KEY}", chain = 42161 }
+optimism = { key = "${ETHERSCAN_V2_KEY}", chain = 10 }
+base = { key = "${ETHERSCAN_V2_KEY}", chain = 8453 }
+basesepolia = { key = "${ETHERSCAN_V2_KEY}", chain = 84532 }
