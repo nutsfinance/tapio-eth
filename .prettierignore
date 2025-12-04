@@ -14,3 +14,5 @@ lcov.info
 package-lock.json
 pnpm-lock.yaml
 yarn.lock
+
+test/utils

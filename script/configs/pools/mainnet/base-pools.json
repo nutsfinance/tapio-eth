@@ -1,0 +1,36 @@
+{
+  "pools": [
+    {
+      "name": "weETHwstETH",
+      "description": "WEETH/WSTETH ETH Pool",
+      "enabled": true,
+      "tokenA": "weeth",
+      "tokenB": "wsteth",
+      "tokenAType": "Oracle",
+      "tokenBType": "Oracle",
+      "tokenAOracle": {
+        "type": "chainlink",
+        "feeds": [{ "feed": "0x35e9D7001819Ea3B39Da906aE6b06A62cfe2c181", "heartbeat": "84600", "decimals": "18" }]
+      },
+      "tokenBOracle": {
+        "type": "chainlink",
+        "feeds": [{ "feed": "0xB88BAc61a4Ca37C43a3725912B1f472c9A5bc061", "heartbeat": "84600", "decimals": "18" }]
+      },
+      "spa": {
+        "mintFee": 0,
+        "swapFee": 5000000,
+        "redeemFee": 0,
+        "offPegFeeMultiplier": 10000000000,
+        "A": 100,
+        "minRampTime": 1800,
+        "exchangeRateFeeFactor": 0,
+        "bufferPercent": 1000000000
+      },
+      "initialMint": {
+        "enabled": true,
+        "amountTokenA": "10000000000000",
+        "amountTokenB": "10000000000000"
+      }
+    }
+  ]
+}
